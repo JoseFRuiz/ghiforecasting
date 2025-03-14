@@ -1,16 +1,8 @@
-import pandas as pd
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-# Replace with your file ID
-file_id = "1O-dOOvSbkTwUv1Qyh33RCzDcOh5GiL2y"
-url = f"https://drive.google.com/uc?id={file_id}"
-df = pd.read_csv(url)
-print(df.head())
+import tensorflow as tf
 
-
-file_id_locations = {
-    "Jaisalmer": {2017: "1O-dOOvSbkTwUv1Qyh33RCzDcOh5GiL2y",
-                  2018: "1JgIxhAck67nxXFAPrKHcX8Ql-w4wXXB_",
-                  2019: "1ayaT36iSigV5V7DG-haWVM8NO-kCfTv3"},
-}
-
-
+# Verify TensorFlow is using the CPU
+print("Devices available:", tf.config.list_physical_devices())
+print("Is built with CUDA:", tf.test.is_built_with_cuda())
