@@ -31,7 +31,22 @@ CONFIG = {
             2017: "18s0BoJdrSlnqv7mI5jqIcD3NYvl5CNpw",
             2018: "18pspcKFTaTo94DNn8qoRbR252znQbZ04", 
             2019: "18p_xr2ewN7Sqf2kRkV0buWsXgyD4dWOS"
-        }
+        },
+        "New Delhi": {
+            2017: "1972ErnUOXb-Z-QzYLTjRJhIdYS3Kgl6_",
+            2018: "192p04Rc5F2yGAFjCdc-0G4YrECjZnwfz", 
+            2019: "191jSccrBqmcQyVuwhjLnbn2iEIa6Y0hC"
+        },
+        "Shimla": {
+            2017: "19MmMPJXihn4tQZiIIH7jC4MIJtTkQ39W",
+            2018: "19KLWzCzmAE1mFAC1mOYu6ENS3Lkr-C-8", 
+            2019: "19GyRRmqlUaVvLPSvCCFh7Y18FJz5k03B"
+        },
+        "Srinagar": {
+            2017: "19Vf7YBXyK2CcFaNoY88PCoy6wl5BlbyN",
+            2018: "19TIzqgh0F2bc1NxpYUEJJ_yITViPO01P", 
+            2019: "19YPkh-yYam6a_G--8axdiejmKomIjnmz"
+        }        
     },
     "model_params": {
         "lstm_units": [64, 32],
@@ -54,19 +69,20 @@ def setup_experiment():
         workspace=None
     )
 
-def load_data(locations):
+def load_data(locations, city):
     """
-    Load and preprocess the GHI data from multiple years.
+    Load and preprocess the GHI data from multiple years for a specific city.
     
     Args:
-        locations (dict): Dictionary containing file IDs for different years
+        locations (dict): Dictionary containing file IDs for different cities and years
+        city (str): Name of the city to load data for
     
     Returns:
         pd.DataFrame: Processed and concatenated DataFrame
     """
     try:
         file_paths = [
-            f"https://drive.google.com/uc?id={locations['Jaisalmer'][year]}"
+            f"https://drive.google.com/uc?id={locations[city][year]}"
             for year in [2017, 2018, 2019]
         ]
         
@@ -79,7 +95,7 @@ def load_data(locations):
         
         return df
     except Exception as e:
-        print(f"Error loading data: {str(e)}")
+        print(f"Error loading data for {city}: {str(e)}")
         raise
 
 def create_features(df):
@@ -229,105 +245,114 @@ def main():
     np.random.seed(CONFIG["random_seed"])
     tf.random.set_seed(CONFIG["random_seed"])
     
-    # Initialize experiment tracking
-    experiment = setup_experiment()
-    
-    try:
-        # Load and process data
-        print("Loading and processing data...")
-        df = load_data(CONFIG["data_locations"])
-        df = create_features(df)
+    # Iterate through each city
+    for city in CONFIG["data_locations"].keys():
+        print(f"\n{'='*50}")
+        print(f"Processing {city}")
+        print(f"{'='*50}\n")
         
-        # Split and scale data
-        print("Preparing train/val/test splits...")
-        (X_train, y_train, X_val, y_val, X_test, y_test), ghi_scaler = split_and_scale_data(df)
+        # Initialize experiment tracking for this city
+        experiment = setup_experiment()
+        experiment.set_name(f"GHI_Forecasting_{city}")  # Set unique name for each city's experiment
         
-        # Log dataset sizes
-        experiment.log_parameters({
-            "train_size": len(X_train),
-            "val_size": len(X_val),
-            "test_size": len(X_test),
-            "feature_count": X_train.shape[2]
-        })
-        
-        # Create and train model
-        print("Training model...")
-        model = create_model((X_train.shape[1], X_train.shape[2]))
-        
-        # Log model architecture
-        experiment.log_parameter("model_summary", str(model.summary()))
-        
-        history = model.fit(
-            X_train, y_train,
-            epochs=CONFIG["model_params"]["epochs"],
-            batch_size=CONFIG["model_params"]["batch_size"],
-            validation_data=(X_val, y_val),
-            verbose=1
-        )
-        
-        # Save model
-        model_path = os.path.join("models", "lstm_ghi_forecast.h5")
-        os.makedirs("models", exist_ok=True)
-        model.save(model_path)
-        
-        # Evaluate on test set
-        print("Evaluating model...")
-        y_pred = model.predict(X_test)
-        
-        # Rescale predictions
-        y_pred_rescaled = ghi_scaler.inverse_transform(
-            np.c_[y_pred, np.zeros((len(y_pred), 24))]
-        )[:, 0]
-        y_test_rescaled = ghi_scaler.inverse_transform(
-            np.c_[y_test, np.zeros((len(y_test), 24))]
-        )[:, 0]
-        
-        # Calculate and log metrics
-        metrics = evaluate_model(y_test_rescaled, y_pred_rescaled)
-        
-        # Create DataFrame for metrics table
-        metrics_df = pd.DataFrame({
-            'Metric': list(metrics.keys()),
-            'Value': list(metrics.values())
-        })
-        
-        # Log metrics table
-        experiment.log_table(
-            "model_metrics.csv",
-            metrics_df
-        )
-        
-        # Log individual metrics
-        for metric_name, metric_value in metrics.items():
-            experiment.log_metric(metric_name, metric_value)
-        
-        # Log training history
-        for epoch, (loss, val_loss) in enumerate(zip(history.history['loss'], 
-                                                    history.history['val_loss'])):
-            experiment.log_metrics({
-                "training_loss": loss,
-                "validation_loss": val_loss
-            }, step=epoch)
-        
-        # Create and log loss plot
-        loss_fig = plot_loss_history(history)
-        experiment.log_figure(figure_name="loss_history", figure=loss_fig)
-        plt.close()
-        
-        # Create and log predictions plot
-        pred_fig = plot_results(y_test_rescaled, y_pred_rescaled)
-        experiment.log_figure(figure_name="predictions", figure=pred_fig)
-        plt.close()
-        
-        print("Results:")
-        for metric_name, metric_value in metrics.items():
-            print(f"✅ {metric_name}: {metric_value:.4f}")
-        
-    except Exception as e:
-        print(f"Error during execution: {str(e)}")
-        raise
-    finally:
-        experiment.end()
+        try:
+            # Load and process data
+            print(f"Loading and processing data for {city}...")
+            df = load_data(CONFIG["data_locations"], city)
+            df = create_features(df)
+            
+            # Split and scale data
+            print("Preparing train/val/test splits...")
+            (X_train, y_train, X_val, y_val, X_test, y_test), ghi_scaler = split_and_scale_data(df)
+            
+            # Log dataset sizes and city information
+            experiment.log_parameters({
+                "city": city,
+                "train_size": len(X_train),
+                "val_size": len(X_val),
+                "test_size": len(X_test),
+                "feature_count": X_train.shape[2]
+            })
+            
+            # Create and train model
+            print(f"Training model for {city}...")
+            model = create_model((X_train.shape[1], X_train.shape[2]))
+            
+            # Log model architecture
+            experiment.log_parameter("model_summary", str(model.summary()))
+            
+            history = model.fit(
+                X_train, y_train,
+                epochs=CONFIG["model_params"]["epochs"],
+                batch_size=CONFIG["model_params"]["batch_size"],
+                validation_data=(X_val, y_val),
+                verbose=1
+            )
+            
+            # Save model with city-specific name
+            model_path = os.path.join("models", f"lstm_ghi_forecast_{city}.h5")
+            os.makedirs("models", exist_ok=True)
+            model.save(model_path)
+            
+            # Evaluate on test set
+            print(f"Evaluating model for {city}...")
+            y_pred = model.predict(X_test)
+            
+            # Rescale predictions
+            y_pred_rescaled = ghi_scaler.inverse_transform(
+                np.c_[y_pred, np.zeros((len(y_pred), 24))]
+            )[:, 0]
+            y_test_rescaled = ghi_scaler.inverse_transform(
+                np.c_[y_test, np.zeros((len(y_test), 24))]
+            )[:, 0]
+            
+            # Calculate and log metrics
+            metrics = evaluate_model(y_test_rescaled, y_pred_rescaled)
+            
+            # Create DataFrame for metrics table
+            metrics_df = pd.DataFrame({
+                'Metric': list(metrics.keys()),
+                'Value': list(metrics.values())
+            })
+            
+            # Log metrics table
+            experiment.log_table(
+                f"model_metrics_{city}.csv",
+                metrics_df
+            )
+            
+            # Log individual metrics with city tag
+            for metric_name, metric_value in metrics.items():
+                experiment.log_metric(f"{city}_{metric_name}", metric_value)
+            
+            # Log training history
+            for epoch, (loss, val_loss) in enumerate(zip(history.history['loss'], 
+                                                        history.history['val_loss'])):
+                experiment.log_metrics({
+                    f"{city}_training_loss": loss,
+                    f"{city}_validation_loss": val_loss
+                }, step=epoch)
+            
+            # Create and log loss plot
+            loss_fig = plot_loss_history(history)
+            experiment.log_figure(figure_name=f"loss_history_{city}", figure=loss_fig)
+            plt.close()
+            
+            # Create and log predictions plot
+            pred_fig = plot_results(y_test_rescaled, y_pred_rescaled, 
+                                  title=f"LSTM Model: Predicted vs. True GHI - {city}")
+            experiment.log_figure(figure_name=f"predictions_{city}", figure=pred_fig)
+            plt.close()
+            
+            print(f"\nResults for {city}:")
+            for metric_name, metric_value in metrics.items():
+                print(f"✅ {metric_name}: {metric_value:.4f}")
+            
+        except Exception as e:
+            print(f"Error processing {city}: {str(e)}")
+            continue
+        finally:
+            experiment.end()
 
 if __name__ == "__main__":
     main() 
