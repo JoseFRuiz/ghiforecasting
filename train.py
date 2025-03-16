@@ -13,7 +13,7 @@ from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.losses import MeanSquaredError
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import matplotlib.pyplot as plt
 
 # Configuration
@@ -26,6 +26,11 @@ CONFIG = {
             2017: "1O-dOOvSbkTwUv1Qyh33RCzDcOh5GiL2y",
             2018: "1JgIxhAck67nxXFAPrKHcX8Ql-w4wXXB_",
             2019: "1ayaT36iSigV5V7DG-haWVM8NO-kCfTv3"
+        },
+        "Jodhpur": {
+            2017: "18s0BoJdrSlnqv7mI5jqIcD3NYvl5CNpw",
+            2018: "18pspcKFTaTo94DNn8qoRbR252znQbZ04", 
+            2019: "18p_xr2ewN7Sqf2kRkV0buWsXgyD4dWOS"
         }
     },
     "model_params": {
@@ -168,7 +173,17 @@ def create_model(input_shape):
     return model
 
 def plot_results(y_true, y_pred, title="LSTM Model: Predicted vs. True GHI"):
-    """Plot comparison of predicted vs true values."""
+    """
+    Plot comparison of predicted vs true values.
+    
+    Args:
+        y_true: True GHI values
+        y_pred: Predicted GHI values
+        title: Plot title
+        
+    Returns:
+        matplotlib.figure.Figure: The figure object
+    """
     plt.figure(figsize=(10, 5))
     plt.plot(y_true[:100], label="True GHI", marker="o", linestyle="-")
     plt.plot(y_pred[:100], label="Predicted GHI (LSTM)", marker="s", linestyle="--")
@@ -176,7 +191,37 @@ def plot_results(y_true, y_pred, title="LSTM Model: Predicted vs. True GHI"):
     plt.ylabel("GHI (W/m²)")
     plt.title(title)
     plt.legend()
-    plt.show()
+    return plt.gcf()
+
+def evaluate_model(y_true, y_pred):
+    """
+    Calculate various metrics for model evaluation.
+    
+    Args:
+        y_true: True values
+        y_pred: Predicted values
+    
+    Returns:
+        dict: Dictionary containing evaluation metrics
+    """
+    metrics = {
+        "Mean Absolute Error": float(mean_absolute_error(y_true, y_pred)),
+        "Mean Squared Error": float(mean_squared_error(y_true, y_pred)),
+        "Root Mean Squared Error": float(np.sqrt(mean_squared_error(y_true, y_pred))),
+        "R² Score": float(r2_score(y_true, y_pred))
+    }
+    return metrics
+
+def plot_loss_history(history):
+    """Plot training and validation loss history."""
+    plt.figure(figsize=(10, 6))
+    plt.plot(history.history['loss'], label='Training Loss')
+    plt.plot(history.history['val_loss'], label='Validation Loss')
+    plt.title('Model Loss Over Time')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    return plt.gcf()
 
 def main():
     """Main execution function."""
@@ -197,9 +242,20 @@ def main():
         print("Preparing train/val/test splits...")
         (X_train, y_train, X_val, y_val, X_test, y_test), ghi_scaler = split_and_scale_data(df)
         
+        # Log dataset sizes
+        experiment.log_parameters({
+            "train_size": len(X_train),
+            "val_size": len(X_val),
+            "test_size": len(X_test),
+            "feature_count": X_train.shape[2]
+        })
+        
         # Create and train model
         print("Training model...")
         model = create_model((X_train.shape[1], X_train.shape[2]))
+        
+        # Log model architecture
+        experiment.log_parameter("model_summary", str(model.summary()))
         
         history = model.fit(
             X_train, y_train,
@@ -226,15 +282,46 @@ def main():
             np.c_[y_test, np.zeros((len(y_test), 24))]
         )[:, 0]
         
-        # Calculate metrics
-        mae = mean_absolute_error(y_test_rescaled, y_pred_rescaled)
-        print(f"✅ Final MAE on Unseen Test Data (H2 2019): {mae:.2f} W/m²")
+        # Calculate and log metrics
+        metrics = evaluate_model(y_test_rescaled, y_pred_rescaled)
         
-        # Log metrics to Comet.ml
-        experiment.log_metric("test_mae", mae)
+        # Create DataFrame for metrics table
+        metrics_df = pd.DataFrame({
+            'Metric': list(metrics.keys()),
+            'Value': list(metrics.values())
+        })
         
-        # Plot results
-        plot_results(y_test_rescaled, y_pred_rescaled)
+        # Log metrics table
+        experiment.log_table(
+            "model_metrics.csv",
+            metrics_df
+        )
+        
+        # Log individual metrics
+        for metric_name, metric_value in metrics.items():
+            experiment.log_metric(metric_name, metric_value)
+        
+        # Log training history
+        for epoch, (loss, val_loss) in enumerate(zip(history.history['loss'], 
+                                                    history.history['val_loss'])):
+            experiment.log_metrics({
+                "training_loss": loss,
+                "validation_loss": val_loss
+            }, step=epoch)
+        
+        # Create and log loss plot
+        loss_fig = plot_loss_history(history)
+        experiment.log_figure(figure_name="loss_history", figure=loss_fig)
+        plt.close()
+        
+        # Create and log predictions plot
+        pred_fig = plot_results(y_test_rescaled, y_pred_rescaled)
+        experiment.log_figure(figure_name="predictions", figure=pred_fig)
+        plt.close()
+        
+        print("Results:")
+        for metric_name, metric_value in metrics.items():
+            print(f"✅ {metric_name}: {metric_value:.4f}")
         
     except Exception as e:
         print(f"Error during execution: {str(e)}")
