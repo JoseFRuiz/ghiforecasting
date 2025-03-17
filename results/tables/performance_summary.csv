@@ -1,0 +1,5 @@
+Metric,City,Value,Description
+Best R² Score,Jaisalmer,0.9228927989621292,Best R² Score achieved by Jaisalmer
+Worst R² Score,New Delhi,0.7231596034697774,Lowest R² Score from New Delhi
+Best RMSE,Jaisalmer,82.64119070053903,Best RMSE achieved by Jaisalmer
+Worst RMSE,New Delhi,133.11427273059277,Highest RMSE from New Delhi
