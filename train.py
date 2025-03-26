@@ -219,7 +219,7 @@ def load_data(locations, city):
 
 def create_features(df):
     """
-    Create time-based features and GHI lag features.
+    Create time-based features and lag features for both GHI and meteorological variables.
     """
     print("\nCreating features...")
     print(f"Initial shape: {df.shape}")
@@ -237,7 +237,18 @@ def create_features(df):
     # Create lag features for previous 24 hours of GHI
     for lag in range(1, 25):
         df[f"GHI_lag_{lag}"] = df["GHI"].shift(lag)
-    print("Created lag features")
+    print("Created GHI lag features")
+    
+    # Create lag features for meteorological variables
+    meteorological_features = [
+        "Temperature", "Relative Humidity", "Pressure",
+        "Precipitable Water", "Wind Direction", "Wind Speed"
+    ]
+    
+    # Create 24-hour lag for each meteorological feature
+    for feature in meteorological_features:
+        df[f"{feature}_lag_24"] = df[feature].shift(24)
+    print("Created meteorological lag features")
     
     # Drop rows where we don't have complete data
     df_clean = df.dropna().reset_index(drop=True)
@@ -265,8 +276,8 @@ def split_and_scale_data(df):
     # Define feature groups
     ghi_features = ["GHI"] + [f"GHI_lag_{lag}" for lag in range(1, 25)]
     meteorological_features = [
-        "Temperature", "Relative Humidity", "Pressure",
-        "Precipitable Water", "Wind Direction", "Wind Speed"
+        "Temperature_lag_24", "Relative Humidity_lag_24", "Pressure_lag_24",
+        "Precipitable Water_lag_24", "Wind Direction_lag_24", "Wind Speed_lag_24"
     ]
     
     print("\nScaling features...")
@@ -375,7 +386,7 @@ def plot_results(y_true, y_pred, title="LSTM Model: Predicted vs. True GHI"):
 
 def evaluate_model(y_true, y_pred):
     """
-    Calculate various metrics for model evaluation.
+    Calculate various metrics for model evaluation, excluding zero GHI values.
     
     Args:
         y_true: True values
@@ -384,12 +395,32 @@ def evaluate_model(y_true, y_pred):
     Returns:
         dict: Dictionary containing evaluation metrics
     """
+    # Create mask for non-zero true GHI values
+    non_zero_mask = y_true > 0
+    
+    # Filter out zero values
+    y_true_nonzero = y_true[non_zero_mask]
+    y_pred_nonzero = y_pred[non_zero_mask]
+    
+    # Calculate metrics only for non-zero periods
     metrics = {
-        "Mean Absolute Error": float(mean_absolute_error(y_true, y_pred)),
-        "Mean Squared Error": float(mean_squared_error(y_true, y_pred)),
-        "Root Mean Squared Error": float(np.sqrt(mean_squared_error(y_true, y_pred))),
-        "R² Score": float(r2_score(y_true, y_pred))
+        "Mean Absolute Error (Non-zero)": float(mean_absolute_error(y_true_nonzero, y_pred_nonzero)),
+        "Mean Squared Error (Non-zero)": float(mean_squared_error(y_true_nonzero, y_pred_nonzero)),
+        "Root Mean Squared Error (Non-zero)": float(np.sqrt(mean_squared_error(y_true_nonzero, y_pred_nonzero))),
+        "R² Score (Non-zero)": float(r2_score(y_true_nonzero, y_pred_nonzero))
     }
+    
+    # Also calculate percentage of non-zero values
+    metrics["Non-zero Values Percentage"] = float(100 * len(y_true_nonzero) / len(y_true))
+    
+    # Optionally, you might want to keep the original metrics for comparison
+    metrics.update({
+        "Mean Absolute Error (All)": float(mean_absolute_error(y_true, y_pred)),
+        "Mean Squared Error (All)": float(mean_squared_error(y_true, y_pred)),
+        "Root Mean Squared Error (All)": float(np.sqrt(mean_squared_error(y_true, y_pred))),
+        "R² Score (All)": float(r2_score(y_true, y_pred))
+    })
+    
     return metrics
 
 def plot_loss_history(history):
