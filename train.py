@@ -256,9 +256,21 @@ def create_features(df):
     print(f"Features created: {df_clean.columns.tolist()}")
     return df_clean
 
-def split_and_scale_data(df):
+def split_and_scale_data(df, feature_combination="all"):
     """
     Split data into train/val/test sets and scale features.
+    
+    Args:
+        df: DataFrame containing the data
+        feature_combination: String specifying which features to use
+            - "ghi_only": Only GHI lag features
+            - "ghi_temp": GHI + Temperature
+            - "ghi_humidity": GHI + Relative Humidity
+            - "ghi_pressure": GHI + Pressure
+            - "ghi_precip": GHI + Precipitable Water
+            - "ghi_wind_dir": GHI + Wind Direction
+            - "ghi_wind_speed": GHI + Wind Speed
+            - "all": All features (default)
     """
     print("\nSplitting and scaling data...")
     
@@ -275,14 +287,29 @@ def split_and_scale_data(df):
     
     # Define feature groups
     ghi_features = ["GHI"] + [f"GHI_lag_{lag}" for lag in range(1, 25)]
-    meteorological_features = [
-        "Temperature_lag_24", "Relative Humidity_lag_24", "Pressure_lag_24",
-        "Precipitable Water_lag_24", "Wind Direction_lag_24", "Wind Speed_lag_24"
-    ]
+    meteorological_features = {
+        "Temperature": ["Temperature_lag_24"],
+        "Relative Humidity": ["Relative Humidity_lag_24"],
+        "Pressure": ["Pressure_lag_24"],
+        "Precipitable Water": ["Precipitable Water_lag_24"],
+        "Wind Direction": ["Wind Direction_lag_24"],
+        "Wind Speed": ["Wind Speed_lag_24"]
+    }
     
-    print("\nScaling features...")
-    print(f"GHI features: {ghi_features}")
-    print(f"Meteorological features: {meteorological_features}")
+    # Select features based on combination
+    if feature_combination == "ghi_only":
+        selected_features = ghi_features
+        print("\nUsing only GHI features")
+    elif feature_combination in meteorological_features:
+        selected_features = ghi_features + meteorological_features[feature_combination]
+        print(f"\nUsing GHI + {feature_combination} features")
+    elif feature_combination == "all":
+        selected_features = ghi_features + [f for features in meteorological_features.values() for f in features]
+        print("\nUsing all features")
+    else:
+        raise ValueError(f"Invalid feature combination: {feature_combination}")
+    
+    print(f"Selected features: {selected_features}")
     
     try:
         # Initialize scalers
@@ -294,24 +321,35 @@ def split_and_scale_data(df):
         for df_split in [df_train, df_val, df_test]:
             if df_split is df_train:
                 print("\nFitting and transforming training data...")
-                # Scale GHI and lag features
+                # Scale GHI features
                 df_split.loc[:, ghi_features] = ghi_scaler.fit_transform(df_split[ghi_features])
-                # Scale meteorological features
-                df_split.loc[:, meteorological_features] = meteorological_scaler.fit_transform(df_split[meteorological_features])
-                # Scale target separately - reshape to 2D array for scaling
+                
+                # Scale meteorological features if needed
+                if feature_combination != "ghi_only":
+                    met_features = [f for f in selected_features if f not in ghi_features]
+                    if met_features:
+                        df_split.loc[:, met_features] = meteorological_scaler.fit_transform(df_split[met_features])
+                
+                # Scale target
                 target_values = df_split["target_GHI"].values.reshape(-1, 1)
                 df_split.loc[:, "target_GHI"] = target_scaler.fit_transform(target_values).ravel()
             else:
                 print("\nTransforming validation/test data...")
                 # Transform using fitted scalers
                 df_split.loc[:, ghi_features] = ghi_scaler.transform(df_split[ghi_features])
-                df_split.loc[:, meteorological_features] = meteorological_scaler.transform(df_split[meteorological_features])
-                # Transform target - reshape to 2D array for scaling
+                
+                # Transform meteorological features if needed
+                if feature_combination != "ghi_only":
+                    met_features = [f for f in selected_features if f not in ghi_features]
+                    if met_features:
+                        df_split.loc[:, met_features] = meteorological_scaler.transform(df_split[met_features])
+                
+                # Transform target
                 target_values = df_split["target_GHI"].values.reshape(-1, 1)
                 df_split.loc[:, "target_GHI"] = target_scaler.transform(target_values).ravel()
         
         # Prepare features for LSTM
-        feature_columns = [col for col in df_train.columns 
+        feature_columns = [col for col in selected_features 
                           if col not in ["datetime", "GHI", "target_GHI", "Year", "Month", "Day", "Hour", "Minute"]]
         
         print(f"\nFeature columns for LSTM: {feature_columns}")
@@ -590,7 +628,19 @@ def main():
     os.makedirs("plots", exist_ok=True)
     os.makedirs("tables", exist_ok=True)
     
-    # Dictionary to store results for all cities
+    # Define feature combinations to test
+    feature_combinations = [
+        "ghi_only",
+        "Temperature",
+        "Relative Humidity",
+        "Pressure",
+        "Precipitable Water",
+        "Wind Direction",
+        "Wind Speed",
+        "all"
+    ]
+    
+    # Dictionary to store results for all cities and feature combinations
     all_results = {
         'metrics': {},
         'histories': {},
@@ -601,7 +651,7 @@ def main():
     try:
         master_experiment = setup_experiment()
         if master_experiment:
-            master_experiment.set_name("GHI_Forecasting_Comparative_Analysis")
+            master_experiment.set_name("GHI_Forecasting_Feature_Comparison")
             print("✓ Master experiment created successfully")
     except Exception as e:
         print(f"× Warning: Could not create master experiment: {str(e)}")
@@ -614,175 +664,190 @@ def main():
     
     print(f"\nStarting analysis for {total_cities} cities...")
     
-    # Iterate through each city
+    # Iterate through each city and feature combination
     for city in CONFIG["data_locations"].keys():
         processed_cities += 1
         print(f"\n{'='*50}")
         print(f"Processing city {processed_cities}/{total_cities}: {city}")
         print(f"{'='*50}\n")
         
-        city_experiment = None
-        try:
-            # Try to set up experiment for this city
-            try:
-                city_experiment = setup_experiment()
-                if city_experiment:
-                    city_experiment.set_name(f"GHI_Forecasting_{city}")
-                    print(f"✓ Created experiment for {city}")
-            except Exception as e:
-                print(f"× Warning: Could not create experiment for {city}: {str(e)}")
+        city_results = {
+            'metrics': {},
+            'histories': {},
+            'predictions': {}
+        }
+        
+        for feature_combo in feature_combinations:
+            print(f"\nTesting feature combination: {feature_combo}")
             
-            # Load and process data
-            print(f"\nStep 1: Loading data for {city}...")
+            city_experiment = None
             try:
-                df = load_data(CONFIG["data_locations"], city)
-                print("✓ Data loaded successfully")
-            except Exception as e:
-                print(f"× Error loading data: {str(e)}")
-                raise
-            
-            print(f"\nStep 2: Creating features...")
-            try:
-                df = create_features(df)
-                print("✓ Features created successfully")
-            except Exception as e:
-                print(f"× Error creating features: {str(e)}")
-                raise
-            
-            # Split and scale data
-            print("\nStep 3: Preparing data splits...")
-            try:
-                (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler = split_and_scale_data(df)
-                print("✓ Data split and scaled successfully")
-            except Exception as e:
-                print(f"× Error splitting/scaling data: {str(e)}")
-                raise
-            
-            # Log dataset info if experiment exists
-            if city_experiment:
+                # Try to set up experiment for this city and feature combination
                 try:
-                    city_experiment.log_parameters({
-                        "city": city,
-                        "train_size": len(X_train),
-                        "val_size": len(X_val),
-                        "test_size": len(X_test),
-                        "feature_count": X_train.shape[2]
-                    })
+                    city_experiment = setup_experiment()
+                    if city_experiment:
+                        city_experiment.set_name(f"GHI_Forecasting_{city}_{feature_combo}")
+                        print(f"✓ Created experiment for {city} with {feature_combo}")
                 except Exception as e:
-                    print(f"× Warning: Could not log parameters: {str(e)}")
-            
-            # Create and train model
-            print(f"\nStep 4: Creating model for {city}...")
-            try:
-                model = create_model((X_train.shape[1], X_train.shape[2]))
-                model.summary()
-                print("✓ Model created successfully")
-            except Exception as e:
-                print(f"× Error creating model: {str(e)}")
-                raise
-            
-            print("\nStep 5: Training model...")
-            try:
-                history = model.fit(
-                    X_train, y_train,
-                    epochs=CONFIG["model_params"]["epochs"],
-                    batch_size=CONFIG["model_params"]["batch_size"],
-                    validation_data=(X_val, y_val),
-                    verbose=1
-                )
-                print("✓ Model training completed")
-            except Exception as e:
-                print(f"× Error training model: {str(e)}")
-                raise
-            
-            # Save model
-            try:
-                model_path = os.path.join("models", f"lstm_ghi_forecast_{city}.h5")
-                model.save(model_path)
-                print(f"✓ Model saved to {model_path}")
-            except Exception as e:
-                print(f"× Warning: Could not save model: {str(e)}")
-            
-            # Evaluate on test set
-            print(f"\nStep 6: Evaluating model...")
-            try:
-                y_pred = model.predict(X_test)
-                y_pred_rescaled = target_scaler.inverse_transform(y_pred.reshape(-1, 1)).ravel()
-                y_test_rescaled = target_scaler.inverse_transform(y_test.reshape(-1, 1)).ravel()
-                print("✓ Predictions generated and rescaled")
-            except Exception as e:
-                print(f"× Error generating predictions: {str(e)}")
-                raise
-            
-            # Store results
-            all_results['predictions'][city] = {
-                'true': y_test_rescaled,
-                'pred': y_pred_rescaled
-            }
-            
-            # Calculate metrics
-            print("\nStep 7: Calculating metrics...")
-            try:
-                metrics = evaluate_model(y_test_rescaled, y_pred_rescaled)
-                all_results['metrics'][city] = metrics
-                all_results['histories'][city] = history
-                print("✓ Metrics calculated successfully")
+                    print(f"× Warning: Could not create experiment: {str(e)}")
                 
-                print(f"\nResults for {city}:")
-                for metric_name, metric_value in metrics.items():
-                    print(f"✅ {metric_name}: {metric_value:.4f}")
-            except Exception as e:
-                print(f"× Error calculating metrics: {str(e)}")
-                raise
-            
-            # Try to log results to Comet if available
-            if city_experiment:
+                # Load and process data
+                print(f"\nStep 1: Loading data for {city}...")
                 try:
-                    # Create and log plots
-                    loss_fig = plot_loss_history(history)
-                    city_experiment.log_figure(figure_name=f"loss_history_{city}", figure=loss_fig)
-                    plt.close()
-                    
-                    pred_fig = plot_results(y_test_rescaled, y_pred_rescaled, 
-                                          title=f"LSTM Model: Predicted vs. True GHI - {city}")
-                    city_experiment.log_figure(figure_name=f"predictions_{city}", figure=pred_fig)
-                    plt.close()
-                    
-                    # Log metrics
-                    metrics_df = pd.DataFrame({
-                        'Metric': list(metrics.keys()),
-                        'Value': list(metrics.values())
-                    })
-                    city_experiment.log_table(f"model_metrics_{city}.csv", metrics_df)
-                    
-                    for metric_name, metric_value in metrics.items():
-                        city_experiment.log_metric(f"{city}_{metric_name}", metric_value)
-                    
-                    print("✓ Results logged to Comet.ml")
+                    df = load_data(CONFIG["data_locations"], city)
+                    print("✓ Data loaded successfully")
                 except Exception as e:
-                    print(f"× Warning: Could not log results to Comet: {str(e)}")
-            
-            successful_cities += 1
-            print(f"\n✅ Successfully completed processing for {city}")
-            
-        except Exception as e:
-            print(f"\n❌ Error processing {city}:")
-            print(str(e))
-            import traceback
-            print("\nFull traceback:")
-            print(traceback.format_exc())
-            if city_experiment:
+                    print(f"× Error loading data: {str(e)}")
+                    raise
+                
+                print(f"\nStep 2: Creating features...")
                 try:
-                    city_experiment.log_other("status", f"failed - {str(e)}")
-                except:
-                    pass
-            continue
-        finally:
-            if city_experiment:
+                    df = create_features(df)
+                    print("✓ Features created successfully")
+                except Exception as e:
+                    print(f"× Error creating features: {str(e)}")
+                    raise
+                
+                # Split and scale data
+                print("\nStep 3: Preparing data splits...")
                 try:
-                    city_experiment.end()
-                except:
-                    pass
+                    (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler = split_and_scale_data(df, feature_combo)
+                    print("✓ Data split and scaled successfully")
+                except Exception as e:
+                    print(f"× Error splitting/scaling data: {str(e)}")
+                    raise
+                
+                # Log dataset info if experiment exists
+                if city_experiment:
+                    try:
+                        city_experiment.log_parameters({
+                            "city": city,
+                            "feature_combination": feature_combo,
+                            "train_size": len(X_train),
+                            "val_size": len(X_val),
+                            "test_size": len(X_test),
+                            "feature_count": X_train.shape[2]
+                        })
+                    except Exception as e:
+                        print(f"× Warning: Could not log parameters: {str(e)}")
+                
+                # Create and train model
+                print(f"\nStep 4: Creating model for {city}...")
+                try:
+                    model = create_model((X_train.shape[1], X_train.shape[2]))
+                    model.summary()
+                    print("✓ Model created successfully")
+                except Exception as e:
+                    print(f"× Error creating model: {str(e)}")
+                    raise
+                
+                print("\nStep 5: Training model...")
+                try:
+                    history = model.fit(
+                        X_train, y_train,
+                        epochs=CONFIG["model_params"]["epochs"],
+                        batch_size=CONFIG["model_params"]["batch_size"],
+                        validation_data=(X_val, y_val),
+                        verbose=1
+                    )
+                    print("✓ Model training completed")
+                except Exception as e:
+                    print(f"× Error training model: {str(e)}")
+                    raise
+                
+                # Save model
+                try:
+                    model_path = os.path.join("models", f"lstm_ghi_forecast_{city}_{feature_combo}.h5")
+                    model.save(model_path)
+                    print(f"✓ Model saved to {model_path}")
+                except Exception as e:
+                    print(f"× Warning: Could not save model: {str(e)}")
+                
+                # Evaluate on test set
+                print(f"\nStep 6: Evaluating model...")
+                try:
+                    y_pred = model.predict(X_test)
+                    y_pred_rescaled = target_scaler.inverse_transform(y_pred.reshape(-1, 1)).ravel()
+                    y_test_rescaled = target_scaler.inverse_transform(y_test.reshape(-1, 1)).ravel()
+                    print("✓ Predictions generated and rescaled")
+                except Exception as e:
+                    print(f"× Error generating predictions: {str(e)}")
+                    raise
+                
+                # Store results
+                city_results['predictions'][feature_combo] = {
+                    'true': y_test_rescaled,
+                    'pred': y_pred_rescaled
+                }
+                
+                # Calculate metrics
+                print("\nStep 7: Calculating metrics...")
+                try:
+                    metrics = evaluate_model(y_test_rescaled, y_pred_rescaled)
+                    city_results['metrics'][feature_combo] = metrics
+                    city_results['histories'][feature_combo] = history
+                    print("✓ Metrics calculated successfully")
+                    
+                    print(f"\nResults for {city} with {feature_combo}:")
+                    for metric_name, metric_value in metrics.items():
+                        print(f"✅ {metric_name}: {metric_value:.4f}")
+                except Exception as e:
+                    print(f"× Error calculating metrics: {str(e)}")
+                    raise
+                
+                # Try to log results to Comet if available
+                if city_experiment:
+                    try:
+                        # Create and log plots
+                        loss_fig = plot_loss_history(history)
+                        city_experiment.log_figure(figure_name=f"loss_history_{city}_{feature_combo}", figure=loss_fig)
+                        plt.close()
+                        
+                        pred_fig = plot_results(y_test_rescaled, y_pred_rescaled, 
+                                              title=f"LSTM Model: Predicted vs. True GHI - {city} ({feature_combo})")
+                        city_experiment.log_figure(figure_name=f"predictions_{city}_{feature_combo}", figure=pred_fig)
+                        plt.close()
+                        
+                        # Log metrics
+                        metrics_df = pd.DataFrame({
+                            'Metric': list(metrics.keys()),
+                            'Value': list(metrics.values())
+                        })
+                        city_experiment.log_table(f"model_metrics_{city}_{feature_combo}.csv", metrics_df)
+                        
+                        for metric_name, metric_value in metrics.items():
+                            city_experiment.log_metric(f"{city}_{feature_combo}_{metric_name}", metric_value)
+                        
+                        print("✓ Results logged to Comet.ml")
+                    except Exception as e:
+                        print(f"× Warning: Could not log results to Comet: {str(e)}")
+                
+                successful_cities += 1
+                print(f"\n✅ Successfully completed processing for {city} with {feature_combo}")
+                
+            except Exception as e:
+                print(f"\n❌ Error processing {city} with {feature_combo}:")
+                print(str(e))
+                import traceback
+                print("\nFull traceback:")
+                print(traceback.format_exc())
+                if city_experiment:
+                    try:
+                        city_experiment.log_other("status", f"failed - {str(e)}")
+                    except:
+                        pass
+                continue
+            finally:
+                if city_experiment:
+                    try:
+                        city_experiment.end()
+                    except:
+                        pass
+        
+        # Store results for this city
+        all_results['metrics'][city] = city_results['metrics']
+        all_results['histories'][city] = city_results['histories']
+        all_results['predictions'][city] = city_results['predictions']
     
     # Create comparative analysis only if we have results
     if successful_cities > 0:
@@ -795,73 +860,37 @@ def main():
             os.makedirs("results/tables", exist_ok=True)
             
             if len(all_results['metrics']) > 0:
-                # Create and save comparative metrics plots
-                for metric in next(iter(all_results['metrics'].values())).keys():
-                    fig = plot_comparative_metrics(all_results['metrics'], metric)
+                # Create and save comparative metrics plots for each feature combination
+                for city in all_results['metrics'].keys():
+                    for feature_combo in all_results['metrics'][city].keys():
+                        metrics = all_results['metrics'][city][feature_combo]
+                        for metric_name, metric_value in metrics.items():
+                            # Create plot comparing this metric across feature combinations
+                            fig = plot_comparative_metrics(
+                                {fc: all_results['metrics'][city][fc] for fc in feature_combinations},
+                                metric_name
+                            )
+                            # Save locally
+                            plot_path = f"results/plots/{city}_{metric_name.lower().replace(' ', '_')}.png"
+                            fig.savefig(plot_path, bbox_inches='tight', dpi=300)
+                            # Log to Comet
+                            if master_experiment:
+                                master_experiment.log_figure(f"{city}_{metric_name}", fig)
+                            plt.close(fig)
+                
+                # Create and save loss comparison plots
+                for city in all_results['histories'].keys():
+                    loss_comparison_fig = plot_loss_comparison(all_results['histories'][city])
                     # Save locally
-                    plot_path = f"results/plots/comparative_{metric.lower().replace(' ', '_')}.png"
-                    fig.savefig(plot_path, bbox_inches='tight', dpi=300)
+                    loss_plot_path = f"results/plots/{city}_loss_comparison.png"
+                    loss_comparison_fig.savefig(loss_plot_path, bbox_inches='tight', dpi=300)
                     # Log to Comet
                     if master_experiment:
-                        master_experiment.log_figure(f"comparative_{metric}", fig)
-                    plt.close(fig)
-                
-                # Create and save loss comparison plot
-                loss_comparison_fig = plot_loss_comparison(all_results['histories'])
-                # Save locally
-                loss_plot_path = "results/plots/comparative_loss_history.png"
-                loss_comparison_fig.savefig(loss_plot_path, bbox_inches='tight', dpi=300)
-                # Log to Comet
-                if master_experiment:
-                    master_experiment.log_figure("comparative_loss_history", loss_comparison_fig)
-                plt.close(loss_comparison_fig)
-                
-                # Create and save radar plot
-                radar_fig = plot_radar_comparison(all_results['metrics'])
-                # Save locally
-                radar_plot_path = "results/plots/comparative_radar_plot.png"
-                radar_fig.savefig(radar_plot_path, bbox_inches='tight', dpi=300)
-                # Log to Comet
-                if master_experiment:
-                    master_experiment.log_figure("comparative_radar_plot", radar_fig)
-                plt.close(radar_fig)
+                        master_experiment.log_figure(f"{city}_loss_comparison", loss_comparison_fig)
+                    plt.close(loss_comparison_fig)
                 
                 # Create metrics tables
                 metrics_table, metrics_pivot = create_metrics_table(all_results['metrics'])
-                
-                # Calculate best and worst performers
-                best_r2 = max(all_results['metrics'].items(), key=lambda x: x[1]['R² Score'])
-                worst_r2 = min(all_results['metrics'].items(), key=lambda x: x[1]['R² Score'])
-                best_rmse = min(all_results['metrics'].items(), key=lambda x: x[1]['Root Mean Squared Error'])
-                worst_rmse = max(all_results['metrics'].items(), key=lambda x: x[1]['Root Mean Squared Error'])
-                
-                # Create performance summary
-                performance_details = pd.DataFrame([
-                    {
-                        'Metric': 'Best R² Score',
-                        'City': best_r2[0],
-                        'Value': best_r2[1]['R² Score'],
-                        'Description': f"Best R² Score achieved by {best_r2[0]}"
-                    },
-                    {
-                        'Metric': 'Worst R² Score',
-                        'City': worst_r2[0],
-                        'Value': worst_r2[1]['R² Score'],
-                        'Description': f"Lowest R² Score from {worst_r2[0]}"
-                    },
-                    {
-                        'Metric': 'Best RMSE',
-                        'City': best_rmse[0],
-                        'Value': best_rmse[1]['Root Mean Squared Error'],
-                        'Description': f"Best RMSE achieved by {best_rmse[0]}"
-                    },
-                    {
-                        'Metric': 'Worst RMSE',
-                        'City': worst_rmse[0],
-                        'Value': worst_rmse[1]['Root Mean Squared Error'],
-                        'Description': f"Highest RMSE from {worst_rmse[0]}"
-                    }
-                ])
                 
                 # Save tables locally and log to Comet
                 # 1. Comparative metrics
@@ -870,13 +899,7 @@ def main():
                 if master_experiment:
                     master_experiment.log_table("comparative_metrics.csv", metrics_pivot.reset_index())
                 
-                # 2. Performance summary
-                performance_details.to_csv("results/tables/performance_summary.csv", index=False)
-                performance_details.to_html("results/tables/performance_summary.html")
-                if master_experiment:
-                    master_experiment.log_table("performance_summary.csv", performance_details)
-                
-                # 3. Summary statistics
+                # 2. Summary statistics
                 summary_stats = metrics_table.groupby('Metric')['Value'].agg(['mean', 'std', 'min', 'max']).reset_index()
                 summary_stats.to_csv("results/tables/summary_statistics.csv", index=False)
                 summary_stats.to_html("results/tables/summary_statistics.html")
@@ -886,56 +909,28 @@ def main():
                 # Save all results to a single Excel file with multiple sheets
                 with pd.ExcelWriter("results/comparative_analysis_results.xlsx") as writer:
                     metrics_pivot.to_excel(writer, sheet_name="Comparative Metrics")
-                    performance_details.to_excel(writer, sheet_name="Performance Summary", index=False)
                     summary_stats.to_excel(writer, sheet_name="Summary Statistics", index=False)
-                
-                # Log individual metrics
-                for city, metrics in all_results['metrics'].items():
-                    for metric_name, value in metrics.items():
-                        if master_experiment:
-                            master_experiment.log_metric(f"{city}_{metric_name}", value)
-                
-                # Log key findings as parameters
-                if master_experiment:
-                    master_experiment.log_parameters({
-                        "best_r2_score_city": best_r2[0],
-                        "best_r2_score_value": best_r2[1]['R² Score'],
-                        "worst_r2_score_city": worst_r2[0],
-                        "worst_r2_score_value": worst_r2[1]['R² Score'],
-                        "best_rmse_city": best_rmse[0],
-                        "best_rmse_value": best_rmse[1]['Root Mean Squared Error'],
-                        "worst_rmse_city": worst_rmse[0],
-                        "worst_rmse_value": worst_rmse[1]['Root Mean Squared Error']
-                    })
                 
                 # Print results to console
                 print("\nComparative Results:")
-                print("\nMetrics by City:")
+                print("\nMetrics by City and Feature Combination:")
                 print(metrics_pivot)
                 print("\nSummary Statistics:")
                 print(summary_stats)
-                print("\nPerformance Analysis:")
-                print(f"Best performing city (R² Score): {best_r2[0]} ({best_r2[1]['R² Score']:.4f})")
-                print(f"Worst performing city (R² Score): {worst_r2[0]} ({worst_r2[1]['R² Score']:.4f})")
-                print(f"Best performing city (RMSE): {best_rmse[0]} ({best_rmse[1]['Root Mean Squared Error']:.4f})")
-                print(f"Worst performing city (RMSE): {worst_rmse[0]} ({worst_rmse[1]['Root Mean Squared Error']:.4f})")
                 
                 print("\nResults have been saved locally in the 'results' directory:")
                 print("1. Plots: results/plots/")
                 print("   - Comparative metric plots (.png)")
-                print("   - Loss comparison plot (.png)")
-                print("   - Radar plot (.png)")
+                print("   - Loss comparison plots (.png)")
                 print("2. Tables: results/tables/")
                 print("   - comparative_metrics (.csv, .html)")
-                print("   - performance_summary (.csv, .html)")
                 print("   - summary_statistics (.csv, .html)")
                 print("3. Excel: results/comparative_analysis_results.xlsx")
                 
                 print("\nResults have also been logged to Comet.ml. You can find them in:")
-                print("1. Figures: Comparative plots for each metric, loss comparison, and radar plot")
-                print("2. Tables: comparative_metrics.csv, summary_statistics.csv, performance_summary.csv")
-                print("3. Parameters: Best/worst performing cities and their scores")
-                print("4. Metrics: Individual metrics for each city")
+                print("1. Figures: Comparative plots for each metric and loss comparison")
+                print("2. Tables: comparative_metrics.csv, summary_statistics.csv")
+                print("3. Metrics: Individual metrics for each city and feature combination")
             else:
                 print("\n⚠️ No metrics were collected. Skipping comparative analysis.")
                 if master_experiment:
