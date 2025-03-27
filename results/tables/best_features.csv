@@ -1,0 +1,10 @@
+Metric,Best Feature Combination,Mean Value,Std Dev,Criterion
+Mean Absolute Error (Non-zero),all,98.51437264353068,29.183220603859056,min
+Mean Squared Error (Non-zero),Precipitable Water,21755.166473763544,9111.225399655532,min
+Root Mean Squared Error (Non-zero),Precipitable Water,144.77219394305243,31.547153886657412,min
+R² Score (Non-zero),Precipitable Water,0.7069826859802661,0.1321350148337261,max
+Non-zero Values Percentage,Precipitable Water,48.79578754578755,0.30655437255073936,max
+Mean Absolute Error (All),all,49.896595224743216,14.927925378407723,min
+Mean Squared Error (All),all,10689.410068064153,4230.6385662222365,min
+Root Mean Squared Error (All),Precipitable Water,101.50736956182035,22.202253504024274,min
+R² Score (All),all,0.8482777317387065,0.07769386276222533,max

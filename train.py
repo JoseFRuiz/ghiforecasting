@@ -385,6 +385,9 @@ def prepare_lstm_input(df, feature_columns, target_column):
 
 def create_model(input_shape):
     """Create and compile the LSTM model."""
+    # Clear any existing models/layers in memory
+    tf.keras.backend.clear_session()
+    
     model = Sequential([
         LSTM(CONFIG["model_params"]["lstm_units"][0], return_sequences=True, 
              input_shape=input_shape),
@@ -395,7 +398,14 @@ def create_model(input_shape):
         Dense(CONFIG["model_params"]["dense_units"][1], activation="linear")
     ])
     
-    model.compile(optimizer="adam", loss="mse", metrics=["mae"])
+    # Create loss instance with explicit name
+    mse_loss = tf.keras.losses.MeanSquaredError(name='mean_squared_error')
+    
+    model.compile(
+        optimizer='adam',
+        loss=mse_loss,
+        metrics=['mae', 'mse']  # Use string identifiers for metrics
+    )
     return model
 
 def plot_results(y_true, y_pred, title="LSTM Model: Predicted vs. True GHI"):
@@ -505,7 +515,7 @@ def plot_comparative_metrics(all_metrics, metric_name):
 
 def create_metrics_table(all_metrics):
     """
-    Create a comparative table of all metrics across cities.
+    Create a comparative table of all metrics across cities and feature combinations.
     
     Args:
         all_metrics (dict): Dictionary with city-wise metrics
@@ -515,19 +525,25 @@ def create_metrics_table(all_metrics):
     """
     # Create a list of records for better table formatting
     records = []
-    for city, metrics in all_metrics.items():
-        for metric_name, value in metrics.items():
-            records.append({
-                'City': city,
-                'Metric': metric_name,
-                'Value': value
-            })
+    for city, feature_metrics in all_metrics.items():
+        for feature_combo, metrics in feature_metrics.items():
+            for metric_name, value in metrics.items():
+                records.append({
+                    'City': city,
+                    'Feature Combination': feature_combo,
+                    'Metric': metric_name,
+                    'Value': value
+                })
     
     # Create DataFrame in long format
     df = pd.DataFrame(records)
     
-    # Also create a pivot table for prettier display
-    pivot_df = df.pivot(index='Metric', columns='City', values='Value')
+    # Create pivot table for prettier display
+    pivot_df = df.pivot_table(
+        index=['Metric', 'Feature Combination'],
+        columns='City',
+        values='Value'
+    )
     
     return df, pivot_df
 
@@ -617,8 +633,13 @@ def save_plot_to_file(fig, filename):
     plt.close(fig)
     return filename
 
-def main():
-    """Main execution function."""
+def main(skip_training=False):
+    """
+    Main execution function.
+    
+    Args:
+        skip_training (bool): If True, load pre-trained models instead of training new ones
+    """
     # Set random seeds for reproducibility
     np.random.seed(CONFIG["random_seed"])
     tf.random.set_seed(CONFIG["random_seed"])
@@ -640,7 +661,7 @@ def main():
         "all"
     ]
     
-    # Dictionary to store results for all cities and feature combinations
+    # Dictionary to store results
     all_results = {
         'metrics': {},
         'histories': {},
@@ -741,27 +762,58 @@ def main():
                     print(f"× Error creating model: {str(e)}")
                     raise
                 
-                print("\nStep 5: Training model...")
-                try:
-                    history = model.fit(
-                        X_train, y_train,
-                        epochs=CONFIG["model_params"]["epochs"],
-                        batch_size=CONFIG["model_params"]["batch_size"],
-                        validation_data=(X_val, y_val),
-                        verbose=1
-                    )
-                    print("✓ Model training completed")
-                except Exception as e:
-                    print(f"× Error training model: {str(e)}")
-                    raise
+                model_path = os.path.join("models", f"lstm_ghi_forecast_{city}_{feature_combo}.h5")
                 
-                # Save model
-                try:
-                    model_path = os.path.join("models", f"lstm_ghi_forecast_{city}_{feature_combo}.h5")
-                    model.save(model_path)
-                    print(f"✓ Model saved to {model_path}")
-                except Exception as e:
-                    print(f"× Warning: Could not save model: {str(e)}")
+                if skip_training:
+                    # Check if pre-trained model exists
+                    if os.path.exists(model_path):
+                        print(f"\nLoading pre-trained model for {city} with {feature_combo}...")
+                        try:
+                            # Clear any existing models
+                            tf.keras.backend.clear_session()
+                            
+                            # Define custom objects with only the loss function
+                            custom_objects = {
+                                'mean_squared_error': tf.keras.losses.MeanSquaredError
+                            }
+                            
+                            # Load model with custom objects
+                            model = tf.keras.models.load_model(
+                                model_path,
+                                custom_objects=custom_objects,
+                                compile=True
+                            )
+                            print("✓ Model loaded successfully")
+                            history = None
+                        except Exception as e:
+                            print(f"× Error loading model: {str(e)}")
+                            print(f"Full error: {str(e.__class__.__name__)}: {str(e)}")
+                            import traceback
+                            traceback.print_exc()
+                            continue
+                    else:
+                        print(f"× No pre-trained model found for {city} with {feature_combo}")
+                        print(f"Expected path: {model_path}")
+                        continue
+                else:
+                    # Original training code
+                    print("\nStep 5: Training model...")
+                    try:
+                        history = model.fit(
+                            X_train, y_train,
+                            epochs=CONFIG["model_params"]["epochs"],
+                            batch_size=CONFIG["model_params"]["batch_size"],
+                            validation_data=(X_val, y_val),
+                            verbose=1
+                        )
+                        print("✓ Model training completed")
+                        
+                        # Save model
+                        model.save(model_path)
+                        print(f"✓ Model saved to {model_path}")
+                    except Exception as e:
+                        print(f"× Error training model: {str(e)}")
+                        raise
                 
                 # Evaluate on test set
                 print(f"\nStep 6: Evaluating model...")
@@ -860,77 +912,110 @@ def main():
             os.makedirs("results/tables", exist_ok=True)
             
             if len(all_results['metrics']) > 0:
-                # Create and save comparative metrics plots for each feature combination
-                for city in all_results['metrics'].keys():
-                    for feature_combo in all_results['metrics'][city].keys():
-                        metrics = all_results['metrics'][city][feature_combo]
-                        for metric_name, metric_value in metrics.items():
-                            # Create plot comparing this metric across feature combinations
-                            fig = plot_comparative_metrics(
-                                {fc: all_results['metrics'][city][fc] for fc in feature_combinations},
-                                metric_name
-                            )
-                            # Save locally
-                            plot_path = f"results/plots/{city}_{metric_name.lower().replace(' ', '_')}.png"
-                            fig.savefig(plot_path, bbox_inches='tight', dpi=300)
-                            # Log to Comet
-                            if master_experiment:
-                                master_experiment.log_figure(f"{city}_{metric_name}", fig)
-                            plt.close(fig)
-                
-                # Create and save loss comparison plots
-                for city in all_results['histories'].keys():
-                    loss_comparison_fig = plot_loss_comparison(all_results['histories'][city])
-                    # Save locally
-                    loss_plot_path = f"results/plots/{city}_loss_comparison.png"
-                    loss_comparison_fig.savefig(loss_plot_path, bbox_inches='tight', dpi=300)
-                    # Log to Comet
-                    if master_experiment:
-                        master_experiment.log_figure(f"{city}_loss_comparison", loss_comparison_fig)
-                    plt.close(loss_comparison_fig)
-                
                 # Create metrics tables
                 metrics_table, metrics_pivot = create_metrics_table(all_results['metrics'])
                 
-                # Save tables locally and log to Comet
-                # 1. Comparative metrics
-                metrics_pivot.to_csv("results/tables/comparative_metrics.csv")
-                metrics_pivot.to_html("results/tables/comparative_metrics.html")
-                if master_experiment:
-                    master_experiment.log_table("comparative_metrics.csv", metrics_pivot.reset_index())
+                # Create feature-wise comparison for each metric
+                for metric in metrics_table['Metric'].unique():
+                    metric_data = metrics_table[metrics_table['Metric'] == metric]
+                    
+                    # Create plot comparing feature combinations across cities
+                    plt.figure(figsize=(15, 8))
+                    pivot_data = metric_data.pivot(
+                        index='Feature Combination',
+                        columns='City',
+                        values='Value'
+                    )
+                    ax = pivot_data.plot(kind='bar', width=0.8)
+                    plt.title(f'{metric} Comparison Across Cities and Feature Combinations')
+                    plt.xlabel('Feature Combination')
+                    plt.ylabel(metric)
+                    plt.xticks(rotation=45, ha='right')
+                    plt.legend(title='City', bbox_to_anchor=(1.05, 1), loc='upper left')
+                    
+                    # Add value labels
+                    for container in ax.containers:
+                        ax.bar_label(container, fmt='%.3f', rotation=90, padding=3)
+                    
+                    plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+                    plt.tight_layout()
+                    
+                    # Save plot
+                    plot_path = f"results/plots/feature_comparison_{metric.lower().replace(' ', '_')}.png"
+                    plt.savefig(plot_path, bbox_inches='tight', dpi=300)
+                    if master_experiment:
+                        master_experiment.log_figure(f"feature_comparison_{metric}", plt.gcf())
+                    plt.close()
                 
-                # 2. Summary statistics
-                summary_stats = metrics_table.groupby('Metric')['Value'].agg(['mean', 'std', 'min', 'max']).reset_index()
-                summary_stats.to_csv("results/tables/summary_statistics.csv", index=False)
-                summary_stats.to_html("results/tables/summary_statistics.html")
-                if master_experiment:
-                    master_experiment.log_table("summary_statistics.csv", summary_stats)
+                # Calculate summary statistics by feature combination
+                feature_summary = (metrics_table
+                    .groupby(['Metric', 'Feature Combination'])
+                    .agg({
+                        'Value': ['mean', 'std', 'min', 'max', 'count']
+                    })
+                    .reset_index())
                 
-                # Save all results to a single Excel file with multiple sheets
+                # Flatten column names
+                feature_summary.columns = ['Metric', 'Feature Combination', 'Mean', 'Std', 'Min', 'Max', 'Count']
+                
+                # Calculate best feature combination for each metric
+                best_features = []
+                for metric in metrics_table['Metric'].unique():
+                    metric_data = feature_summary[feature_summary['Metric'] == metric]
+                    
+                    # Determine if higher or lower is better
+                    if 'Error' in metric or 'Loss' in metric:
+                        best_idx = metric_data['Mean'].idxmin()
+                        criterion = 'min'
+                    else:  # For metrics like R² Score, higher is better
+                        best_idx = metric_data['Mean'].idxmax()
+                        criterion = 'max'
+                    
+                    best_features.append({
+                        'Metric': metric,
+                        'Best Feature Combination': metric_data.loc[best_idx, 'Feature Combination'],
+                        'Mean Value': metric_data.loc[best_idx, 'Mean'],
+                        'Std Dev': metric_data.loc[best_idx, 'Std'],
+                        'Criterion': criterion
+                    })
+                
+                best_features_df = pd.DataFrame(best_features)
+                
+                # Save all results
                 with pd.ExcelWriter("results/comparative_analysis_results.xlsx") as writer:
                     metrics_pivot.to_excel(writer, sheet_name="Comparative Metrics")
-                    summary_stats.to_excel(writer, sheet_name="Summary Statistics", index=False)
+                    feature_summary.to_excel(writer, sheet_name="Feature Summary", index=False)
+                    best_features_df.to_excel(writer, sheet_name="Best Features", index=False)
+                
+                # Save individual files
+                metrics_pivot.to_csv("results/tables/comparative_metrics.csv")
+                feature_summary.to_csv("results/tables/feature_summary.csv", index=False)
+                best_features_df.to_csv("results/tables/best_features.csv", index=False)
                 
                 # Print results to console
                 print("\nComparative Results:")
-                print("\nMetrics by City and Feature Combination:")
-                print(metrics_pivot)
-                print("\nSummary Statistics:")
-                print(summary_stats)
+                print("\nBest Feature Combinations by Metric:")
+                print("=" * 80)
+                for _, row in best_features_df.iterrows():
+                    print(f"\nMetric: {row['Metric']}")
+                    print(f"Best Feature Combination: {row['Best Feature Combination']}")
+                    print(f"Mean Value: {row['Mean Value']:.4f} ± {row['Std Dev']:.4f}")
+                print("=" * 80)
                 
-                print("\nResults have been saved locally in the 'results' directory:")
+                print("\nResults have been saved in the 'results' directory:")
                 print("1. Plots: results/plots/")
-                print("   - Comparative metric plots (.png)")
-                print("   - Loss comparison plots (.png)")
+                print("   - Feature comparison plots for each metric")
                 print("2. Tables: results/tables/")
-                print("   - comparative_metrics (.csv, .html)")
-                print("   - summary_statistics (.csv, .html)")
+                print("   - comparative_metrics.csv")
+                print("   - feature_summary.csv")
+                print("   - best_features.csv")
                 print("3. Excel: results/comparative_analysis_results.xlsx")
                 
-                print("\nResults have also been logged to Comet.ml. You can find them in:")
-                print("1. Figures: Comparative plots for each metric and loss comparison")
-                print("2. Tables: comparative_metrics.csv, summary_statistics.csv")
-                print("3. Metrics: Individual metrics for each city and feature combination")
+                if master_experiment:
+                    master_experiment.log_table("comparative_metrics.csv", metrics_pivot.reset_index())
+                    master_experiment.log_table("feature_summary.csv", feature_summary)
+                    master_experiment.log_table("best_features.csv", best_features_df)
+                    
             else:
                 print("\n⚠️ No metrics were collected. Skipping comparative analysis.")
                 if master_experiment:
@@ -965,4 +1050,11 @@ def main():
             pass
 
 if __name__ == "__main__":
-    main() 
+    # Add argument parsing
+    import argparse
+    parser = argparse.ArgumentParser(description='GHI Forecasting using LSTM')
+    parser.add_argument('--skip-training', action='store_true',
+                      help='Skip training and load pre-trained models')
+    args = parser.parse_args()
+    
+    main(skip_training=args.skip_training) 
