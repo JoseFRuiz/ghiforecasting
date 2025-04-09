@@ -21,22 +21,36 @@ def load_results():
     if not excel_path.exists():
         raise FileNotFoundError("Comparative analysis results not found. Please run train.py first.")
     
-    # Read sheets
+    # Read sheets with correct names
     comparative_metrics = pd.read_excel(excel_path, sheet_name="Comparative Metrics")
-    summary_stats = pd.read_excel(excel_path, sheet_name="Summary Statistics")
+    feature_summary = pd.read_excel(excel_path, sheet_name="Feature Summary")
     
-    return comparative_metrics, summary_stats
+    # Clean up the data: forward fill the Metric column to replace NaN values
+    comparative_metrics['Metric'] = comparative_metrics['Metric'].ffill()
+    
+    # Print DataFrame info for debugging
+    print("\nAvailable columns in comparative_metrics:")
+    print(comparative_metrics.columns.tolist())
+    print("\nFirst few rows of comparative_metrics:")
+    print(comparative_metrics.head())
+    
+    # Convert Metric column to string type
+    comparative_metrics['Metric'] = comparative_metrics['Metric'].astype(str)
+    
+    return comparative_metrics, feature_summary
 
 def plot_feature_comparison_by_metric(df, metric_name):
     """Create a grouped bar plot comparing feature combinations across cities for a specific metric."""
     plt.figure(figsize=(15, 8))
     
     # Filter data for the specific metric
-    metric_data = df[df['Metric'] == metric_name].pivot(
-        index='Feature Combination', 
-        columns='City', 
-        values='Value'
-    )
+    metric_data = df[df['Metric'] == metric_name]
+    
+    # Get city columns (all columns except 'Metric' and 'Feature Combination')
+    city_columns = [col for col in df.columns if col not in ['Metric', 'Feature Combination']]
+    
+    # Set Feature Combination as index
+    metric_data = metric_data.set_index('Feature Combination')[city_columns]
     
     # Create bar plot
     ax = metric_data.plot(kind='bar', width=0.8)
@@ -56,16 +70,24 @@ def plot_feature_comparison_by_metric(df, metric_name):
 
 def plot_heatmap_by_city(df, city, metric_subset=None):
     """Create a heatmap for a specific city showing metrics vs feature combinations."""
-    # Pivot data for the specific city
-    city_data = df[df['City'] == city].pivot(
+    # Ensure we have unique combinations of Metric and Feature Combination
+    city_data = df.drop_duplicates(subset=['Metric', 'Feature Combination'])
+    
+    # Create the pivot table
+    city_data = city_data.pivot(
         index='Feature Combination',
         columns='Metric',
-        values='Value'
+        values=city  # Use city name directly as the values column
     )
     
     # Select subset of metrics if specified
     if metric_subset:
-        city_data = city_data[metric_subset]
+        available_metrics = [m for m in metric_subset if m in city_data.columns]
+        if available_metrics:
+            city_data = city_data[available_metrics]
+        else:
+            print(f"Warning: No specified metrics found for {city}")
+            return None
     
     plt.figure(figsize=(12, 8))
     sns.heatmap(city_data, annot=True, fmt='.3f', cmap='YlOrRd', center=0)
@@ -83,11 +105,14 @@ def create_feature_ranking_table(df):
     for metric in df['Metric'].unique():
         metric_data = df[df['Metric'] == metric]
         
+        # Get city columns
+        city_columns = [col for col in df.columns if col not in ['Metric', 'Feature Combination']]
+        
         # Calculate mean performance across cities for each feature combination
-        feature_means = metric_data.groupby('Feature Combination')['Value'].mean()
+        feature_means = metric_data.groupby('Feature Combination')[city_columns].mean().mean(axis=1)
         
         # Determine if higher or lower values are better based on metric name
-        if 'Error' in metric or 'Loss' in metric:
+        if 'Error' in str(metric) or 'Loss' in str(metric):
             feature_ranks = feature_means.rank()  # Lower is better
             best_feature = feature_means.idxmin()
             best_value = feature_means.min()
@@ -110,7 +135,7 @@ def main():
     try:
         # Load results
         print("Loading results...")
-        comparative_metrics, summary_stats = load_results()
+        comparative_metrics, feature_summary = load_results()
         
         # Create output directory for plots
         output_dir = Path("comparative_analysis_plots")
@@ -118,24 +143,34 @@ def main():
         
         # Get unique metrics and subset for key metrics
         all_metrics = comparative_metrics['Metric'].unique()
-        key_metrics = [m for m in all_metrics if any(term in m for term in 
-                      ['R² Score', 'RMSE', 'MAE'])]
+        key_metrics = [m for m in all_metrics if isinstance(m, str) and 
+                      any(term in m for term in ['R² Score', 'RMSE', 'MAE'])]
+        
+        if not key_metrics:  # If no string metrics found, use all metrics
+            key_metrics = all_metrics
+        
+        # Get city names from columns (excluding 'Metric' and 'Feature Combination')
+        cities = [col for col in comparative_metrics.columns 
+                 if col not in ['Metric', 'Feature Combination']]
         
         # 1. Create feature comparison plots for each metric
         print("\nGenerating feature comparison plots...")
         for metric in all_metrics:
             fig = plot_feature_comparison_by_metric(comparative_metrics, metric)
-            fig.savefig(output_dir / f"feature_comparison_{metric.lower().replace(' ', '_')}.png",
+            # Use str() to safely convert metric name to string for filename
+            safe_metric_name = str(metric).lower().replace(' ', '_').replace('²', '2')
+            fig.savefig(output_dir / f"feature_comparison_{safe_metric_name}.png",
                        bbox_inches='tight', dpi=300)
             plt.close(fig)
         
         # 2. Create heatmaps for each city
         print("\nGenerating city-wise heatmaps...")
-        for city in comparative_metrics['City'].unique():
+        for city in cities:
             fig = plot_heatmap_by_city(comparative_metrics, city, key_metrics)
-            fig.savefig(output_dir / f"heatmap_{city.lower().replace(' ', '_')}.png",
-                       bbox_inches='tight', dpi=300)
-            plt.close(fig)
+            if fig is not None:
+                fig.savefig(output_dir / f"heatmap_{city.lower().replace(' ', '_')}.png",
+                           bbox_inches='tight', dpi=300)
+                plt.close(fig)
         
         # 3. Create and save feature ranking analysis
         print("\nGenerating feature ranking analysis...")
@@ -155,15 +190,10 @@ def main():
         print("\nSaving detailed analysis...")
         with pd.ExcelWriter(output_dir / "feature_analysis.xlsx") as writer:
             rankings.to_excel(writer, sheet_name="Feature Rankings", index=False)
-            summary_stats.to_excel(writer, sheet_name="Summary Statistics", index=False)
+            feature_summary.to_excel(writer, sheet_name="Feature Summary", index=False)
             
-            # Create pivot table for easy comparison
-            pivot = comparative_metrics.pivot_table(
-                index='Feature Combination',
-                columns=['City', 'Metric'],
-                values='Value'
-            )
-            pivot.to_excel(writer, sheet_name="Detailed Comparison")
+            # Save the data directly without pivoting since it's already in the right format
+            comparative_metrics.to_excel(writer, sheet_name="Detailed Comparison", index=False)
         
         print(f"\nAll analysis results have been saved to the '{output_dir}' directory.")
         print("\nFiles generated:")
