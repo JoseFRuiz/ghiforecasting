@@ -646,8 +646,6 @@ def main(skip_training=False):
     
     # Create necessary directories
     os.makedirs("models", exist_ok=True)
-    os.makedirs("plots", exist_ok=True)
-    os.makedirs("tables", exist_ok=True)
     
     # Define feature combinations to test
     feature_combinations = [
