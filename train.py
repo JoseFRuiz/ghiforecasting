@@ -264,13 +264,14 @@ def split_and_scale_data(df, feature_combination="all"):
         df: DataFrame containing the data
         feature_combination: String specifying which features to use
             - "ghi_only": Only GHI lag features
-            - "ghi_temp": GHI + Temperature
-            - "ghi_humidity": GHI + Relative Humidity
-            - "ghi_pressure": GHI + Pressure
-            - "ghi_precip": GHI + Precipitable Water
-            - "ghi_wind_dir": GHI + Wind Direction
-            - "ghi_wind_speed": GHI + Wind Speed
+            - "Temperature": GHI + Temperature
+            - "Relative Humidity": GHI + Relative Humidity
+            - "Pressure": GHI + Pressure
+            - "Precipitable Water": GHI + Precipitable Water
+            - "Wind Direction": GHI + Wind Direction
+            - "Wind Speed": GHI + Wind Speed
             - "all": All features (default)
+            - "meteorological_only": Only meteorological variables (no GHI)
     """
     print("\nSplitting and scaling data...")
     
@@ -300,6 +301,9 @@ def split_and_scale_data(df, feature_combination="all"):
     if feature_combination == "ghi_only":
         selected_features = ghi_features
         print("\nUsing only GHI features")
+    elif feature_combination == "meteorological_only":
+        selected_features = [f for features in meteorological_features.values() for f in features]
+        print("\nUsing only meteorological features (no GHI)")
     elif feature_combination in meteorological_features:
         selected_features = ghi_features + meteorological_features[feature_combination]
         print(f"\nUsing GHI + {feature_combination} features")
@@ -455,7 +459,10 @@ def evaluate_model(y_true, y_pred):
         "Mean Absolute Error (Non-zero)": float(mean_absolute_error(y_true_nonzero, y_pred_nonzero)),
         "Mean Squared Error (Non-zero)": float(mean_squared_error(y_true_nonzero, y_pred_nonzero)),
         "Root Mean Squared Error (Non-zero)": float(np.sqrt(mean_squared_error(y_true_nonzero, y_pred_nonzero))),
-        "R² Score (Non-zero)": float(r2_score(y_true_nonzero, y_pred_nonzero))
+        "R² Score (Non-zero)": float(r2_score(y_true_nonzero, y_pred_nonzero)),
+        # Add percentage-based metrics
+        "Mean Absolute Percentage Error (Non-zero)": float(np.mean(np.abs((y_true_nonzero - y_pred_nonzero) / y_true_nonzero)) * 100),
+        "Mean Squared Percentage Error (Non-zero)": float(np.mean(np.square((y_true_nonzero - y_pred_nonzero) / y_true_nonzero)) * 100)
     }
     
     # Also calculate percentage of non-zero values
@@ -466,7 +473,10 @@ def evaluate_model(y_true, y_pred):
         "Mean Absolute Error (All)": float(mean_absolute_error(y_true, y_pred)),
         "Mean Squared Error (All)": float(mean_squared_error(y_true, y_pred)),
         "Root Mean Squared Error (All)": float(np.sqrt(mean_squared_error(y_true, y_pred))),
-        "R² Score (All)": float(r2_score(y_true, y_pred))
+        "R² Score (All)": float(r2_score(y_true, y_pred)),
+        # Add percentage-based metrics for all values
+        "Mean Absolute Percentage Error (All)": float(np.mean(np.abs((y_true - y_pred) / y_true)) * 100),
+        "Mean Squared Percentage Error (All)": float(np.mean(np.square((y_true - y_pred) / y_true)) * 100)
     })
     
     return metrics
@@ -656,7 +666,8 @@ def main(skip_training=False):
         "Precipitable Water",
         "Wind Direction",
         "Wind Speed",
-        "all"
+        "all",
+        "meteorological_only"  # New combination using only meteorological variables
     ]
     
     # Dictionary to store results
