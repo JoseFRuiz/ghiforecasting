@@ -1,10 +1,14 @@
 Metric,Best Feature Combination,Mean Value,Std Dev,Criterion
-Mean Absolute Error (Non-zero),all,98.51437264353068,29.183220603859056,min
-Mean Squared Error (Non-zero),Precipitable Water,21755.166473763544,9111.225399655532,min
-Root Mean Squared Error (Non-zero),Precipitable Water,144.77219394305243,31.547153886657412,min
-R² Score (Non-zero),Precipitable Water,0.7069826859802661,0.1321350148337261,max
+Mean Absolute Error (Non-zero),Precipitable Water,97.95266511664829,31.111141220969905,min
+Mean Squared Error (Non-zero),all,21781.6969388954,8606.158233459322,min
+Root Mean Squared Error (Non-zero),Precipitable Water,145.05504998223,31.460217149559025,min
+R² Score (Non-zero),all,0.7064664475990302,0.126822919285951,max
+Mean Absolute Percentage Error (Non-zero),Wind Speed,90.69127095291725,41.61541938561949,min
+Mean Squared Percentage Error (Non-zero),Wind Speed,573.6650854262627,369.7614716399991,min
 Non-zero Values Percentage,Precipitable Water,48.79578754578755,0.30655437255073936,max
-Mean Absolute Error (All),all,49.896595224743216,14.927925378407723,min
-Mean Squared Error (All),all,10689.410068064153,4230.6385662222365,min
-Root Mean Squared Error (All),Precipitable Water,101.50736956182035,22.202253504024274,min
-R² Score (All),all,0.8482777317387065,0.07769386276222533,max
+Mean Absolute Error (All),all,50.28578948256755,15.429813512200232,min
+Mean Squared Error (All),all,10704.675204812116,4228.104272098251,min
+Root Mean Squared Error (All),all,101.76780538117475,20.856323762574217,min
+R² Score (All),all,0.8480274006153131,0.07763791095758607,max
+Mean Absolute Percentage Error (All),Precipitable Water,inf,,min
+Mean Squared Percentage Error (All),Precipitable Water,inf,,min
