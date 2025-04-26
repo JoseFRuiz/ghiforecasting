@@ -1,0 +1,3 @@
+I want to create a script that compares \results\tables\metrics.csv and \results_joint\tables\metrics.csv. Depending on the metrics, it should be indicated which approach is better
+
+Does it make sense another approach that applies joint training, like with graph neural networks?

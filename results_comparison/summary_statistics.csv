@@ -1,0 +1,118 @@
+Metric,Feature Combination,Individual,Joint,Equal,Total,Individual %,Joint %,Equal %
+Mean Absolute Error (All),Precipitable Water,2,1,0,3,66.7,33.3,0.0
+Mean Absolute Error (All),Pressure,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Error (All),Relative Humidity,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Error (All),Temperature,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Error (All),Wind Direction,2,1,0,3,66.7,33.3,0.0
+Mean Absolute Error (All),Wind Speed,2,1,0,3,66.7,33.3,0.0
+Mean Absolute Error (All),all,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Error (All),ghi_only,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Error (All),meteorological_only,2,1,0,3,66.7,33.3,0.0
+Mean Absolute Error (Non-zero),Precipitable Water,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Error (Non-zero),Pressure,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Error (Non-zero),Relative Humidity,1,2,0,3,33.3,66.7,0.0
+Mean Absolute Error (Non-zero),Temperature,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Error (Non-zero),Wind Direction,1,2,0,3,33.3,66.7,0.0
+Mean Absolute Error (Non-zero),Wind Speed,2,1,0,3,66.7,33.3,0.0
+Mean Absolute Error (Non-zero),all,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Error (Non-zero),ghi_only,1,2,0,3,33.3,66.7,0.0
+Mean Absolute Error (Non-zero),meteorological_only,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Percentage Error (All),Precipitable Water,0,3,0,3,0.0,100.0,0.0
+Mean Absolute Percentage Error (All),Pressure,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Percentage Error (All),Relative Humidity,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Percentage Error (All),Temperature,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Percentage Error (All),Wind Direction,2,1,0,3,66.7,33.3,0.0
+Mean Absolute Percentage Error (All),Wind Speed,2,1,0,3,66.7,33.3,0.0
+Mean Absolute Percentage Error (All),all,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Percentage Error (All),ghi_only,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Percentage Error (All),meteorological_only,1,2,0,3,33.3,66.7,0.0
+Mean Absolute Percentage Error (Non-zero),Precipitable Water,1,2,0,3,33.3,66.7,0.0
+Mean Absolute Percentage Error (Non-zero),Pressure,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Percentage Error (Non-zero),Relative Humidity,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Percentage Error (Non-zero),Temperature,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Percentage Error (Non-zero),Wind Direction,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Percentage Error (Non-zero),Wind Speed,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Percentage Error (Non-zero),all,2,1,0,3,66.7,33.3,0.0
+Mean Absolute Percentage Error (Non-zero),ghi_only,3,0,0,3,100.0,0.0,0.0
+Mean Absolute Percentage Error (Non-zero),meteorological_only,0,3,0,3,0.0,100.0,0.0
+Mean Squared Error (All),Precipitable Water,2,1,0,3,66.7,33.3,0.0
+Mean Squared Error (All),Pressure,2,1,0,3,66.7,33.3,0.0
+Mean Squared Error (All),Relative Humidity,1,2,0,3,33.3,66.7,0.0
+Mean Squared Error (All),Temperature,3,0,0,3,100.0,0.0,0.0
+Mean Squared Error (All),Wind Direction,1,2,0,3,33.3,66.7,0.0
+Mean Squared Error (All),Wind Speed,1,2,0,3,33.3,66.7,0.0
+Mean Squared Error (All),all,1,2,0,3,33.3,66.7,0.0
+Mean Squared Error (All),ghi_only,1,2,0,3,33.3,66.7,0.0
+Mean Squared Error (All),meteorological_only,2,1,0,3,66.7,33.3,0.0
+Mean Squared Error (Non-zero),Precipitable Water,2,1,0,3,66.7,33.3,0.0
+Mean Squared Error (Non-zero),Pressure,2,1,0,3,66.7,33.3,0.0
+Mean Squared Error (Non-zero),Relative Humidity,1,2,0,3,33.3,66.7,0.0
+Mean Squared Error (Non-zero),Temperature,3,0,0,3,100.0,0.0,0.0
+Mean Squared Error (Non-zero),Wind Direction,1,2,0,3,33.3,66.7,0.0
+Mean Squared Error (Non-zero),Wind Speed,1,2,0,3,33.3,66.7,0.0
+Mean Squared Error (Non-zero),all,1,2,0,3,33.3,66.7,0.0
+Mean Squared Error (Non-zero),ghi_only,1,2,0,3,33.3,66.7,0.0
+Mean Squared Error (Non-zero),meteorological_only,3,0,0,3,100.0,0.0,0.0
+Mean Squared Percentage Error (All),Precipitable Water,0,3,0,3,0.0,100.0,0.0
+Mean Squared Percentage Error (All),Pressure,3,0,0,3,100.0,0.0,0.0
+Mean Squared Percentage Error (All),Relative Humidity,1,2,0,3,33.3,66.7,0.0
+Mean Squared Percentage Error (All),Temperature,3,0,0,3,100.0,0.0,0.0
+Mean Squared Percentage Error (All),Wind Direction,2,1,0,3,66.7,33.3,0.0
+Mean Squared Percentage Error (All),Wind Speed,2,1,0,3,66.7,33.3,0.0
+Mean Squared Percentage Error (All),all,2,1,0,3,66.7,33.3,0.0
+Mean Squared Percentage Error (All),ghi_only,3,0,0,3,100.0,0.0,0.0
+Mean Squared Percentage Error (All),meteorological_only,1,2,0,3,33.3,66.7,0.0
+Mean Squared Percentage Error (Non-zero),Precipitable Water,0,3,0,3,0.0,100.0,0.0
+Mean Squared Percentage Error (Non-zero),Pressure,2,1,0,3,66.7,33.3,0.0
+Mean Squared Percentage Error (Non-zero),Relative Humidity,2,1,0,3,66.7,33.3,0.0
+Mean Squared Percentage Error (Non-zero),Temperature,2,1,0,3,66.7,33.3,0.0
+Mean Squared Percentage Error (Non-zero),Wind Direction,3,0,0,3,100.0,0.0,0.0
+Mean Squared Percentage Error (Non-zero),Wind Speed,3,0,0,3,100.0,0.0,0.0
+Mean Squared Percentage Error (Non-zero),all,1,2,0,3,33.3,66.7,0.0
+Mean Squared Percentage Error (Non-zero),ghi_only,3,0,0,3,100.0,0.0,0.0
+Mean Squared Percentage Error (Non-zero),meteorological_only,0,3,0,3,0.0,100.0,0.0
+Non-zero Values Percentage,Precipitable Water,1,2,0,3,33.3,66.7,0.0
+Non-zero Values Percentage,Pressure,1,2,0,3,33.3,66.7,0.0
+Non-zero Values Percentage,Relative Humidity,1,2,0,3,33.3,66.7,0.0
+Non-zero Values Percentage,Temperature,1,2,0,3,33.3,66.7,0.0
+Non-zero Values Percentage,Wind Direction,1,2,0,3,33.3,66.7,0.0
+Non-zero Values Percentage,Wind Speed,1,2,0,3,33.3,66.7,0.0
+Non-zero Values Percentage,all,1,2,0,3,33.3,66.7,0.0
+Non-zero Values Percentage,ghi_only,1,2,0,3,33.3,66.7,0.0
+Non-zero Values Percentage,meteorological_only,1,2,0,3,33.3,66.7,0.0
+Root Mean Squared Error (All),Precipitable Water,2,1,0,3,66.7,33.3,0.0
+Root Mean Squared Error (All),Pressure,2,1,0,3,66.7,33.3,0.0
+Root Mean Squared Error (All),Relative Humidity,1,2,0,3,33.3,66.7,0.0
+Root Mean Squared Error (All),Temperature,3,0,0,3,100.0,0.0,0.0
+Root Mean Squared Error (All),Wind Direction,1,2,0,3,33.3,66.7,0.0
+Root Mean Squared Error (All),Wind Speed,1,2,0,3,33.3,66.7,0.0
+Root Mean Squared Error (All),all,1,2,0,3,33.3,66.7,0.0
+Root Mean Squared Error (All),ghi_only,1,2,0,3,33.3,66.7,0.0
+Root Mean Squared Error (All),meteorological_only,2,1,0,3,66.7,33.3,0.0
+Root Mean Squared Error (Non-zero),Precipitable Water,2,1,0,3,66.7,33.3,0.0
+Root Mean Squared Error (Non-zero),Pressure,2,1,0,3,66.7,33.3,0.0
+Root Mean Squared Error (Non-zero),Relative Humidity,1,2,0,3,33.3,66.7,0.0
+Root Mean Squared Error (Non-zero),Temperature,3,0,0,3,100.0,0.0,0.0
+Root Mean Squared Error (Non-zero),Wind Direction,1,2,0,3,33.3,66.7,0.0
+Root Mean Squared Error (Non-zero),Wind Speed,1,2,0,3,33.3,66.7,0.0
+Root Mean Squared Error (Non-zero),all,1,2,0,3,33.3,66.7,0.0
+Root Mean Squared Error (Non-zero),ghi_only,1,2,0,3,33.3,66.7,0.0
+Root Mean Squared Error (Non-zero),meteorological_only,3,0,0,3,100.0,0.0,0.0
+R² Score (All),Precipitable Water,1,2,0,3,33.3,66.7,0.0
+R² Score (All),Pressure,1,2,0,3,33.3,66.7,0.0
+R² Score (All),Relative Humidity,1,2,0,3,33.3,66.7,0.0
+R² Score (All),Temperature,2,1,0,3,66.7,33.3,0.0
+R² Score (All),Wind Direction,1,2,0,3,33.3,66.7,0.0
+R² Score (All),Wind Speed,1,2,0,3,33.3,66.7,0.0
+R² Score (All),all,1,2,0,3,33.3,66.7,0.0
+R² Score (All),ghi_only,1,2,0,3,33.3,66.7,0.0
+R² Score (All),meteorological_only,2,1,0,3,66.7,33.3,0.0
+R² Score (Non-zero),Precipitable Water,1,2,0,3,33.3,66.7,0.0
+R² Score (Non-zero),Pressure,1,2,0,3,33.3,66.7,0.0
+R² Score (Non-zero),Relative Humidity,0,3,0,3,0.0,100.0,0.0
+R² Score (Non-zero),Temperature,2,1,0,3,66.7,33.3,0.0
+R² Score (Non-zero),Wind Direction,1,2,0,3,33.3,66.7,0.0
+R² Score (Non-zero),Wind Speed,1,2,0,3,33.3,66.7,0.0
+R² Score (Non-zero),all,1,2,0,3,33.3,66.7,0.0
+R² Score (Non-zero),ghi_only,1,2,0,3,33.3,66.7,0.0
+R² Score (Non-zero),meteorological_only,3,0,0,3,100.0,0.0,0.0

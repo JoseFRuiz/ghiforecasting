@@ -454,15 +454,18 @@ def evaluate_model(y_true, y_pred):
     y_true_nonzero = y_true[non_zero_mask]
     y_pred_nonzero = y_pred[non_zero_mask]
     
+    # Add small epsilon to avoid division by zero
+    epsilon = 1e-10
+    
     # Calculate metrics only for non-zero periods
     metrics = {
         "Mean Absolute Error (Non-zero)": float(mean_absolute_error(y_true_nonzero, y_pred_nonzero)),
         "Mean Squared Error (Non-zero)": float(mean_squared_error(y_true_nonzero, y_pred_nonzero)),
         "Root Mean Squared Error (Non-zero)": float(np.sqrt(mean_squared_error(y_true_nonzero, y_pred_nonzero))),
         "R² Score (Non-zero)": float(r2_score(y_true_nonzero, y_pred_nonzero)),
-        # Add percentage-based metrics
-        "Mean Absolute Percentage Error (Non-zero)": float(np.mean(np.abs((y_true_nonzero - y_pred_nonzero) / y_true_nonzero)) * 100),
-        "Mean Squared Percentage Error (Non-zero)": float(np.mean(np.square((y_true_nonzero - y_pred_nonzero) / y_true_nonzero)) * 100)
+        # Add percentage-based metrics with epsilon to avoid division by zero
+        "Mean Absolute Percentage Error (Non-zero)": float(np.mean(np.abs((y_true_nonzero - y_pred_nonzero) / (y_true_nonzero + epsilon))) * 100),
+        "Mean Squared Percentage Error (Non-zero)": float(np.mean(np.square((y_true_nonzero - y_pred_nonzero) / (y_true_nonzero + epsilon))) * 100)
     }
     
     # Also calculate percentage of non-zero values
@@ -474,9 +477,9 @@ def evaluate_model(y_true, y_pred):
         "Mean Squared Error (All)": float(mean_squared_error(y_true, y_pred)),
         "Root Mean Squared Error (All)": float(np.sqrt(mean_squared_error(y_true, y_pred))),
         "R² Score (All)": float(r2_score(y_true, y_pred)),
-        # Add percentage-based metrics for all values
-        "Mean Absolute Percentage Error (All)": float(np.mean(np.abs((y_true - y_pred) / y_true)) * 100),
-        "Mean Squared Percentage Error (All)": float(np.mean(np.square((y_true - y_pred) / y_true)) * 100)
+        # Add percentage-based metrics for all values with epsilon
+        "Mean Absolute Percentage Error (All)": float(np.mean(np.abs((y_true - y_pred) / (y_true + epsilon))) * 100),
+        "Mean Squared Percentage Error (All)": float(np.mean(np.square((y_true - y_pred) / (y_true + epsilon))) * 100)
     })
     
     return metrics
@@ -667,7 +670,7 @@ def main(skip_training=False):
         "Wind Direction",
         "Wind Speed",
         "all",
-        "meteorological_only"  # New combination using only meteorological variables
+        "meteorological_only"
     ]
     
     # Dictionary to store results
@@ -677,15 +680,15 @@ def main(skip_training=False):
         'predictions': {}
     }
     
-    # Try to create master experiment but continue if it fails
+    # Try to create experiment
     try:
-        master_experiment = setup_experiment()
-        if master_experiment:
-            master_experiment.set_name("GHI_Forecasting_Feature_Comparison")
-            print("✓ Master experiment created successfully")
+        experiment = setup_experiment()
+        if experiment:
+            experiment.set_name("GHI_Forecasting_Individual_Training")
+            print("✓ Experiment created successfully")
     except Exception as e:
-        print(f"× Warning: Could not create master experiment: {str(e)}")
-        master_experiment = None
+        print(f"× Warning: Could not create experiment: {str(e)}")
+        experiment = None
     
     # Track progress
     total_cities = len(CONFIG["data_locations"])
@@ -710,17 +713,7 @@ def main(skip_training=False):
         for feature_combo in feature_combinations:
             print(f"\nTesting feature combination: {feature_combo}")
             
-            city_experiment = None
             try:
-                # Try to set up experiment for this city and feature combination
-                try:
-                    city_experiment = setup_experiment()
-                    if city_experiment:
-                        city_experiment.set_name(f"GHI_Forecasting_{city}_{feature_combo}")
-                        print(f"✓ Created experiment for {city} with {feature_combo}")
-                except Exception as e:
-                    print(f"× Warning: Could not create experiment: {str(e)}")
-                
                 # Load and process data
                 print(f"\nStep 1: Loading data for {city}...")
                 try:
@@ -747,20 +740,6 @@ def main(skip_training=False):
                     print(f"× Error splitting/scaling data: {str(e)}")
                     raise
                 
-                # Log dataset info if experiment exists
-                if city_experiment:
-                    try:
-                        city_experiment.log_parameters({
-                            "city": city,
-                            "feature_combination": feature_combo,
-                            "train_size": len(X_train),
-                            "val_size": len(X_val),
-                            "test_size": len(X_test),
-                            "feature_count": X_train.shape[2]
-                        })
-                    except Exception as e:
-                        print(f"× Warning: Could not log parameters: {str(e)}")
-                
                 # Create and train model
                 print(f"\nStep 4: Creating model for {city}...")
                 try:
@@ -774,38 +753,14 @@ def main(skip_training=False):
                 model_path = os.path.join("models", f"lstm_ghi_forecast_{city}_{feature_combo}.h5")
                 
                 if skip_training:
-                    # Check if pre-trained model exists
                     if os.path.exists(model_path):
                         print(f"\nLoading pre-trained model for {city} with {feature_combo}...")
-                        try:
-                            # Clear any existing models
-                            tf.keras.backend.clear_session()
-                            
-                            # Define custom objects with only the loss function
-                            custom_objects = {
-                                'mean_squared_error': tf.keras.losses.MeanSquaredError
-                            }
-                            
-                            # Load model with custom objects
-                            model = tf.keras.models.load_model(
-                                model_path,
-                                custom_objects=custom_objects,
-                                compile=True
-                            )
-                            print("✓ Model loaded successfully")
-                            history = None
-                        except Exception as e:
-                            print(f"× Error loading model: {str(e)}")
-                            print(f"Full error: {str(e.__class__.__name__)}: {str(e)}")
-                            import traceback
-                            traceback.print_exc()
-                            continue
+                        model = tf.keras.models.load_model(model_path)
+                        history = None
                     else:
                         print(f"× No pre-trained model found for {city} with {feature_combo}")
-                        print(f"Expected path: {model_path}")
                         continue
                 else:
-                    # Original training code
                     print("\nStep 5: Training model...")
                     try:
                         history = model.fit(
@@ -835,18 +790,16 @@ def main(skip_training=False):
                     print(f"× Error generating predictions: {str(e)}")
                     raise
                 
-                # Store results
-                city_results['predictions'][feature_combo] = {
-                    'true': y_test_rescaled,
-                    'pred': y_pred_rescaled
-                }
-                
                 # Calculate metrics
                 print("\nStep 7: Calculating metrics...")
                 try:
                     metrics = evaluate_model(y_test_rescaled, y_pred_rescaled)
                     city_results['metrics'][feature_combo] = metrics
                     city_results['histories'][feature_combo] = history
+                    city_results['predictions'][feature_combo] = {
+                        'true': y_test_rescaled,
+                        'pred': y_pred_rescaled
+                    }
                     print("✓ Metrics calculated successfully")
                     
                     print(f"\nResults for {city} with {feature_combo}:")
@@ -856,32 +809,22 @@ def main(skip_training=False):
                     print(f"× Error calculating metrics: {str(e)}")
                     raise
                 
-                # Try to log results to Comet if available
-                if city_experiment:
+                # Log results if experiment exists
+                if experiment:
                     try:
-                        # Create and log plots
-                        loss_fig = plot_loss_history(history)
-                        city_experiment.log_figure(figure_name=f"loss_history_{city}_{feature_combo}", figure=loss_fig)
-                        plt.close()
-                        
-                        pred_fig = plot_results(y_test_rescaled, y_pred_rescaled, 
-                                              title=f"LSTM Model: Predicted vs. True GHI - {city} ({feature_combo})")
-                        city_experiment.log_figure(figure_name=f"predictions_{city}_{feature_combo}", figure=pred_fig)
-                        plt.close()
-                        
                         # Log metrics
-                        metrics_df = pd.DataFrame({
-                            'Metric': list(metrics.keys()),
-                            'Value': list(metrics.values())
-                        })
-                        city_experiment.log_table(f"model_metrics_{city}_{feature_combo}.csv", metrics_df)
-                        
                         for metric_name, metric_value in metrics.items():
-                            city_experiment.log_metric(f"{city}_{feature_combo}_{metric_name}", metric_value)
+                            experiment.log_metric(f"{city}_{feature_combo}_{metric_name}", metric_value)
+                        
+                        # Log plots
+                        if history:
+                            loss_fig = plot_loss_history(history)
+                            experiment.log_figure(figure_name=f"loss_history_{city}_{feature_combo}", figure=loss_fig)
+                            plt.close()
                         
                         print("✓ Results logged to Comet.ml")
                     except Exception as e:
-                        print(f"× Warning: Could not log results to Comet: {str(e)}")
+                        print(f"× Warning: Could not log results: {str(e)}")
                 
                 successful_cities += 1
                 print(f"\n✅ Successfully completed processing for {city} with {feature_combo}")
@@ -889,157 +832,71 @@ def main(skip_training=False):
             except Exception as e:
                 print(f"\n❌ Error processing {city} with {feature_combo}:")
                 print(str(e))
-                import traceback
-                print("\nFull traceback:")
-                print(traceback.format_exc())
-                if city_experiment:
-                    try:
-                        city_experiment.log_other("status", f"failed - {str(e)}")
-                    except:
-                        pass
                 continue
-            finally:
-                if city_experiment:
-                    try:
-                        city_experiment.end()
-                    except:
-                        pass
         
         # Store results for this city
         all_results['metrics'][city] = city_results['metrics']
         all_results['histories'][city] = city_results['histories']
         all_results['predictions'][city] = city_results['predictions']
     
-    # Create comparative analysis only if we have results
-    if successful_cities > 0:
-        print(f"\nGenerating comparative analysis for {successful_cities} successfully processed cities...")
+    # Create comparative analysis
+    print("\nGenerating comparative analysis...")
+    try:
+        # Create directories for results
+        os.makedirs("results", exist_ok=True)
+        os.makedirs("results/plots", exist_ok=True)
+        os.makedirs("results/tables", exist_ok=True)
         
-        try:
-            # Create directories for results if they don't exist
-            os.makedirs("results", exist_ok=True)
-            os.makedirs("results/plots", exist_ok=True)
-            os.makedirs("results/tables", exist_ok=True)
+        # Create metrics table
+        records = []
+        for city, feature_metrics in all_results['metrics'].items():
+            for feature_combo, metrics in feature_metrics.items():
+                for metric_name, value in metrics.items():
+                    records.append({
+                        'Location': city,
+                        'Feature Combination': feature_combo,
+                        'Metric': metric_name,
+                        'Value': value
+                    })
+        
+        metrics_df = pd.DataFrame(records)
+        
+        # Save results
+        metrics_df.to_csv("results/tables/metrics.csv", index=False)
+        
+        # Create plots for each metric
+        for metric in metrics_df['Metric'].unique():
+            metric_data = metrics_df[metrics_df['Metric'] == metric]
             
-            if len(all_results['metrics']) > 0:
-                # Create metrics tables
-                metrics_table, metrics_pivot = create_metrics_table(all_results['metrics'])
-                
-                # Create feature-wise comparison for each metric
-                for metric in metrics_table['Metric'].unique():
-                    metric_data = metrics_table[metrics_table['Metric'] == metric]
-                    
-                    # Create plot comparing feature combinations across cities
-                    plt.figure(figsize=(15, 8))
-                    pivot_data = metric_data.pivot(
-                        index='Feature Combination',
-                        columns='City',
-                        values='Value'
-                    )
-                    ax = pivot_data.plot(kind='bar', width=0.8)
-                    plt.title(f'{metric} Comparison Across Cities and Feature Combinations')
-                    plt.xlabel('Feature Combination')
-                    plt.ylabel(metric)
-                    plt.xticks(rotation=45, ha='right')
-                    plt.legend(title='City', bbox_to_anchor=(1.05, 1), loc='upper left')
-                    
-                    # Add value labels
-                    for container in ax.containers:
-                        ax.bar_label(container, fmt='%.3f', rotation=90, padding=3)
-                    
-                    plt.grid(True, axis='y', linestyle='--', alpha=0.7)
-                    plt.tight_layout()
-                    
-                    # Save plot
-                    plot_path = f"results/plots/feature_comparison_{metric.lower().replace(' ', '_')}.png"
-                    plt.savefig(plot_path, bbox_inches='tight', dpi=300)
-                    if master_experiment:
-                        master_experiment.log_figure(f"feature_comparison_{metric}", plt.gcf())
-                    plt.close()
-                
-                # Calculate summary statistics by feature combination
-                feature_summary = (metrics_table
-                    .groupby(['Metric', 'Feature Combination'])
-                    .agg({
-                        'Value': ['mean', 'std', 'min', 'max', 'count']
-                    })
-                    .reset_index())
-                
-                # Flatten column names
-                feature_summary.columns = ['Metric', 'Feature Combination', 'Mean', 'Std', 'Min', 'Max', 'Count']
-                
-                # Calculate best feature combination for each metric
-                best_features = []
-                for metric in metrics_table['Metric'].unique():
-                    metric_data = feature_summary[feature_summary['Metric'] == metric]
-                    
-                    # Determine if higher or lower is better
-                    if 'Error' in metric or 'Loss' in metric:
-                        best_idx = metric_data['Mean'].idxmin()
-                        criterion = 'min'
-                    else:  # For metrics like R² Score, higher is better
-                        best_idx = metric_data['Mean'].idxmax()
-                        criterion = 'max'
-                    
-                    best_features.append({
-                        'Metric': metric,
-                        'Best Feature Combination': metric_data.loc[best_idx, 'Feature Combination'],
-                        'Mean Value': metric_data.loc[best_idx, 'Mean'],
-                        'Std Dev': metric_data.loc[best_idx, 'Std'],
-                        'Criterion': criterion
-                    })
-                
-                best_features_df = pd.DataFrame(best_features)
-                
-                # Save all results
-                with pd.ExcelWriter("results/comparative_analysis_results.xlsx") as writer:
-                    metrics_pivot.to_excel(writer, sheet_name="Comparative Metrics")
-                    feature_summary.to_excel(writer, sheet_name="Feature Summary", index=False)
-                    best_features_df.to_excel(writer, sheet_name="Best Features", index=False)
-                
-                # Save individual files
-                metrics_pivot.to_csv("results/tables/comparative_metrics.csv")
-                feature_summary.to_csv("results/tables/feature_summary.csv", index=False)
-                best_features_df.to_csv("results/tables/best_features.csv", index=False)
-                
-                # Print results to console
-                print("\nComparative Results:")
-                print("\nBest Feature Combinations by Metric:")
-                print("=" * 80)
-                for _, row in best_features_df.iterrows():
-                    print(f"\nMetric: {row['Metric']}")
-                    print(f"Best Feature Combination: {row['Best Feature Combination']}")
-                    print(f"Mean Value: {row['Mean Value']:.4f} ± {row['Std Dev']:.4f}")
-                print("=" * 80)
-                
-                print("\nResults have been saved in the 'results' directory:")
-                print("1. Plots: results/plots/")
-                print("   - Feature comparison plots for each metric")
-                print("2. Tables: results/tables/")
-                print("   - comparative_metrics.csv")
-                print("   - feature_summary.csv")
-                print("   - best_features.csv")
-                print("3. Excel: results/comparative_analysis_results.xlsx")
-                
-                if master_experiment:
-                    master_experiment.log_table("comparative_metrics.csv", metrics_pivot.reset_index())
-                    master_experiment.log_table("feature_summary.csv", feature_summary)
-                    master_experiment.log_table("best_features.csv", best_features_df)
-                    
-            else:
-                print("\n⚠️ No metrics were collected. Skipping comparative analysis.")
-                if master_experiment:
-                    master_experiment.log_other("status", "no metrics collected")
-        except Exception as e:
-            print(f"\n❌ Error in comparative analysis: {str(e)}")
-            import traceback
-            print("\nFull traceback:")
-            print(traceback.format_exc())
-            if master_experiment:
-                master_experiment.log_other("status", f"comparative analysis failed - {str(e)}")
-    else:
-        print("\n❌ No cities were processed successfully. Skipping comparative analysis.")
-        if master_experiment:
-            master_experiment.log_other("status", "no successful cities")
+            plt.figure(figsize=(15, 8))
+            pivot_data = metric_data.pivot(
+                index='Feature Combination',
+                columns='Location',
+                values='Value'
+            )
+            ax = pivot_data.plot(kind='bar', width=0.8)
+            plt.title(f'{metric} Comparison Across Locations and Feature Combinations')
+            plt.xlabel('Feature Combination')
+            plt.ylabel(metric)
+            plt.xticks(rotation=45, ha='right')
+            plt.legend(title='Location', bbox_to_anchor=(1.05, 1), loc='upper left')
+            
+            # Add value labels
+            for container in ax.containers:
+                ax.bar_label(container, fmt='%.3f', rotation=90, padding=3)
+            
+            plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+            plt.tight_layout()
+            
+            # Save plot
+            plot_path = f"results/plots/comparison_{metric.lower().replace(' ', '_')}.png"
+            plt.savefig(plot_path, bbox_inches='tight', dpi=300)
+            plt.close()
+        
+        print("\nResults have been saved in the 'results' directory")
+        
+    except Exception as e:
+        print(f"× Error in comparative analysis: {str(e)}")
     
     # Print final summary
     print(f"\nFinal Summary:")
@@ -1047,14 +904,14 @@ def main(skip_training=False):
     print(f"Successfully processed: {successful_cities}")
     print(f"Failed/Skipped: {total_cities - successful_cities}")
     
-    if master_experiment:
+    if experiment:
         try:
-            master_experiment.log_metrics({
+            experiment.log_metrics({
                 "total_cities": total_cities,
                 "successful_cities": successful_cities,
                 "failed_cities": total_cities - successful_cities
             })
-            master_experiment.end()
+            experiment.end()
         except:
             pass
 

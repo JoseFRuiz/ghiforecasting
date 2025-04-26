@@ -1,0 +1,352 @@
+Location,Feature Combination,Metric,Individual Value,Joint Value,Better Approach
+New Delhi,ghi_only,Mean Absolute Error (Non-zero),135.5940661355054,134.67436690939,joint
+New Delhi,ghi_only,Mean Squared Error (Non-zero),34642.51381130471,33795.396339892686,joint
+New Delhi,ghi_only,Root Mean Squared Error (Non-zero),186.1249951277493,183.835242377224,joint
+New Delhi,ghi_only,R² Score (Non-zero),0.5167944100516431,0.5272719513897427,joint
+New Delhi,ghi_only,Mean Absolute Percentage Error (Non-zero),144.81195901812828,163.55506523894786,individual
+New Delhi,ghi_only,Mean Squared Percentage Error (Non-zero),1282.7515959162108,1641.1608314590176,individual
+New Delhi,ghi_only,Non-zero Values Percentage,49.10714285714285,49.06648451730419,individual
+New Delhi,ghi_only,Mean Absolute Error (All),68.33191062867995,69.65956916124009,individual
+New Delhi,ghi_only,Mean Squared Error (All),17063.09209551583,16639.569117474093,joint
+New Delhi,ghi_only,Root Mean Squared Error (All),130.62577117673155,128.994453824473,joint
+New Delhi,ghi_only,R² Score (All),0.7334136245414495,0.7391456568371064,joint
+New Delhi,ghi_only,Mean Absolute Percentage Error (All),1745538865779.6494,3579591772947.0645,individual
+New Delhi,ghi_only,Mean Squared Percentage Error (All),5.114334889298309e+23,5.73562047990609e+23,individual
+New Delhi,Temperature,Mean Absolute Error (Non-zero),133.51174814084197,135.6849064160942,individual
+New Delhi,Temperature,Mean Squared Error (Non-zero),34106.21449769563,34110.63340705517,individual
+New Delhi,Temperature,Root Mean Squared Error (Non-zero),184.6786790555305,184.69064244583475,individual
+New Delhi,Temperature,R² Score (Non-zero),0.5242748956663101,0.5228624335338021,individual
+New Delhi,Temperature,Mean Absolute Percentage Error (Non-zero),166.52185016794695,180.54910711537968,individual
+New Delhi,Temperature,Mean Squared Percentage Error (Non-zero),2063.034209519044,2057.4490778039085,joint
+New Delhi,Temperature,Non-zero Values Percentage,49.10714285714285,49.06648451730419,individual
+New Delhi,Temperature,Mean Absolute Error (All),67.95104503373688,72.38202183635292,individual
+New Delhi,Temperature,Mean Squared Error (All),16804.397344752233,16834.19029190818,individual
+New Delhi,Temperature,Root Mean Squared Error (All),129.63177598394705,129.7466388462845,individual
+New Delhi,Temperature,R² Score (All),0.7374553595077835,0.7360946295981089,individual
+New Delhi,Temperature,Mean Absolute Percentage Error (All),2387240143226.625,5806208237469.952,individual
+New Delhi,Temperature,Mean Squared Percentage Error (All),5.580986820527212e+23,9.730163248106468e+23,individual
+New Delhi,Relative Humidity,Mean Absolute Error (Non-zero),137.0779175251514,135.6183691117714,joint
+New Delhi,Relative Humidity,Mean Squared Error (Non-zero),34445.74978193279,33341.44327802083,joint
+New Delhi,Relative Humidity,Root Mean Squared Error (Non-zero),185.59566207735784,182.59639448253307,joint
+New Delhi,Relative Humidity,R² Score (Non-zero),0.5195389417969764,0.5336218205536092,joint
+New Delhi,Relative Humidity,Mean Absolute Percentage Error (Non-zero),145.45450965865106,160.02542548575946,individual
+New Delhi,Relative Humidity,Mean Squared Percentage Error (Non-zero),1258.311730589955,1542.178933870283,individual
+New Delhi,Relative Humidity,Non-zero Values Percentage,49.10714285714285,49.06648451730419,individual
+New Delhi,Relative Humidity,Mean Absolute Error (All),70.80614378705626,71.65214157158776,individual
+New Delhi,Relative Humidity,Mean Squared Error (All),16986.073811928713,16429.60746034989,joint
+New Delhi,Relative Humidity,Root Mean Squared Error (All),130.3306326691032,128.17803033417968,joint
+New Delhi,Relative Humidity,R² Score (All),0.7346169249134218,0.7424371729678343,joint
+New Delhi,Relative Humidity,Mean Absolute Percentage Error (All),3491095002455.1284,5108975488818.541,individual
+New Delhi,Relative Humidity,Mean Squared Percentage Error (All),7.075025830100189e+23,7.013335649404406e+23,joint
+New Delhi,Pressure,Mean Absolute Error (Non-zero),135.08840927266297,136.44150460192333,individual
+New Delhi,Pressure,Mean Squared Error (Non-zero),34901.540309538206,33985.400575083055,joint
+New Delhi,Pressure,Root Mean Squared Error (Non-zero),186.8195394211703,184.35129664605847,joint
+New Delhi,Pressure,R² Score (Non-zero),0.5131814201695308,0.5246141831414917,joint
+New Delhi,Pressure,Mean Absolute Percentage Error (Non-zero),172.59424569726633,188.09869662816467,individual
+New Delhi,Pressure,Mean Squared Percentage Error (Non-zero),2129.3162974959723,2122.315326098764,joint
+New Delhi,Pressure,Non-zero Values Percentage,49.10714285714285,49.06648451730419,individual
+New Delhi,Pressure,Mean Absolute Error (All),73.5355590719102,74.34199487175012,individual
+New Delhi,Pressure,Mean Squared Error (All),17292.588147810766,16845.6580124193,joint
+New Delhi,Pressure,Root Mean Squared Error (All),131.50128572683525,129.79082406865015,joint
+New Delhi,Pressure,R² Score (All),0.7298280774189893,0.735914853025748,joint
+New Delhi,Pressure,Mean Absolute Percentage Error (All),7197500947026.53,7394945141162.822,individual
+New Delhi,Pressure,Mean Squared Percentage Error (All),1.5343888866253596e+24,1.7021670110236623e+24,individual
+New Delhi,Precipitable Water,Mean Absolute Error (Non-zero),132.7756104267022,133.42264279312434,individual
+New Delhi,Precipitable Water,Mean Squared Error (Non-zero),33101.69111568315,32416.67256931932,joint
+New Delhi,Precipitable Water,Root Mean Squared Error (Non-zero),181.9387015334647,180.0463067361264,joint
+New Delhi,Precipitable Water,R² Score (Non-zero),0.5382863301732328,0.5465574597199518,joint
+New Delhi,Precipitable Water,Mean Absolute Percentage Error (Non-zero),173.9028339522401,170.8240034444224,joint
+New Delhi,Precipitable Water,Mean Squared Percentage Error (Non-zero),2529.5768776161194,2352.356946849732,joint
+New Delhi,Precipitable Water,Non-zero Values Percentage,49.10714285714285,49.06648451730419,individual
+New Delhi,Precipitable Water,Mean Absolute Error (All),68.03939801920686,67.63542050594474,joint
+New Delhi,Precipitable Water,Mean Squared Error (All),16367.471906109316,15967.32806918079,joint
+New Delhi,Precipitable Water,Root Mean Squared Error (All),127.93542084235044,126.36189326367658,joint
+New Delhi,Precipitable Water,R² Score (All),0.7442816937021621,0.7496842108021566,joint
+New Delhi,Precipitable Water,Mean Absolute Percentage Error (All),2837089327608.1274,2169620137362.1272,joint
+New Delhi,Precipitable Water,Mean Squared Percentage Error (All),1.1217716180062588e+24,6.160644193053093e+23,joint
+New Delhi,Wind Direction,Mean Absolute Error (Non-zero),135.9520840878253,135.28319127532004,joint
+New Delhi,Wind Direction,Mean Squared Error (Non-zero),34509.36095776704,34057.66911657357,joint
+New Delhi,Wind Direction,Root Mean Squared Error (Non-zero),185.7669533522231,184.54720024040887,joint
+New Delhi,Wind Direction,R² Score (Non-zero),0.518651671435659,0.5236032949645599,joint
+New Delhi,Wind Direction,Mean Absolute Percentage Error (Non-zero),152.0803479574078,164.6937220576458,individual
+New Delhi,Wind Direction,Mean Squared Percentage Error (Non-zero),1307.6433323135589,1562.126304792668,individual
+New Delhi,Wind Direction,Non-zero Values Percentage,49.10714285714285,49.06648451730419,individual
+New Delhi,Wind Direction,Mean Absolute Error (All),70.9976457336518,69.40521553427469,joint
+New Delhi,Wind Direction,Mean Squared Error (All),17024.905148502992,16763.873287267343,joint
+New Delhi,Wind Direction,Root Mean Squared Error (All),130.47952003476635,129.47537714665032,joint
+New Delhi,Wind Direction,R² Score (All),0.7340102408954489,0.7371969716076447,joint
+New Delhi,Wind Direction,Mean Absolute Percentage Error (All),4235461583455.1143,3026509432735.59,joint
+New Delhi,Wind Direction,Mean Squared Percentage Error (All),7.83439638852479e+23,5.2972343229081655e+23,joint
+New Delhi,Wind Speed,Mean Absolute Error (Non-zero),137.4503630978244,134.9408124700223,joint
+New Delhi,Wind Speed,Mean Squared Error (Non-zero),34775.40345974312,33962.92512716398,joint
+New Delhi,Wind Speed,Root Mean Squared Error (Non-zero),186.4816437608354,184.29032836034557,joint
+New Delhi,Wind Speed,R² Score (Non-zero),0.5149408199420604,0.5249285684065605,joint
+New Delhi,Wind Speed,Mean Absolute Percentage Error (Non-zero),142.083663789444,156.06731327983573,individual
+New Delhi,Wind Speed,Mean Squared Percentage Error (Non-zero),1065.0467346866988,1393.9244523989432,individual
+New Delhi,Wind Speed,Non-zero Values Percentage,49.10714285714285,49.06648451730419,individual
+New Delhi,Wind Speed,Mean Absolute Error (All),73.78476346267094,70.014871511683,joint
+New Delhi,Wind Speed,Mean Squared Error (All),17209.216801305665,16715.875900342944,joint
+New Delhi,Wind Speed,Root Mean Squared Error (All),131.18390450549057,129.28989094412194,joint
+New Delhi,Wind Speed,R² Score (All),0.7311306352999102,0.7379494145796537,joint
+New Delhi,Wind Speed,Mean Absolute Percentage Error (All),6286817298630.508,3804158653631.597,joint
+New Delhi,Wind Speed,Mean Squared Percentage Error (All),1.3200974518181403e+24,5.146250119941626e+23,joint
+New Delhi,all,Mean Absolute Error (Non-zero),132.8614288312294,133.1647564817194,individual
+New Delhi,all,Mean Squared Error (Non-zero),32983.43763083618,32708.15782317365,joint
+New Delhi,all,Root Mean Squared Error (Non-zero),181.6134291037868,180.8539682262285,joint
+New Delhi,all,R² Score (Non-zero),0.539935770084556,0.5424801808542926,joint
+New Delhi,all,Mean Absolute Percentage Error (Non-zero),157.32820598141265,168.458529822427,individual
+New Delhi,all,Mean Squared Percentage Error (Non-zero),1733.8266319194404,2026.215226461468,individual
+New Delhi,all,Non-zero Values Percentage,49.10714285714285,49.06648451730419,individual
+New Delhi,all,Mean Absolute Error (All),67.32070159921726,68.90321401364164,individual
+New Delhi,all,Mean Squared Error (All),16235.656609786054,16096.270100600988,joint
+New Delhi,all,Root Mean Squared Error (All),127.41921601464222,126.87107669047737,joint
+New Delhi,all,R² Score (All),0.7463411189153712,0.7476628189815666,joint
+New Delhi,all,Mean Absolute Percentage Error (All),2076249941101.5044,3563949392115.6274,individual
+New Delhi,all,Mean Squared Percentage Error (All),3.843277321471149e+23,4.752690639806968e+23,individual
+New Delhi,meteorological_only,Mean Absolute Error (Non-zero),170.68198023931686,184.79422604719613,individual
+New Delhi,meteorological_only,Mean Squared Error (Non-zero),48465.68829783957,55651.811728838,individual
+New Delhi,meteorological_only,Root Mean Squared Error (Non-zero),220.1492409658493,235.9063622050876,individual
+New Delhi,meteorological_only,R² Score (Non-zero),0.3239840609208738,0.2215456775352451,individual
+New Delhi,meteorological_only,Mean Absolute Percentage Error (Non-zero),182.17821177515376,129.67952176223466,joint
+New Delhi,meteorological_only,Mean Squared Percentage Error (Non-zero),2592.3059464044263,791.6534713612684,joint
+New Delhi,meteorological_only,Non-zero Values Percentage,49.10714285714285,49.06648451730419,individual
+New Delhi,meteorological_only,Mean Absolute Error (All),93.1264540494411,95.28937437834549,individual
+New Delhi,meteorological_only,Mean Squared Error (All),24295.876032471373,27521.440298744925,individual
+New Delhi,meteorological_only,Root Mean Squared Error (All),155.87134448791855,165.89587185564602,individual
+New Delhi,meteorological_only,R² Score (All),0.6204117346475,0.5685532971832331,individual
+New Delhi,meteorological_only,Mean Absolute Percentage Error (All),9309410182008.88,4617344066089.514,joint
+New Delhi,meteorological_only,Mean Squared Percentage Error (All),4.957612433537299e+24,2.1505271321535333e+24,joint
+Shimla,ghi_only,Mean Absolute Error (Non-zero),123.98818313609836,135.0347886456335,individual
+Shimla,ghi_only,Mean Squared Error (Non-zero),29505.57427183804,31683.711297426937,individual
+Shimla,ghi_only,Root Mean Squared Error (Non-zero),171.7718669393741,177.99918903586874,individual
+Shimla,ghi_only,R² Score (Non-zero),0.6490210940588836,0.6451143933687326,individual
+Shimla,ghi_only,Mean Absolute Percentage Error (Non-zero),120.25280692752304,130.5239290896802,individual
+Shimla,ghi_only,Mean Squared Percentage Error (Non-zero),819.7346539513594,863.588067064706,individual
+Shimla,ghi_only,Non-zero Values Percentage,48.946886446886445,49.90867579908676,joint
+Shimla,ghi_only,Mean Absolute Error (All),62.56570382893154,70.98005557680783,individual
+Shimla,ghi_only,Mean Squared Error (All),14465.509786535931,15856.894019765165,individual
+Shimla,ghi_only,Root Mean Squared Error (All),120.27264770734836,125.92415979376302,individual
+Shimla,ghi_only,R² Score (All),0.8040762038036979,0.7953878444372638,individual
+Shimla,ghi_only,Mean Absolute Percentage Error (All),1877348621806.725,3585980695741.729,individual
+Shimla,ghi_only,Mean Squared Percentage Error (All),2.3449852197622246e+23,4.397326721372519e+23,individual
+Shimla,Temperature,Mean Absolute Error (Non-zero),121.24715012856964,134.71547850794676,individual
+Shimla,Temperature,Mean Squared Error (Non-zero),27758.93563353457,30849.70738266249,individual
+Shimla,Temperature,Root Mean Squared Error (Non-zero),166.61013064497178,175.6408477053743,individual
+Shimla,Temperature,R² Score (Non-zero),0.6697979585489049,0.6544559753079693,individual
+Shimla,Temperature,Mean Absolute Percentage Error (Non-zero),123.76743204467768,130.24148471787916,individual
+Shimla,Temperature,Mean Squared Percentage Error (Non-zero),959.0065495356978,966.00213899271,individual
+Shimla,Temperature,Non-zero Values Percentage,48.946886446886445,49.90867579908676,joint
+Shimla,Temperature,Mean Absolute Error (All),62.12403353937772,72.47950570920831,individual
+Shimla,Temperature,Mean Squared Error (All),13609.93205022633,15463.059942292888,individual
+Shimla,Temperature,Root Mean Squared Error (All),116.66161343915286,124.35055264168668,individual
+Shimla,Temperature,R² Score (All),0.8156643220596365,0.8004697501008332,individual
+Shimla,Temperature,Mean Absolute Percentage Error (All),2777328645921.384,5244794289553.772,individual
+Shimla,Temperature,Mean Squared Percentage Error (All),2.279734681586817e+23,6.637949971293296e+23,individual
+Shimla,Relative Humidity,Mean Absolute Error (Non-zero),122.32547085801023,134.47264425076156,individual
+Shimla,Relative Humidity,Mean Squared Error (Non-zero),29508.99128790112,31231.48261073483,individual
+Shimla,Relative Humidity,Root Mean Squared Error (Non-zero),171.7818130300793,176.72431244946134,individual
+Shimla,Relative Humidity,R² Score (Non-zero),0.6489804474831433,0.6501797548822943,joint
+Shimla,Relative Humidity,Mean Absolute Percentage Error (Non-zero),125.02266856080352,132.1630152771262,individual
+Shimla,Relative Humidity,Mean Squared Percentage Error (Non-zero),908.5444153730724,880.6412195627672,joint
+Shimla,Relative Humidity,Non-zero Values Percentage,48.946886446886445,49.90867579908676,joint
+Shimla,Relative Humidity,Mean Absolute Error (All),61.94429981674785,72.3647465872438,individual
+Shimla,Relative Humidity,Mean Squared Error (All),14462.802810231591,15654.793912611756,individual
+Shimla,Relative Humidity,Root Mean Squared Error (All),120.2613936815618,125.11911889320416,individual
+Shimla,Relative Humidity,R² Score (All),0.8041128676393723,0.7979956778826142,individual
+Shimla,Relative Humidity,Mean Absolute Percentage Error (All),2069790500319.5967,5251230529737.896,individual
+Shimla,Relative Humidity,Mean Squared Percentage Error (All),1.907035292101638e+23,6.75745091719528e+23,individual
+Shimla,Pressure,Mean Absolute Error (Non-zero),122.88517071765862,136.29486236109824,individual
+Shimla,Pressure,Mean Squared Error (Non-zero),29019.80866266441,31587.13927886319,individual
+Shimla,Pressure,Root Mean Squared Error (Non-zero),170.352013967151,177.7277110606649,individual
+Shimla,Pressure,R² Score (Non-zero),0.6547994422611861,0.6461960854429305,individual
+Shimla,Pressure,Mean Absolute Percentage Error (Non-zero),107.3300969259251,150.41984521115148,individual
+Shimla,Pressure,Mean Squared Percentage Error (Non-zero),626.0097899284506,1181.6755761139902,individual
+Shimla,Pressure,Non-zero Values Percentage,48.946886446886445,49.90867579908676,joint
+Shimla,Pressure,Mean Absolute Error (All),61.30741849355992,75.11733660180819,individual
+Shimla,Pressure,Mean Squared Error (All),14211.314899792622,15910.131288905575,individual
+Shimla,Pressure,Root Mean Squared Error (All),119.21121968922482,126.13536890541675,individual
+Shimla,Pressure,R² Score (All),0.8075190708660667,0.7947008881908819,individual
+Shimla,Pressure,Mean Absolute Percentage Error (All),1158953522377.5312,7094375615271.213,individual
+Shimla,Pressure,Mean Squared Percentage Error (All),7.022106574555643e+22,1.4540835201175512e+24,individual
+Shimla,Precipitable Water,Mean Absolute Error (Non-zero),119.99428715727618,133.78080239398483,individual
+Shimla,Precipitable Water,Mean Squared Error (Non-zero),27638.992015414973,30535.89663571268,individual
+Shimla,Precipitable Water,Root Mean Squared Error (Non-zero),166.2497880161505,174.74523351357163,individual
+Shimla,Precipitable Water,R² Score (Non-zero),0.6712247289440303,0.6579709333964725,individual
+Shimla,Precipitable Water,Mean Absolute Percentage Error (Non-zero),139.94261792988146,128.081202791396,joint
+Shimla,Precipitable Water,Mean Squared Percentage Error (Non-zero),1481.775102233695,895.023633617167,joint
+Shimla,Precipitable Water,Non-zero Values Percentage,48.946886446886445,49.90867579908676,joint
+Shimla,Precipitable Water,Mean Absolute Error (All),60.57789049514672,68.56803695873515,individual
+Shimla,Precipitable Water,Mean Squared Error (All),13559.83427395679,15263.581053608468,individual
+Shimla,Precipitable Water,Root Mean Squared Error (All),116.44670143012549,123.54586619393004,individual
+Shimla,Precipitable Water,R² Score (All),0.8163428564944795,0.8030437602034487,individual
+Shimla,Precipitable Water,Mean Absolute Percentage Error (All),1844423017592.403,1799810010568.2915,joint
+Shimla,Precipitable Water,Mean Squared Percentage Error (All),3.140823710761309e+23,2.3519399346386564e+23,joint
+Shimla,Wind Direction,Mean Absolute Error (Non-zero),124.11216875802468,133.789345448593,individual
+Shimla,Wind Direction,Mean Squared Error (Non-zero),28969.152879245263,31169.75145757736,individual
+Shimla,Wind Direction,Root Mean Squared Error (Non-zero),170.20326929658333,176.54957223844343,individual
+Shimla,Wind Direction,R² Score (Non-zero),0.6554020101448085,0.650871198429759,individual
+Shimla,Wind Direction,Mean Absolute Percentage Error (Non-zero),113.48177209554991,127.30672731321762,individual
+Shimla,Wind Direction,Mean Squared Percentage Error (Non-zero),762.8920024388295,860.9627751138227,individual
+Shimla,Wind Direction,Non-zero Values Percentage,48.946886446886445,49.90867579908676,joint
+Shimla,Wind Direction,Mean Absolute Error (All),61.85056260135941,69.48278881156281,individual
+Shimla,Wind Direction,Mean Squared Error (All),14196.214490475852,15588.601222433188,individual
+Shimla,Wind Direction,Root Mean Squared Error (All),119.14786817428104,124.85431999908208,individual
+Shimla,Wind Direction,R² Score (All),0.8077235938701722,0.7988498066295838,individual
+Shimla,Wind Direction,Mean Absolute Percentage Error (All),1101520292656.5464,2710298137967.84,individual
+Shimla,Wind Direction,Mean Squared Percentage Error (All),1.6716126046734895e+23,3.219102008978102e+23,individual
+Shimla,Wind Speed,Mean Absolute Error (Non-zero),122.23106761208464,133.20868558449584,individual
+Shimla,Wind Speed,Mean Squared Error (Non-zero),28611.79947613756,30714.694830673325,individual
+Shimla,Wind Speed,Root Mean Squared Error (Non-zero),169.15022753794202,175.25608357678578,individual
+Shimla,Wind Speed,R² Score (Non-zero),0.6596528511995032,0.6559682353764228,individual
+Shimla,Wind Speed,Mean Absolute Percentage Error (Non-zero),107.20910805583918,125.2514652255959,individual
+Shimla,Wind Speed,Mean Squared Percentage Error (Non-zero),612.0860896587441,777.9760341921062,individual
+Shimla,Wind Speed,Non-zero Values Percentage,48.946886446886445,49.90867579908676,joint
+Shimla,Wind Speed,Mean Absolute Error (All),62.14989109941048,70.53877696582715,individual
+Shimla,Wind Speed,Mean Squared Error (All),14028.227287226537,15379.92377885713,individual
+Shimla,Wind Speed,Root Mean Squared Error (All),118.44081765686413,124.01582067969042,individual
+Shimla,Wind Speed,R² Score (All),0.8099988465960485,0.8015425118651864,individual
+Shimla,Wind Speed,Mean Absolute Percentage Error (All),2321589232558.8936,4056085941298.824,individual
+Shimla,Wind Speed,Mean Squared Percentage Error (All),2.364228723063038e+23,5.062631313751979e+23,individual
+Shimla,all,Mean Absolute Error (Non-zero),120.12531296946491,131.5822872090318,individual
+Shimla,all,Mean Squared Error (Non-zero),26805.337322076983,29960.1432612189,individual
+Shimla,all,Root Mean Squared Error (Non-zero),163.72335606771864,173.08998602235457,individual
+Shimla,all,R² Score (Non-zero),0.6811413368874897,0.6644198807328225,individual
+Shimla,all,Mean Absolute Percentage Error (Non-zero),120.9153032865539,122.96898720737896,individual
+Shimla,all,Mean Squared Percentage Error (Non-zero),865.8425894077942,835.2742151472014,joint
+Shimla,all,Non-zero Values Percentage,48.946886446886445,49.90867579908676,joint
+Shimla,all,Mean Absolute Error (All),60.336992155495714,69.05000719000759,individual
+Shimla,all,Mean Squared Error (All),13131.013458120457,14983.642788763147,individual
+Shimla,all,Root Mean Squared Error (All),114.5906342513229,122.40769088894352,individual
+Shimla,all,R² Score (All),0.8221508925309867,0.8066559916860515,individual
+Shimla,all,Mean Absolute Percentage Error (All),1539391622423.9473,3379030057890.093,individual
+Shimla,all,Mean Squared Percentage Error (All),1.063543737856104e+23,3.0932019579470445e+23,individual
+Shimla,meteorological_only,Mean Absolute Error (Non-zero),173.10742671851838,186.42014236676644,individual
+Shimla,meteorological_only,Mean Squared Error (Non-zero),49545.58399562023,60221.00371719588,individual
+Shimla,meteorological_only,Root Mean Squared Error (Non-zero),222.5883734511312,245.3996815751721,individual
+Shimla,meteorological_only,R² Score (Non-zero),0.4106383185500627,0.3254714627494893,individual
+Shimla,meteorological_only,Mean Absolute Percentage Error (Non-zero),128.2880440053848,116.57538634056628,joint
+Shimla,meteorological_only,Mean Squared Percentage Error (Non-zero),1220.390733158644,929.3266788810528,joint
+Shimla,meteorological_only,Non-zero Values Percentage,48.946886446886445,49.90867579908676,joint
+Shimla,meteorological_only,Mean Absolute Error (All),89.62391187226297,99.30372093870332,individual
+Shimla,meteorological_only,Mean Squared Error (All),24448.25583659037,30290.606458761995,individual
+Shimla,meteorological_only,Root Mean Squared Error (All),156.35938039206465,174.0419675215205,individual
+Shimla,meteorological_only,R² Score (All),0.668867868152039,0.6091399568475127,individual
+Shimla,meteorological_only,Mean Absolute Percentage Error (All),4893216285285.402,6263896460736.04,individual
+Shimla,meteorological_only,Mean Squared Percentage Error (All),1.9723509880739027e+24,2.351009505907252e+24,individual
+Srinagar,ghi_only,Mean Absolute Error (Non-zero),69.54785787884673,68.52883643852165,joint
+Srinagar,ghi_only,Mean Squared Error (Non-zero),13030.452431303136,12348.004039465644,joint
+Srinagar,ghi_only,Root Mean Squared Error (Non-zero),114.15100714099344,111.12157324059824,joint
+Srinagar,ghi_only,R² Score (Non-zero),0.8355245730910607,0.8582196443897764,joint
+Srinagar,ghi_only,Mean Absolute Percentage Error (Non-zero),47.64439209301774,55.05347621151424,individual
+Srinagar,ghi_only,Mean Squared Percentage Error (Non-zero),226.8267454090752,348.13892341532284,individual
+Srinagar,ghi_only,Non-zero Values Percentage,48.46611721611722,49.41620879120879,joint
+Srinagar,ghi_only,Mean Absolute Error (All),34.58833883462312,36.61564300048264,individual
+Srinagar,ghi_only,Mean Squared Error (All),6319.737394376706,6128.740297042918,joint
+Srinagar,ghi_only,Root Mean Squared Error (All),79.49677599989012,78.28627144680553,joint
+Srinagar,ghi_only,R² Score (All),0.9286488726801148,0.9373523484416372,joint
+Srinagar,ghi_only,Mean Absolute Percentage Error (All),881192513785.7523,2751290103864.016,individual
+Srinagar,ghi_only,Mean Squared Percentage Error (All),4.383045230932552e+22,2.682483935368006e+23,individual
+Srinagar,Temperature,Mean Absolute Error (Non-zero),69.13943513134036,75.02387159081115,individual
+Srinagar,Temperature,Mean Squared Error (Non-zero),12670.704447215068,12874.11579937938,individual
+Srinagar,Temperature,Root Mean Squared Error (Non-zero),112.56422365572053,113.46416085874596,individual
+Srinagar,Temperature,R² Score (Non-zero),0.8400654517423938,0.8521788047388591,joint
+Srinagar,Temperature,Mean Absolute Percentage Error (Non-zero),52.27551290291633,61.19342589734064,individual
+Srinagar,Temperature,Mean Squared Percentage Error (Non-zero),300.6861712025957,428.06795504542697,individual
+Srinagar,Temperature,Non-zero Values Percentage,48.46611721611722,49.41620879120879,joint
+Srinagar,Temperature,Mean Absolute Error (All),34.22696333361208,41.87238420027517,individual
+Srinagar,Temperature,Mean Squared Error (All),6157.800437516798,6421.491394860402,individual
+Srinagar,Temperature,Root Mean Squared Error (All),78.47165371977832,80.13420864312819,individual
+Srinagar,Temperature,R² Score (All),0.9304771740327924,0.934359862566808,joint
+Srinagar,Temperature,Mean Absolute Percentage Error (All),717763660320.6746,4798431171741.788,individual
+Srinagar,Temperature,Mean Squared Percentage Error (All),1.6801968021765236e+23,5.959145141708816e+23,individual
+Srinagar,Relative Humidity,Mean Absolute Error (Non-zero),68.42309851431317,67.57793291536835,joint
+Srinagar,Relative Humidity,Mean Squared Error (Non-zero),13258.709123772853,12262.491679292156,joint
+Srinagar,Relative Humidity,Root Mean Squared Error (Non-zero),115.1464681341675,110.73613538178112,joint
+Srinagar,Relative Humidity,R² Score (Non-zero),0.8326434285462565,0.8592015012790126,joint
+Srinagar,Relative Humidity,Mean Absolute Percentage Error (Non-zero),51.80644690662648,56.75182894391556,individual
+Srinagar,Relative Humidity,Mean Squared Percentage Error (Non-zero),284.9801172572481,363.17361424945005,individual
+Srinagar,Relative Humidity,Non-zero Values Percentage,48.46611721611722,49.41620879120879,joint
+Srinagar,Relative Humidity,Mean Absolute Error (All),34.694410565994126,37.944272992920965,individual
+Srinagar,Relative Humidity,Mean Squared Error (All),6588.776911117775,6112.65546736445,joint
+Srinagar,Relative Humidity,Root Mean Squared Error (All),81.17128131992112,78.18347310886394,joint
+Srinagar,Relative Humidity,R² Score (All),0.925611361528124,0.9375167666999144,joint
+Srinagar,Relative Humidity,Mean Absolute Percentage Error (All),1532391437172.8545,4549820566707.577,individual
+Srinagar,Relative Humidity,Mean Squared Percentage Error (All),1.6279540584599547e+24,5.299697612083234e+23,joint
+Srinagar,Pressure,Mean Absolute Error (Non-zero),69.57670970062294,72.25969861883075,individual
+Srinagar,Pressure,Mean Squared Error (Non-zero),12612.385631004048,12636.171129845192,individual
+Srinagar,Pressure,Root Mean Squared Error (Non-zero),112.304878037439,112.41072515487652,individual
+Srinagar,Pressure,R² Score (Non-zero),0.8408015744705722,0.8549108964805116,joint
+Srinagar,Pressure,Mean Absolute Percentage Error (Non-zero),52.893272654715,71.37645365292624,individual
+Srinagar,Pressure,Mean Squared Percentage Error (Non-zero),310.44479602323827,587.6602968137395,individual
+Srinagar,Pressure,Non-zero Values Percentage,48.46611721611722,49.41620879120879,joint
+Srinagar,Pressure,Mean Absolute Error (All),34.773365134396414,41.47141688516288,individual
+Srinagar,Pressure,Mean Squared Error (All),6118.799826682586,6326.491698760602,individual
+Srinagar,Pressure,Root Mean Squared Error (All),78.22275772869803,79.53924627981209,individual
+Srinagar,Pressure,R² Score (All),0.9309174989031992,0.9353309443178626,joint
+Srinagar,Pressure,Mean Absolute Percentage Error (All),1052235455800.5352,5763413343818.535,individual
+Srinagar,Pressure,Mean Squared Percentage Error (All),6.066223011438273e+22,8.217499002185495e+23,individual
+Srinagar,Precipitable Water,Mean Absolute Error (Non-zero),67.57568610370349,73.0605918572461,individual
+Srinagar,Precipitable Water,Mean Squared Error (Non-zero),12437.18872836759,12858.256458300197,individual
+Srinagar,Precipitable Water,Root Mean Squared Error (Non-zero),111.5221445649589,113.39425231598028,individual
+Srinagar,Precipitable Water,R² Score (Non-zero),0.8430129777588442,0.8523609024293656,joint
+Srinagar,Precipitable Water,Mean Absolute Percentage Error (Non-zero),54.58044359101496,54.76111042130776,individual
+Srinagar,Precipitable Water,Mean Squared Percentage Error (Non-zero),347.9841970148466,340.67504301057613,joint
+Srinagar,Precipitable Water,Non-zero Values Percentage,48.46611721611722,49.41620879120879,joint
+Srinagar,Precipitable Water,Mean Absolute Error (All),34.90496848022519,37.247494972954016,individual
+Srinagar,Precipitable Water,Mean Squared Error (All),6082.081978722865,6380.11832415002,individual
+Srinagar,Precipitable Water,Root Mean Squared Error (All),77.98770402263978,79.87564287159147,individual
+Srinagar,Precipitable Water,R² Score (All),0.9313320509140184,0.9347827758560224,joint
+Srinagar,Precipitable Water,Mean Absolute Percentage Error (All),2153657243635.2776,1143720356711.4575,joint
+Srinagar,Precipitable Water,Mean Squared Percentage Error (All),5.425951124250864e+23,2.6055465807307268e+23,joint
+Srinagar,Wind Direction,Mean Absolute Error (Non-zero),73.86304931838838,72.91101918205057,joint
+Srinagar,Wind Direction,Mean Squared Error (Non-zero),13020.543975085371,12757.1409295573,joint
+Srinagar,Wind Direction,Root Mean Squared Error (Non-zero),114.1075982355486,112.94751404770844,joint
+Srinagar,Wind Direction,R² Score (Non-zero),0.8356496414703067,0.8535219156244588,joint
+Srinagar,Wind Direction,Mean Absolute Percentage Error (Non-zero),48.13428548849888,52.33235730984797,individual
+Srinagar,Wind Direction,Mean Squared Percentage Error (Non-zero),233.4704891557319,299.34233211080533,individual
+Srinagar,Wind Direction,Non-zero Values Percentage,48.46611721611722,49.41620879120879,joint
+Srinagar,Wind Direction,Mean Absolute Error (All),36.88431353394911,37.83743869769813,individual
+Srinagar,Wind Direction,Mean Squared Error (All),6318.317718414871,6315.096873978228,joint
+Srinagar,Wind Direction,Root Mean Squared Error (All),79.48784635662783,79.46758379350808,joint
+Srinagar,Wind Direction,R² Score (All),0.9286649011119916,0.9354474215999689,joint
+Srinagar,Wind Direction,Mean Absolute Percentage Error (All),1085761471923.8584,1807577226923.596,individual
+Srinagar,Wind Direction,Mean Squared Percentage Error (All),7.765613273906204e+22,1.1001476439437922e+23,individual
+Srinagar,Wind Speed,Mean Absolute Error (Non-zero),69.30829015384037,69.43393834177918,individual
+Srinagar,Wind Speed,Mean Squared Error (Non-zero),13044.697381354434,12265.88939399142,joint
+Srinagar,Wind Speed,Root Mean Squared Error (Non-zero),114.21338529854737,110.75147580954132,joint
+Srinagar,Wind Speed,R² Score (Non-zero),0.83534476780392,0.8591624885611042,joint
+Srinagar,Wind Speed,Mean Absolute Percentage Error (Non-zero),46.65926013483755,54.07796607358891,individual
+Srinagar,Wind Speed,Mean Squared Percentage Error (Non-zero),207.69968902978016,313.3289884622287,individual
+Srinagar,Wind Speed,Non-zero Values Percentage,48.46611721611722,49.41620879120879,joint
+Srinagar,Wind Speed,Mean Absolute Error (All),34.7024472987368,37.36357538290186,individual
+Srinagar,Wind Speed,Mean Squared Error (All),6328.117914463132,6090.309013128901,joint
+Srinagar,Wind Speed,Root Mean Squared Error (All),79.54946834808597,78.04043191275213,joint
+Srinagar,Wind Speed,R² Score (All),0.9285542548948528,0.9377451909454628,joint
+Srinagar,Wind Speed,Mean Absolute Percentage Error (All),1111410152312.507,3051955439995.8022,individual
+Srinagar,Wind Speed,Mean Squared Percentage Error (All),5.859591128118959e+22,2.897150009536697e+23,individual
+Srinagar,all,Mean Absolute Error (Non-zero),66.05043912373121,68.69373081689746,individual
+Srinagar,all,Mean Squared Error (Non-zero),12909.002921674262,12265.571817278162,joint
+Srinagar,all,Root Mean Squared Error (Non-zero),113.61779315615254,110.75004206445324,joint
+Srinagar,all,R² Score (Non-zero),0.8370575559287174,0.8591661349916686,joint
+Srinagar,all,Mean Absolute Percentage Error (Non-zero),57.117053241855785,55.33378455279436,joint
+Srinagar,all,Mean Squared Percentage Error (Non-zero),400.81608992806446,353.61393647298587,joint
+Srinagar,all,Non-zero Values Percentage,48.46611721611722,49.41620879120879,joint
+Srinagar,all,Mean Absolute Error (All),33.51601087807611,36.72398232698659,individual
+Srinagar,all,Mean Squared Error (All),6356.25780984155,6084.853890777103,joint
+Srinagar,all,Root Mean Squared Error (All),79.72614257470099,78.00547346678374,joint
+Srinagar,all,R² Score (All),0.9282365497225302,0.9378009529108488,joint
+Srinagar,all,Mean Absolute Percentage Error (All),1503927630636.087,2778144880064.948,individual
+Srinagar,all,Mean Squared Percentage Error (All),9.976532239090646e+23,2.3673312115263692e+23,joint
+Srinagar,meteorological_only,Mean Absolute Error (Non-zero),178.92382679495788,198.55678382815825,individual
+Srinagar,meteorological_only,Mean Squared Error (Non-zero),53321.78869422704,63776.77139605996,individual
+Srinagar,meteorological_only,Root Mean Squared Error (Non-zero),230.9151114462348,252.5406331584285,individual
+Srinagar,meteorological_only,R² Score (Non-zero),0.3269516921789511,0.2677121501333245,individual
+Srinagar,meteorological_only,Mean Absolute Percentage Error (Non-zero),172.77454778065672,134.1760148530111,joint
+Srinagar,meteorological_only,Mean Squared Percentage Error (Non-zero),4867.277031387458,3267.2941623570173,joint
+Srinagar,meteorological_only,Non-zero Values Percentage,48.46611721611722,49.41620879120879,joint
+Srinagar,meteorological_only,Mean Absolute Error (All),123.8273513817258,118.94347947121172,joint
+Srinagar,meteorological_only,Mean Squared Error (All),36438.640719379706,35122.723480379784,joint
+Srinagar,meteorological_only,Root Mean Squared Error (All),190.8890796231668,187.41057462261776,joint
+Srinagar,meteorological_only,R² Score (All),0.5886002960114389,0.6409774218298636,joint
+Srinagar,meteorological_only,Mean Absolute Percentage Error (All),37109919759802.72,20824244605646.28,joint
+Srinagar,meteorological_only,Mean Squared Percentage Error (All),1.0595640109105288e+26,3.6066609670108648e+25,joint
