@@ -26,6 +26,39 @@ from tensorflow.keras.layers import LSTM, Dense, Dropout, Layer
 from tensorflow.keras.losses import MeanSquaredError
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
+# Configure GPU
+print("\nChecking GPU availability...")
+
+# Set environment variables explicitly
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # Use first GPU
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Reduce TensorFlow logging
+
+# Verify CUDA is available
+print("CUDA available:", tf.test.is_built_with_cuda())
+print("GPU available:", tf.test.is_gpu_available())
+
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+    try:
+        # Currently, memory growth needs to be the same across GPUs
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        logical_gpus = tf.config.list_logical_devices('GPU')
+        print(f"Found {len(gpus)} Physical GPUs:")
+        for i, gpu in enumerate(gpus):
+            print(f"GPU {i}: {gpu}")
+        print(f"Found {len(logical_gpus)} Logical GPUs")
+        print("\nGPU details:")
+        print(tf.test.gpu_device_name())
+        print("\nUsing GPU for training")
+    except RuntimeError as e:
+        # Memory growth must be set before GPUs have been initialized
+        print(f"Error configuring GPU: {e}")
+else:
+    print("No GPU available, using CPU for training")
+    print("Available devices:")
+    print(tf.config.list_physical_devices())
+
 # Import configuration and functions from train.py
 from train import (
     CONFIG, 
@@ -59,13 +92,20 @@ class GraphAttentionLayer(Layer):
         transformed_features = self.feature_transform(node_features)
         
         # Calculate attention scores
-        attention_input = tf.concat([
-            tf.tile(tf.expand_dims(transformed_features, 1), [1, tf.shape(transformed_features)[0], 1]),
-            tf.tile(tf.expand_dims(transformed_features, 0), [tf.shape(transformed_features)[0], 1, 1])
-        ], axis=-1)
+        # Expand dimensions for broadcasting
+        features_i = tf.expand_dims(transformed_features, 1)  # [batch, 1, nodes, units]
+        features_j = tf.expand_dims(transformed_features, 2)  # [batch, nodes, 1, units]
         
-        attention_scores = self.attention_scores(attention_input)
-        attention_scores = tf.squeeze(attention_scores, axis=-1)
+        # Tile features to match dimensions
+        features_i = tf.tile(features_i, [1, tf.shape(transformed_features)[1], 1, 1])  # [batch, nodes, nodes, units]
+        features_j = tf.tile(features_j, [1, 1, tf.shape(transformed_features)[1], 1])  # [batch, nodes, nodes, units]
+        
+        # Concatenate features
+        attention_input = tf.concat([features_i, features_j], axis=-1)  # [batch, nodes, nodes, 2*units]
+        
+        # Calculate attention scores
+        attention_scores = self.attention_scores(attention_input)  # [batch, nodes, nodes, 1]
+        attention_scores = tf.squeeze(attention_scores, axis=-1)  # [batch, nodes, nodes]
         
         # Apply adjacency matrix and softmax
         attention_scores = tf.where(adj_matrix > 0, attention_scores, -1e9)
@@ -105,8 +145,22 @@ class GNNGHIForecaster(Model):
         # inputs: (node_features, adjacency_matrix)
         node_features, adj_matrix = inputs
         
+        # Reshape node features for LSTM
+        batch_size = tf.shape(node_features)[0]
+        num_locations = tf.shape(node_features)[1]
+        num_timesteps = tf.shape(node_features)[2]
+        num_features = tf.shape(node_features)[3]
+        
+        # Reshape to (batch_size * num_locations, timesteps, features)
+        reshaped_features = tf.reshape(node_features, 
+                                     [batch_size * num_locations, num_timesteps, num_features])
+        
         # Process node features
-        node_embeddings = self.node_encoder(node_features)
+        node_embeddings = self.node_encoder(reshaped_features)
+        
+        # Reshape back to (batch_size, num_locations, hidden_dim)
+        node_embeddings = tf.reshape(node_embeddings, 
+                                   [batch_size, num_locations, self.hidden_dim])
         
         # Apply graph attention
         for layer in self.graph_layers:
@@ -169,6 +223,13 @@ def prepare_gnn_data(df, adjacency_matrix, locations):
     df_val = df_2019.iloc[:split_index].copy()
     df_test = df_2019.iloc[split_index:].copy()
     
+    # Create time-based features
+    for df_split in [df_train, df_val, df_test]:
+        df_split["hour_sin"] = np.sin(2 * np.pi * df_split["Hour"] / 24)
+        df_split["hour_cos"] = np.cos(2 * np.pi * df_split["Hour"] / 24)
+        df_split["month_sin"] = np.sin(2 * np.pi * df_split["Month"] / 12)
+        df_split["month_cos"] = np.cos(2 * np.pi * df_split["Month"] / 12)
+    
     # Define feature columns
     feature_columns = [
         'GHI', 'Temperature', 'Relative Humidity', 'Pressure',
@@ -203,7 +264,7 @@ def prepare_gnn_data(df, adjacency_matrix, locations):
         df_split['target_GHI'] = target_scaler.fit_transform(df_split[['target_GHI']])
     
     # Prepare GNN input format
-    def prepare_gnn_input(df_split):
+    def prepare_gnn_input(df_split, num_locations):
         num_timesteps = 24  # Use last 24 hours
         num_features = len(feature_columns)
         
@@ -219,9 +280,10 @@ def prepare_gnn_data(df, adjacency_matrix, locations):
         
         return X, y
     
-    X_train, y_train = prepare_gnn_input(df_train)
-    X_val, y_val = prepare_gnn_input(df_val)
-    X_test, y_test = prepare_gnn_input(df_test)
+    num_locations = len(locations)
+    X_train, y_train = prepare_gnn_input(df_train, num_locations)
+    X_val, y_val = prepare_gnn_input(df_val, num_locations)
+    X_test, y_test = prepare_gnn_input(df_test, num_locations)
     
     return (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler
 
@@ -302,7 +364,7 @@ def main(skip_training=False):
             epochs=CONFIG["model_params"]["epochs"],
             batch_size=CONFIG["model_params"]["batch_size"],
             validation_data=([X_val, np.tile(adjacency_matrix, (X_val.shape[0], 1, 1))], y_val),
-            verbose=1
+            verbose=0  # Set to 0 to suppress progress output
         )
         
         # Save model
