@@ -214,8 +214,9 @@ def prepare_gnn_data(df, adjacency_matrix, locations):
         locations: List of locations
     
     Returns:
-        tuple: (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler
+        tuple: (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler, feature_columns
     """
+    print("1. Splitting data by year...")
     # Split data by year
     df_train = df[df["Year"].isin([2017, 2018])].copy()
     df_2019 = df[df["Year"] == 2019].copy()
@@ -223,6 +224,7 @@ def prepare_gnn_data(df, adjacency_matrix, locations):
     df_val = df_2019.iloc[:split_index].copy()
     df_test = df_2019.iloc[split_index:].copy()
     
+    print("2. Creating time-based features...")
     # Create time-based features
     for df_split in [df_train, df_val, df_test]:
         df_split["hour_sin"] = np.sin(2 * np.pi * df_split["Hour"] / 24)
@@ -230,6 +232,7 @@ def prepare_gnn_data(df, adjacency_matrix, locations):
         df_split["month_sin"] = np.sin(2 * np.pi * df_split["Month"] / 12)
         df_split["month_cos"] = np.cos(2 * np.pi * df_split["Month"] / 12)
     
+    print("3. Defining feature columns...")
     # Define feature columns
     feature_columns = [
         'GHI', 'Temperature', 'Relative Humidity', 'Pressure',
@@ -237,23 +240,28 @@ def prepare_gnn_data(df, adjacency_matrix, locations):
         'hour_sin', 'hour_cos', 'month_sin', 'month_cos'
     ]
     
+    print("4. Adding lag features...")
     # Add lag features
     for lag in range(1, 25):
+        print(f"   Adding lag {lag}/24...")
         df_train[f'GHI_lag_{lag}'] = df_train.groupby('location')['GHI'].shift(lag)
         df_val[f'GHI_lag_{lag}'] = df_val.groupby('location')['GHI'].shift(lag)
         df_test[f'GHI_lag_{lag}'] = df_test.groupby('location')['GHI'].shift(lag)
         feature_columns.append(f'GHI_lag_{lag}')
     
+    print("5. Creating target variable...")
     # Create target
     df_train['target_GHI'] = df_train.groupby('location')['GHI'].shift(-24)
     df_val['target_GHI'] = df_val.groupby('location')['GHI'].shift(-24)
     df_test['target_GHI'] = df_test.groupby('location')['GHI'].shift(-24)
     
+    print("6. Dropping rows with missing values...")
     # Drop rows with missing values
     df_train = df_train.dropna()
     df_val = df_val.dropna()
     df_test = df_test.dropna()
     
+    print("7. Scaling features...")
     # Scale features
     scaler = MinMaxScaler()
     target_scaler = MinMaxScaler()
@@ -263,6 +271,7 @@ def prepare_gnn_data(df, adjacency_matrix, locations):
         df_split[feature_columns] = scaler.fit_transform(df_split[feature_columns])
         df_split['target_GHI'] = target_scaler.fit_transform(df_split[['target_GHI']])
     
+    print("8. Preparing GNN input format...")
     # Prepare GNN input format
     def prepare_gnn_input(df_split, num_locations):
         num_timesteps = 24  # Use last 24 hours
@@ -272,6 +281,7 @@ def prepare_gnn_data(df, adjacency_matrix, locations):
         y = np.zeros((len(df_split), num_locations))
         
         for i, location in enumerate(locations):
+            print(f"   Processing location {i+1}/{len(locations)}: {location}")
             loc_data = df_split[df_split['location'] == location]
             for j in range(len(loc_data)):
                 if j >= num_timesteps:
@@ -281,11 +291,14 @@ def prepare_gnn_data(df, adjacency_matrix, locations):
         return X, y
     
     num_locations = len(locations)
+    print("9. Preparing training data...")
     X_train, y_train = prepare_gnn_input(df_train, num_locations)
+    print("10. Preparing validation data...")
     X_val, y_val = prepare_gnn_input(df_val, num_locations)
+    print("11. Preparing test data...")
     X_test, y_test = prepare_gnn_input(df_test, num_locations)
     
-    return (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler
+    return (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler, feature_columns
 
 def main(skip_training=False):
     """
@@ -335,11 +348,18 @@ def main(skip_training=False):
     
     # Prepare data for GNN
     print("\nPreparing data for GNN...")
-    (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler = prepare_gnn_data(df, adjacency_matrix, locations)
+    (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler, feature_columns = prepare_gnn_data(df, adjacency_matrix, locations)
     
     # Create and train model
     print("\nCreating GNN model...")
     model = GNNGHIForecaster(num_locations)
+    
+    # Build model with a sample batch
+    sample_batch_size = 32
+    sample_features = np.zeros((sample_batch_size, num_locations, 24, len(feature_columns)))
+    sample_adj = np.tile(adjacency_matrix, (sample_batch_size, 1, 1))
+    model([sample_features, sample_adj])  # This builds the model
+    
     model.compile(
         optimizer='adam',
         loss=MeanSquaredError(),
@@ -364,7 +384,7 @@ def main(skip_training=False):
             epochs=CONFIG["model_params"]["epochs"],
             batch_size=CONFIG["model_params"]["batch_size"],
             validation_data=([X_val, np.tile(adjacency_matrix, (X_val.shape[0], 1, 1))], y_val),
-            verbose=0  # Set to 0 to suppress progress output
+            verbose=1  # Set to 0 to suppress progress output
         )
         
         # Save model
