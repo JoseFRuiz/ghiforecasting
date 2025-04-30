@@ -25,7 +25,7 @@ module load cuda/11.1.0
 
 # Activate conda env
 source ~/.bashrc
-conda activate ghifo_py39
+source activate ghifo_py39
 
 # Run training script
 python train_gnn.py

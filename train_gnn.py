@@ -15,9 +15,6 @@ import matplotlib.pyplot as plt
 import networkx as nx
 from sklearn.metrics.pairwise import cosine_similarity
 
-import pdb
-pdb.set_trace()
-
 # Import Comet.ml first
 from comet_ml import Experiment
 
