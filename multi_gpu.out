@@ -1,0 +1,341 @@
+Date      = Tue Apr 29 22:00:53 EDT 2025
+host      = c0801a-s17
+Directory = /blue/azare/jruizmunoz/ghiforecasting
+
+Checking GPU availability...
+CUDA available: True
+GPU available: True
+Found 1 Physical GPUs:
+GPU 0: PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')
+Found 1 Logical GPUs
+
+GPU details:
+/device:GPU:0
+
+Using GPU for training
+✓ Successfully created Comet.ml experiment with minimal logging
+✓ Experiment created successfully
+
+Loading and processing data...
+
+Loading data for Jaisalmer...
+
+============================================================
+Loading data for Jaisalmer
+============================================================
+
+Processing 2017 data...
+✓ Found local file: data_Jaisalmer_2017.csv (953.56 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3015970,-,-,-,26.93,70.9,5,245,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2017,1,1,0,30,12.700000000000001,0,0,0,0,-8.8,0,0,0,0,0.275,21.5,175.45000000000002,0.27,987,0.4,32,1.2000000000000002
+Line 5: 2017,1,1,1,30,12.200000000000001,0,0,0,0,-8.9,0,0,0,0,0.274,22.12,163.61,0.27,987,0.4,30,1.2000000000000002
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Processing 2018 data...
+✓ Found local file: data_Jaisalmer_2018.csv (962.40 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3015970,-,-,-,26.93,70.9,5,245,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2018,1,1,0,30,10,0,0,0,0,-10.200000000000001,0,0,0,0,0.225,23.1,175.45000000000002,0.27,993,0.6000000000000001,70,1.7000000000000002
+Line 5: 2018,1,1,1,30,9.600000000000001,0,0,0,0,-10.100000000000001,0,0,0,0,0.225,23.89,163.58,0.27,993,0.7000000000000001,68,1.6
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Processing 2019 data...
+✓ Found local file: data_Jaisalmer_2019.csv (950.01 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3015970,-,-,-,26.93,70.9,5,245,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2019,1,1,0,30,5.4,0,0,0,4,-2.9000000000000004,0,0,0,0,0.314,55.21,175.46,0.27,991,0.7000000000000001,56,2.6
+Line 5: 2019,1,1,1,30,4.9,0,0,0,4,-2.9000000000000004,0,0,0,0,0.314,56.980000000000004,163.56,0.27,991,0.7000000000000001,55,2.7
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Combining data from all years...
+✓ Combined dataset: 26280 total rows
+
+Processing datetime...
+✓ Datetime processing complete
+
+Validating final dataset:
+Shape: (26280, 24)
+Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
+Memory usage: 4.81 MB
+
+Loading data for Jodhpur...
+
+============================================================
+Loading data for Jodhpur
+============================================================
+
+Processing 2017 data...
+✓ Found local file: data_Jodhpur_2017.csv (952.01 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3196709,-,-,-,28.61,77.22,5,217,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2017,1,1,0,30,8.700000000000001,0,0,0,0,-4.5,0,0,0,0,0.28500000000000003,38.99,170.24,0.14,989,0.8,355,1.3
+Line 5: 2017,1,1,1,30,8.5,0,0,0,0,-4.6000000000000005,0,0,0,0,0.28700000000000003,39.15,157.81,0.14,988,0.8,351,1.2000000000000002
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Processing 2018 data...
+✓ Found local file: data_Jodhpur_2018.csv (955.62 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3196709,-,-,-,28.61,77.22,5,217,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2018,1,1,0,30,6.4,0,0,0,0,-2.3000000000000003,0,0,0,0,0.24,53.620000000000005,170.23,0.14,995,0.7000000000000001,334,1.3
+Line 5: 2018,1,1,1,30,6.1000000000000005,0,0,0,0,-2.5,0,0,0,0,0.24,53.9,157.79,0.14,994,0.7000000000000001,332,1.3
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Processing 2019 data...
+✓ Found local file: data_Jodhpur_2019.csv (950.16 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3196709,-,-,-,28.61,77.22,5,217,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2019,1,1,0,30,6,0,0,0,1,-2.2,0,0,0,0,0.332,55.69,170.22,0.14,994,0.8,51,1.1
+Line 5: 2019,1,1,1,30,5.5,0,0,0,7,-2.2,0,0,0,0,0.332,57.57,157.77,0.14,994,0.8,59,1.1
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Combining data from all years...
+✓ Combined dataset: 26280 total rows
+
+Processing datetime...
+✓ Datetime processing complete
+
+Validating final dataset:
+Shape: (26280, 24)
+Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
+Memory usage: 4.81 MB
+
+Loading data for New Delhi...
+
+============================================================
+Loading data for New Delhi
+============================================================
+
+Processing 2017 data...
+✓ Found local file: data_New Delhi_2017.csv (931.18 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3195346,-,-,-,31.09,77.18,5,1840,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2017,1,1,0,30,3.1,0,0,0,7,-2.4000000000000004,0,0,0,0,0.298,67.05,168.73,0.11,814,0.7000000000000001,66,1
+Line 5: 2017,1,1,1,30,2.9000000000000004,0,0,0,7,-2.5,0,0,0,0,0.299,67.43,157.33,0.11,814,0.7000000000000001,70,1
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Processing 2018 data...
+✓ Found local file: data_New Delhi_2018.csv (941.09 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3195346,-,-,-,31.09,77.18,5,1840,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2018,1,1,0,30,3.3000000000000003,0,0,0,0,-7.6000000000000005,0,0,0,0,0.252,44.59,168.72,0.11,819,0.30000000000000004,46,1.3
+Line 5: 2018,1,1,1,30,2.9000000000000004,0,0,0,0,-8.1,0,0,0,0,0.251,44.11,157.31,0.11,819,0.30000000000000004,52,1.3
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Processing 2019 data...
+✓ Found local file: data_New Delhi_2019.csv (932.17 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3195346,-,-,-,31.09,77.18,5,1840,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2019,1,1,0,30,0.7000000000000001,0,0,0,0,-8.9,0,0,0,0,0.337,48.59,168.72,0.11,818,0.4,109,1.1
+Line 5: 2019,1,1,1,30,0.7000000000000001,0,0,0,7,-9.200000000000001,0,0,0,0,0.336,47.65,157.3,0.11,818,0.4,102,1
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Combining data from all years...
+✓ Combined dataset: 26280 total rows
+
+Processing datetime...
+✓ Datetime processing complete
+
+Validating final dataset:
+Shape: (26280, 24)
+Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
+Memory usage: 4.81 MB
+
+Loading data for Shimla...
+
+============================================================
+Loading data for Shimla
+============================================================
+
+Processing 2017 data...
+✓ Found local file: data_Shimla_2017.csv (945.76 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3121486,-,-,-,34.09,74.82,5,1593,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2017,1,1,0,30,2,0,0,0,0,-8.4,0,0,0,0,0.302,46.03,167.56,0.12,818,0.6000000000000001,59,1
+Line 5: 2017,1,1,1,30,1.5,0,0,0,0,-8.700000000000001,0,0,0,0,0.301,46.64,158.18,0.12,817,0.6000000000000001,58,1.1
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Processing 2018 data...
+✓ Found local file: data_Shimla_2018.csv (945.24 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3121486,-,-,-,34.09,74.82,5,1593,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2018,1,1,0,30,2.5,0,0,0,7,-12,0,0,0,0,0.278,33.38,167.57,0.12,823,0.4,66,1.4000000000000001
+Line 5: 2018,1,1,1,30,1.9000000000000001,0,0,0,0,-12,0,0,0,0,0.277,34.95,158.17000000000002,0.12,823,0.4,65,1.4000000000000001
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Processing 2019 data...
+✓ Found local file: data_Shimla_2019.csv (947.73 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3121486,-,-,-,34.09,74.82,5,1593,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2019,1,1,0,30,-2.7,0,0,0,7,-12.8,0,0,0,0,0.373,45.59,167.57,0.12,819,0.30000000000000004,96,1.3
+Line 5: 2019,1,1,1,30,-2.5,0,0,0,7,-13.3,0,0,0,0,0.373,43.43,158.16,0.12,819,0.30000000000000004,96,1.3
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Combining data from all years...
+✓ Combined dataset: 26280 total rows
+
+Processing datetime...
+✓ Datetime processing complete
+
+Validating final dataset:
+Shape: (26280, 24)
+Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
+Memory usage: 4.81 MB
+
+Loading data for Srinagar...
+
+============================================================
+Loading data for Srinagar
+============================================================
+
+Processing 2017 data...
+✓ Found local file: data_Srinagar_2017.csv (953.56 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3015970,-,-,-,26.93,70.9,5,245,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2017,1,1,0,30,12.700000000000001,0,0,0,0,-8.8,0,0,0,0,0.275,21.5,175.45000000000002,0.27,987,0.4,32,1.2000000000000002
+Line 5: 2017,1,1,1,30,12.200000000000001,0,0,0,0,-8.9,0,0,0,0,0.274,22.12,163.61,0.27,987,0.4,30,1.2000000000000002
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Processing 2018 data...
+✓ Found local file: data_Srinagar_2018.csv (962.40 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3015970,-,-,-,26.93,70.9,5,245,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2018,1,1,0,30,10,0,0,0,0,-10.200000000000001,0,0,0,0,0.225,23.1,175.45000000000002,0.27,993,0.6000000000000001,70,1.7000000000000002
+Line 5: 2018,1,1,1,30,9.600000000000001,0,0,0,0,-10.100000000000001,0,0,0,0,0.225,23.89,163.58,0.27,993,0.7000000000000001,68,1.6
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Processing 2019 data...
+✓ Found local file: data_Srinagar_2019.csv (950.01 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3015970,-,-,-,26.93,70.9,5,245,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2019,1,1,0,30,5.4,0,0,0,4,-2.9000000000000004,0,0,0,0,0.314,55.21,175.46,0.27,991,0.7000000000000001,56,2.6
+Line 5: 2019,1,1,1,30,4.9,0,0,0,4,-2.9000000000000004,0,0,0,0,0.314,56.980000000000004,163.56,0.27,991,0.7000000000000001,55,2.7
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Combining data from all years...
+✓ Combined dataset: 26280 total rows
+
+Processing datetime...
+✓ Datetime processing complete
+
+Validating final dataset:
+Shape: (26280, 24)
+Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
+Memory usage: 4.81 MB
+✓ Data loaded successfully
+
+Creating graph structure...
+
+Preparing data for GNN...
+1. Splitting data by year...
+2. Creating time-based features...
+3. Defining feature columns...
+4. Adding lag features...
+   Adding lag 1/24...
+   Adding lag 2/24...
+   Adding lag 3/24...
+   Adding lag 4/24...
+   Adding lag 5/24...
+   Adding lag 6/24...
+   Adding lag 7/24...
+   Adding lag 8/24...
+   Adding lag 9/24...
+   Adding lag 10/24...
+   Adding lag 11/24...
+   Adding lag 12/24...
+   Adding lag 13/24...
+   Adding lag 14/24...
+   Adding lag 15/24...
+   Adding lag 16/24...
+   Adding lag 17/24...
+   Adding lag 18/24...
+   Adding lag 19/24...
+   Adding lag 20/24...
+   Adding lag 21/24...
+   Adding lag 22/24...
+   Adding lag 23/24...
+   Adding lag 24/24...
+5. Creating target variable...
+6. Dropping rows with missing values...
+7. Scaling features...
+8. Preparing GNN input format...
+9. Preparing training data...
+   Processing location 1/5: Jaisalmer
+   Processing location 2/5: Jodhpur
+   Processing location 3/5: New Delhi
+   Processing location 4/5: Shimla
+   Processing location 5/5: Srinagar
+10. Preparing validation data...
+   Processing location 1/5: Jaisalmer
+   Processing location 2/5: Jodhpur
+   Processing location 3/5: New Delhi
+   Processing location 4/5: Shimla
+   Processing location 5/5: Srinagar
+11. Preparing test data...
+   Processing location 1/5: Jaisalmer
+   Processing location 2/5: Jodhpur
+   Processing location 3/5: New Delhi
+   Processing location 4/5: Shimla
+   Processing location 5/5: Srinagar
+
+Creating GNN model...
