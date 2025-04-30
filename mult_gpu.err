@@ -1,0 +1,55 @@
+GPU Driver '550' detected
+2025-04-29 22:01:05.020259: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2025-04-29 22:01:05.723170: E tensorflow/stream_executor/cuda/cuda_blas.cc:2981] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2025-04-29 22:01:08.535236: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.1.0/lib64:/opt/slurm/lib64::
+2025-04-29 22:01:08.536674: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.1.0/lib64:/opt/slurm/lib64::
+2025-04-29 22:01:08.536702: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
+WARNING:tensorflow:From /blue/azare/jruizmunoz/ghiforecasting/train_gnn.py:38: is_gpu_available (from tensorflow.python.framework.test_util) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use `tf.config.list_physical_devices('GPU')` instead.
+2025-04-29 22:01:13.034163: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2025-04-29 22:01:15.010017: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1616] Created device /device:GPU:0 with 78910 MB memory:  -> device: 0, name: NVIDIA A100-SXM4-80GB, pci bus id: 0000:4e:00.0, compute capability: 8.0
+2025-04-29 22:01:15.038541: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1616] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 78910 MB memory:  -> device: 0, name: NVIDIA A100-SXM4-80GB, pci bus id: 0000:4e:00.0, compute capability: 8.0
+2025-04-29 22:01:15.048644: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1616] Created device /device:GPU:0 with 78910 MB memory:  -> device: 0, name: NVIDIA A100-SXM4-80GB, pci bus id: 0000:4e:00.0, compute capability: 8.0
+COMET WARNING: To get all data logged automatically, import comet_ml before the following modules: sklearn.
+COMET INFO: Experiment is live on comet.com https://www.comet.com/josefruiz/ghi-forecasting/bbc1c64a74604fa796a8aa6b46e8ba6b
+
+2025-04-29 22:03:20.963195: E tensorflow/stream_executor/cuda/cuda_dnn.cc:377] Loaded runtime CuDNN library: 8.0.4 but source was compiled with: 8.1.0.  CuDNN library needs to have matching major version and equal or higher minor version. If using a binary install, upgrade your CuDNN library.  If building from sources, make sure the library loaded at runtime is compatible with the version specified during compile configuration.
+2025-04-29 22:03:20.978043: W tensorflow/core/framework/op_kernel.cc:1780] OP_REQUIRES failed at cudnn_rnn_ops.cc:1554 : UNKNOWN: Fail to find the dnn implementation.
+Traceback (most recent call last):
+  File "/blue/azare/jruizmunoz/ghiforecasting/train_gnn.py", line 483, in <module>
+    main(skip_training=args.skip_training) 
+  File "/blue/azare/jruizmunoz/ghiforecasting/train_gnn.py", line 361, in main
+    model([sample_features, sample_adj])  # This builds the model
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py39/lib/python3.9/site-packages/keras/utils/traceback_utils.py", line 70, in error_handler
+    raise e.with_traceback(filtered_tb) from None
+  File "/blue/azare/jruizmunoz/ghiforecasting/train_gnn.py", line 159, in call
+    node_embeddings = self.node_encoder(reshaped_features)
+tensorflow.python.framework.errors_impl.UnknownError: Exception encountered when calling layer "lstm" "                 f"(type LSTM).
+
+{{function_node __wrapped__CudnnRNN_device_/job:localhost/replica:0/task:0/device:GPU:0}} Fail to find the dnn implementation. [Op:CudnnRNN]
+
+Call arguments received by layer "lstm" "                 f"(type LSTM):
+  • inputs=tf.Tensor(shape=(160, 24, 35), dtype=float32)
+  • mask=None
+  • training=False
+  • initial_state=None
+COMET INFO: ---------------------------------------------------------------------------------------
+COMET INFO: Comet.ml Experiment Summary
+COMET INFO: ---------------------------------------------------------------------------------------
+COMET INFO:   Data:
+COMET INFO:     display_summary_level : 1
+COMET INFO:     name                  : GHI_Forecasting_GNN
+COMET INFO:     url                   : https://www.comet.com/josefruiz/ghi-forecasting/bbc1c64a74604fa796a8aa6b46e8ba6b
+COMET INFO:   Others:
+COMET INFO:     Name : GHI_Forecasting_GNN
+COMET INFO:   Parameters:
+COMET INFO:     feature_ranges : {"ghi": [0, 1.2], "meteorological": [0, 1]}
+COMET INFO:     model_params   : {"batch_size": 32, "dense_units": [16, 1], "dropout_rate": 0.2, "epochs": 20, "lstm_units": [64, 32]}
+COMET INFO:     random_seed    : 42
+COMET INFO:   Uploads:
+COMET INFO:     git metadata : 1
+COMET INFO: 
+COMET WARNING: To get all data logged automatically, import comet_ml before the following modules: sklearn.
