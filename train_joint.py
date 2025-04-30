@@ -27,12 +27,71 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from train import (
     CONFIG, 
     setup_experiment, 
-    evaluate_model, 
     plot_results, 
     plot_loss_history,
     load_data,
     prepare_lstm_input
 )
+
+def evaluate_model(y_true, y_pred):
+    """
+    Calculate various metrics for model evaluation, excluding zero GHI values.
+    
+    Args:
+        y_true: True values
+        y_pred: Predicted values
+    
+    Returns:
+        dict: Dictionary containing evaluation metrics
+    """
+    # Create mask for non-zero true GHI values
+    non_zero_mask = y_true > 0
+    
+    # Filter out zero values
+    y_true_nonzero = y_true[non_zero_mask]
+    y_pred_nonzero = y_pred[non_zero_mask]
+    
+    # Add small epsilon to avoid division by zero
+    epsilon = 1e-10
+    
+    # Initialize metrics dictionary
+    metrics = {}
+    
+    # Calculate metrics for all values
+    metrics.update({
+        "Mean Absolute Error (All)": float(mean_absolute_error(y_true, y_pred)),
+        "Mean Squared Error (All)": float(mean_squared_error(y_true, y_pred)),
+        "Root Mean Squared Error (All)": float(np.sqrt(mean_squared_error(y_true, y_pred))),
+        "R² Score (All)": float(r2_score(y_true, y_pred)),
+        "Mean Absolute Percentage Error (All)": float(np.mean(np.abs((y_true - y_pred) / (y_true + epsilon))) * 100),
+        "Mean Squared Percentage Error (All)": float(np.mean(np.square((y_true - y_pred) / (y_true + epsilon))) * 100)
+    })
+    
+    # Calculate percentage of non-zero values
+    metrics["Non-zero Values Percentage"] = float(100 * len(y_true_nonzero) / len(y_true))
+    
+    # Only calculate non-zero metrics if there are non-zero values
+    if len(y_true_nonzero) > 0:
+        metrics.update({
+            "Mean Absolute Error (Non-zero)": float(mean_absolute_error(y_true_nonzero, y_pred_nonzero)),
+            "Mean Squared Error (Non-zero)": float(mean_squared_error(y_true_nonzero, y_pred_nonzero)),
+            "Root Mean Squared Error (Non-zero)": float(np.sqrt(mean_squared_error(y_true_nonzero, y_pred_nonzero))),
+            "R² Score (Non-zero)": float(r2_score(y_true_nonzero, y_pred_nonzero)),
+            "Mean Absolute Percentage Error (Non-zero)": float(np.mean(np.abs((y_true_nonzero - y_pred_nonzero) / (y_true_nonzero + epsilon))) * 100),
+            "Mean Squared Percentage Error (Non-zero)": float(np.mean(np.square((y_true_nonzero - y_pred_nonzero) / (y_true_nonzero + epsilon))) * 100)
+        })
+    else:
+        # If no non-zero values, set these metrics to NaN
+        metrics.update({
+            "Mean Absolute Error (Non-zero)": float('nan'),
+            "Mean Squared Error (Non-zero)": float('nan'),
+            "Root Mean Squared Error (Non-zero)": float('nan'),
+            "R² Score (Non-zero)": float('nan'),
+            "Mean Absolute Percentage Error (Non-zero)": float('nan'),
+            "Mean Squared Percentage Error (Non-zero)": float('nan')
+        })
+    
+    return metrics
 
 def load_all_data(locations):
     """
