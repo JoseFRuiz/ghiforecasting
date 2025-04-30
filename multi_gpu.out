@@ -1,18 +1,13 @@
-Date      = Tue Apr 29 22:00:53 EDT 2025
-host      = c0801a-s17
+Date      = Tue Apr 29 22:31:30 EDT 2025
+host      = c1107a-s11
 Directory = /blue/azare/jruizmunoz/ghiforecasting
 
 Checking GPU availability...
 CUDA available: True
-GPU available: True
-Found 1 Physical GPUs:
-GPU 0: PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')
-Found 1 Logical GPUs
-
-GPU details:
-/device:GPU:0
-
-Using GPU for training
+GPU available: False
+No GPU available, using CPU for training
+Available devices:
+[PhysicalDevice(name='/physical_device:CPU:0', device_type='CPU')]
 ✓ Successfully created Comet.ml experiment with minimal logging
 ✓ Experiment created successfully
 
@@ -339,3 +334,24 @@ Preparing data for GNN...
    Processing location 5/5: Srinagar
 
 Creating GNN model...
+Model: "gnnghi_forecaster"
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ sequential (Sequential)     (160, 64)                 62784     
+                                                                 
+ graph_attention_layer (Grap  multiple                 4289      
+ hAttentionLayer)                                                
+                                                                 
+ graph_attention_layer_1 (Gr  multiple                 4289      
+ aphAttentionLayer)                                              
+                                                                 
+ dense_7 (Dense)             multiple                  65        
+                                                                 
+=================================================================
+Total params: 71,427
+Trainable params: 71,427
+Non-trainable params: 0
+_________________________________________________________________
+
+Training model...
