@@ -1,51 +1,99 @@
 GPU Driver '550' detected
-2025-04-30 08:30:48.644358: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+2025-04-30 09:31:45.850924: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
 To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2025-04-30 08:30:49.257735: E tensorflow/stream_executor/cuda/cuda_blas.cc:2981] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
-2025-04-30 08:30:51.912527: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.4.3/lib64:/opt/slurm/lib64::
-2025-04-30 08:30:51.913921: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.4.3/lib64:/opt/slurm/lib64::
-2025-04-30 08:30:51.913947: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
+2025-04-30 09:31:46.509929: E tensorflow/stream_executor/cuda/cuda_blas.cc:2981] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2025-04-30 09:31:49.179626: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.4.3/lib64:/opt/slurm/lib64::
+2025-04-30 09:31:49.181034: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.4.3/lib64:/opt/slurm/lib64::
+2025-04-30 09:31:49.181076: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
 WARNING:tensorflow:From /blue/azare/jruizmunoz/ghiforecasting/train_gnn.py:38: is_gpu_available (from tensorflow.python.framework.test_util) is deprecated and will be removed in a future version.
 Instructions for updating:
 Use `tf.config.list_physical_devices('GPU')` instead.
-2025-04-30 08:30:56.191431: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+2025-04-30 09:31:53.450058: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
 To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2025-04-30 08:30:56.639437: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudnn.so.8'; dlerror: libcudnn.so.8: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.4.3/lib64:/opt/slurm/lib64::
-2025-04-30 08:30:56.639530: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+2025-04-30 09:31:53.936869: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudnn.so.8'; dlerror: libcudnn.so.8: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.4.3/lib64:/opt/slurm/lib64::
+2025-04-30 09:31:53.937081: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
 Skipping registering GPU devices...
-2025-04-30 08:30:56.931771: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+2025-04-30 09:31:54.260351: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
 Skipping registering GPU devices...
 COMET WARNING: To get all data logged automatically, import comet_ml before the following modules: sklearn.
-COMET INFO: Experiment is live on comet.com https://www.comet.com/josefruiz/ghi-forecasting/8e4c4b95ca2644e28169d89e09f32c4c
+COMET INFO: Experiment is live on comet.com https://www.comet.com/josefruiz/ghi-forecasting/1dd7c7570d40487d9f4f9d38f201bffc
 
-WARNING:tensorflow:Skipping full serialization of Keras layer <keras.layers.core.dense.Dense object at 0x1538e81ae6a0>, because it is not built.
-WARNING:tensorflow:Skipping full serialization of Keras layer <keras.layers.core.dense.Dense object at 0x1538e81490a0>, because it is not built.
+WARNING:tensorflow:Skipping full serialization of Keras layer <keras.layers.core.dense.Dense object at 0x14d4f81e6ac0>, because it is not built.
+WARNING:tensorflow:Skipping full serialization of Keras layer <keras.layers.core.dense.Dense object at 0x14d4f81d8b50>, because it is not built.
 WARNING:absl:Found untraced functions such as lstm_cell_layer_call_fn, lstm_cell_layer_call_and_return_conditional_losses, lstm_cell_1_layer_call_fn, lstm_cell_1_layer_call_and_return_conditional_losses, dense_2_layer_call_fn while saving (showing 5 of 16). These functions will not be directly callable after loading.
-Traceback (most recent call last):
-  File "/blue/azare/jruizmunoz/ghiforecasting/train_gnn.py", line 483, in <module>
-    main(skip_training=args.skip_training) 
-  File "/blue/azare/jruizmunoz/ghiforecasting/train_gnn.py", line 410, in main
-    metrics = evaluate_model(y_test_rescaled, y_pred_rescaled)
-  File "/blue/azare/jruizmunoz/ghiforecasting/train.py", line 462, in evaluate_model
-    "Mean Absolute Error (Non-zero)": float(mean_absolute_error(y_true_nonzero, y_pred_nonzero)),
-  File "/home/jruizmunoz/anaconda3/envs/ghifo_py39/lib/python3.9/site-packages/sklearn/utils/_param_validation.py", line 216, in wrapper
-    return func(*args, **kwargs)
-  File "/home/jruizmunoz/anaconda3/envs/ghifo_py39/lib/python3.9/site-packages/sklearn/metrics/_regression.py", line 277, in mean_absolute_error
-    _check_reg_targets_with_floating_dtype(
-  File "/home/jruizmunoz/anaconda3/envs/ghifo_py39/lib/python3.9/site-packages/sklearn/metrics/_regression.py", line 198, in _check_reg_targets_with_floating_dtype
-    y_type, y_true, y_pred, multioutput = _check_reg_targets(
-  File "/home/jruizmunoz/anaconda3/envs/ghifo_py39/lib/python3.9/site-packages/sklearn/metrics/_regression.py", line 105, in _check_reg_targets
-    y_true = check_array(y_true, ensure_2d=False, dtype=dtype)
-  File "/home/jruizmunoz/anaconda3/envs/ghifo_py39/lib/python3.9/site-packages/sklearn/utils/validation.py", line 1130, in check_array
-    raise ValueError(
-ValueError: Found array with 0 sample(s) (shape=(0,)) while a minimum of 1 is required.
 COMET INFO: ---------------------------------------------------------------------------------------
 COMET INFO: Comet.ml Experiment Summary
 COMET INFO: ---------------------------------------------------------------------------------------
 COMET INFO:   Data:
 COMET INFO:     display_summary_level : 1
 COMET INFO:     name                  : GHI_Forecasting_GNN
-COMET INFO:     url                   : https://www.comet.com/josefruiz/ghi-forecasting/8e4c4b95ca2644e28169d89e09f32c4c
+COMET INFO:     url                   : https://www.comet.com/josefruiz/ghi-forecasting/1dd7c7570d40487d9f4f9d38f201bffc
+COMET INFO:   Metrics:
+COMET INFO:     Jaisalmer_Mean Absolute Error (All)                 : 92.27968303053355
+COMET INFO:     Jaisalmer_Mean Absolute Error (Non-zero)            : nan
+COMET INFO:     Jaisalmer_Mean Absolute Percentage Error (All)      : 92279683030533.53
+COMET INFO:     Jaisalmer_Mean Absolute Percentage Error (Non-zero) : nan
+COMET INFO:     Jaisalmer_Mean Squared Error (All)                  : 58050.69668344942
+COMET INFO:     Jaisalmer_Mean Squared Error (Non-zero)             : nan
+COMET INFO:     Jaisalmer_Mean Squared Percentage Error (All)       : 5.805069668344945e+26
+COMET INFO:     Jaisalmer_Mean Squared Percentage Error (Non-zero)  : nan
+COMET INFO:     Jaisalmer_Non-zero Values Percentage                : 0.0
+COMET INFO:     Jaisalmer_Root Mean Squared Error (All)             : 240.9371218460315
+COMET INFO:     Jaisalmer_Root Mean Squared Error (Non-zero)        : nan
+COMET INFO:     Jaisalmer_R² Score (All)                            : 0.0
+COMET INFO:     Jaisalmer_R² Score (Non-zero)                       : nan
+COMET INFO:     Jodhpur_Mean Absolute Error (All)                   : 2.2141788009445245
+COMET INFO:     Jodhpur_Mean Absolute Error (Non-zero)              : nan
+COMET INFO:     Jodhpur_Mean Absolute Percentage Error (All)        : 2214178800944.5244
+COMET INFO:     Jodhpur_Mean Absolute Percentage Error (Non-zero)   : nan
+COMET INFO:     Jodhpur_Mean Squared Error (All)                    : 4.902587762552136
+COMET INFO:     Jodhpur_Mean Squared Error (Non-zero)               : nan
+COMET INFO:     Jodhpur_Mean Squared Percentage Error (All)         : 4.902587762552134e+22
+COMET INFO:     Jodhpur_Mean Squared Percentage Error (Non-zero)    : nan
+COMET INFO:     Jodhpur_Non-zero Values Percentage                  : 0.0
+COMET INFO:     Jodhpur_Root Mean Squared Error (All)               : 2.2141788009445253
+COMET INFO:     Jodhpur_Root Mean Squared Error (Non-zero)          : nan
+COMET INFO:     Jodhpur_R² Score (All)                              : 0.0
+COMET INFO:     Jodhpur_R² Score (Non-zero)                         : nan
+COMET INFO:     New Delhi_Mean Absolute Error (All)                 : 14.816756099653432
+COMET INFO:     New Delhi_Mean Absolute Error (Non-zero)            : 130.44704607256216
+COMET INFO:     New Delhi_Mean Absolute Percentage Error (All)      : 2165383273177.3918
+COMET INFO:     New Delhi_Mean Absolute Percentage Error (Non-zero) : 139.07173921901529
+COMET INFO:     New Delhi_Mean Squared Error (All)                  : 3128.858507118124
+COMET INFO:     New Delhi_Mean Squared Error (Non-zero)             : 32183.43687335873
+COMET INFO:     New Delhi_Mean Squared Percentage Error (All)       : 7.556254737772706e+22
+COMET INFO:     New Delhi_Mean Squared Percentage Error (Non-zero)  : 923.3252467223078
+COMET INFO:     New Delhi_Non-zero Values Percentage                : 9.69847398418827
+COMET INFO:     New Delhi_Root Mean Squared Error (All)             : 55.936200327856774
+COMET INFO:     New Delhi_Root Mean Squared Error (Non-zero)        : 179.3974271648251
+COMET INFO:     New Delhi_R² Score (All)                            : 0.8168612883674189
+COMET INFO:     New Delhi_R² Score (Non-zero)                       : 0.5520131589415349
+COMET INFO:     Shimla_Mean Absolute Error (All)                    : 26.58715447905215
+COMET INFO:     Shimla_Mean Absolute Error (Non-zero)               : 123.36239695960148
+COMET INFO:     Shimla_Mean Absolute Percentage Error (All)         : 1966841572356.0527
+COMET INFO:     Shimla_Mean Absolute Percentage Error (Non-zero)    : 117.3100391768587
+COMET INFO:     Shimla_Mean Squared Error (All)                     : 5724.16589408741
+COMET INFO:     Shimla_Mean Squared Error (Non-zero)                : 28641.15973435335
+COMET INFO:     Shimla_Mean Squared Percentage Error (All)          : 8.045487461089393e+22
+COMET INFO:     Shimla_Mean Squared Percentage Error (Non-zero)     : 739.2444921603709
+COMET INFO:     Shimla_Non-zero Values Percentage                   : 19.95771281485567
+COMET INFO:     Shimla_Root Mean Squared Error (All)                : 75.65821762430973
+COMET INFO:     Shimla_Root Mean Squared Error (Non-zero)           : 169.2369928069905
+COMET INFO:     Shimla_R² Score (All)                               : 0.85341584434042
+COMET INFO:     Shimla_R² Score (Non-zero)                          : 0.6798308486413368
+COMET INFO:     Srinagar_Mean Absolute Error (All)                  : 15.955626346566445
+COMET INFO:     Srinagar_Mean Absolute Error (Non-zero)             : 71.84038429658912
+COMET INFO:     Srinagar_Mean Absolute Percentage Error (All)       : 1766523049901.2566
+COMET INFO:     Srinagar_Mean Absolute Percentage Error (Non-zero)  : 45.53160963344307
+COMET INFO:     Srinagar_Mean Squared Error (All)                   : 2528.6710202133804
+COMET INFO:     Srinagar_Mean Squared Error (Non-zero)              : 12778.840097979708
+COMET INFO:     Srinagar_Mean Squared Percentage Error (All)        : 4.738500401888922e+22
+COMET INFO:     Srinagar_Mean Squared Percentage Error (Non-zero)   : 195.18490941308607
+COMET INFO:     Srinagar_Non-zero Values Percentage                 : 19.750873322301892
+COMET INFO:     Srinagar_Root Mean Squared Error (All)              : 50.285892854889035
+COMET INFO:     Srinagar_Root Mean Squared Error (Non-zero)         : 113.04353187148617
+COMET INFO:     Srinagar_R² Score (All)                             : 0.9514082109286471
+COMET INFO:     Srinagar_R² Score (Non-zero)                        : 0.8535287128754228
 COMET INFO:   Others:
 COMET INFO:     Name             : GHI_Forecasting_GNN
 COMET INFO:     trainable_params : 71427
@@ -54,9 +102,10 @@ COMET INFO:     feature_ranges : {"ghi": [0, 1.2], "meteorological": [0, 1]}
 COMET INFO:     model_params   : {"batch_size": 32, "dense_units": [16, 1], "dropout_rate": 0.2, "epochs": 20, "lstm_units": [64, 32]}
 COMET INFO:     random_seed    : 42
 COMET INFO:   Uploads:
+COMET INFO:     figures      : 1
 COMET INFO:     git metadata : 1
 COMET INFO:     model graph  : 1
 COMET INFO: 
 COMET WARNING: To get all data logged automatically, import comet_ml before the following modules: sklearn.
 COMET INFO: Please wait for metadata to finish uploading (timeout is 3600 seconds)
-COMET INFO: Uploading 1 metrics, params and output messages
+COMET INFO: Uploading 3 metrics, params and output messages

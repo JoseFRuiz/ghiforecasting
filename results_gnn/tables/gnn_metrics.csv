@@ -1,0 +1,66 @@
+Location,Metric,Value
+Jaisalmer,Mean Absolute Error (All),92.27968303053355
+Jaisalmer,Mean Squared Error (All),58050.69668344942
+Jaisalmer,Root Mean Squared Error (All),240.9371218460315
+Jaisalmer,R² Score (All),0.0
+Jaisalmer,Mean Absolute Percentage Error (All),92279683030533.53
+Jaisalmer,Mean Squared Percentage Error (All),5.805069668344945e+26
+Jaisalmer,Non-zero Values Percentage,0.0
+Jaisalmer,Mean Absolute Error (Non-zero),
+Jaisalmer,Mean Squared Error (Non-zero),
+Jaisalmer,Root Mean Squared Error (Non-zero),
+Jaisalmer,R² Score (Non-zero),
+Jaisalmer,Mean Absolute Percentage Error (Non-zero),
+Jaisalmer,Mean Squared Percentage Error (Non-zero),
+Jodhpur,Mean Absolute Error (All),2.2141788009445245
+Jodhpur,Mean Squared Error (All),4.902587762552136
+Jodhpur,Root Mean Squared Error (All),2.2141788009445253
+Jodhpur,R² Score (All),0.0
+Jodhpur,Mean Absolute Percentage Error (All),2214178800944.5244
+Jodhpur,Mean Squared Percentage Error (All),4.902587762552134e+22
+Jodhpur,Non-zero Values Percentage,0.0
+Jodhpur,Mean Absolute Error (Non-zero),
+Jodhpur,Mean Squared Error (Non-zero),
+Jodhpur,Root Mean Squared Error (Non-zero),
+Jodhpur,R² Score (Non-zero),
+Jodhpur,Mean Absolute Percentage Error (Non-zero),
+Jodhpur,Mean Squared Percentage Error (Non-zero),
+New Delhi,Mean Absolute Error (All),14.816756099653432
+New Delhi,Mean Squared Error (All),3128.858507118124
+New Delhi,Root Mean Squared Error (All),55.936200327856774
+New Delhi,R² Score (All),0.8168612883674189
+New Delhi,Mean Absolute Percentage Error (All),2165383273177.3918
+New Delhi,Mean Squared Percentage Error (All),7.556254737772706e+22
+New Delhi,Non-zero Values Percentage,9.69847398418827
+New Delhi,Mean Absolute Error (Non-zero),130.44704607256216
+New Delhi,Mean Squared Error (Non-zero),32183.43687335873
+New Delhi,Root Mean Squared Error (Non-zero),179.3974271648251
+New Delhi,R² Score (Non-zero),0.5520131589415349
+New Delhi,Mean Absolute Percentage Error (Non-zero),139.07173921901529
+New Delhi,Mean Squared Percentage Error (Non-zero),923.3252467223078
+Shimla,Mean Absolute Error (All),26.58715447905215
+Shimla,Mean Squared Error (All),5724.16589408741
+Shimla,Root Mean Squared Error (All),75.65821762430973
+Shimla,R² Score (All),0.85341584434042
+Shimla,Mean Absolute Percentage Error (All),1966841572356.0527
+Shimla,Mean Squared Percentage Error (All),8.045487461089393e+22
+Shimla,Non-zero Values Percentage,19.95771281485567
+Shimla,Mean Absolute Error (Non-zero),123.36239695960148
+Shimla,Mean Squared Error (Non-zero),28641.15973435335
+Shimla,Root Mean Squared Error (Non-zero),169.2369928069905
+Shimla,R² Score (Non-zero),0.6798308486413368
+Shimla,Mean Absolute Percentage Error (Non-zero),117.3100391768587
+Shimla,Mean Squared Percentage Error (Non-zero),739.2444921603709
+Srinagar,Mean Absolute Error (All),15.955626346566445
+Srinagar,Mean Squared Error (All),2528.6710202133804
+Srinagar,Root Mean Squared Error (All),50.285892854889035
+Srinagar,R² Score (All),0.9514082109286471
+Srinagar,Mean Absolute Percentage Error (All),1766523049901.2566
+Srinagar,Mean Squared Percentage Error (All),4.738500401888922e+22
+Srinagar,Non-zero Values Percentage,19.750873322301892
+Srinagar,Mean Absolute Error (Non-zero),71.84038429658912
+Srinagar,Mean Squared Error (Non-zero),12778.840097979708
+Srinagar,Root Mean Squared Error (Non-zero),113.04353187148617
+Srinagar,R² Score (Non-zero),0.8535287128754228
+Srinagar,Mean Absolute Percentage Error (Non-zero),45.53160963344307
+Srinagar,Mean Squared Percentage Error (Non-zero),195.18490941308607
