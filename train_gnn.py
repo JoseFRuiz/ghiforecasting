@@ -367,7 +367,7 @@ def main(skip_training=False):
     )
     model.summary()
     
-    model_path = os.path.join("models", "gnn_ghi_forecast.h5")
+    model_path = os.path.join("models", "gnn_ghi_forecast")
     
     if skip_training:
         if os.path.exists(model_path):
@@ -387,8 +387,8 @@ def main(skip_training=False):
             verbose=0  # Set to 0 to suppress progress output
         )
         
-        # Save model
-        model.save(model_path)
+        # Save model using SavedModel format
+        model.save(model_path, save_format="tf")
         print(f"✓ Model saved to {model_path}")
     
     # Evaluate model
