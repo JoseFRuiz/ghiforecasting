@@ -58,9 +58,6 @@ else:
     print("No GPU available, using CPU for training")
     print("Available devices:")
     print(tf.config.list_physical_devices())
-
-import pdb
-pdb.set_trace()
     
 # Import configuration and functions from train.py
 from train import (
