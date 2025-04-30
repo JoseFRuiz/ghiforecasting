@@ -21,7 +21,7 @@ echo "Directory = $(pwd)"
 
 # Load modules
 module purge
-module load cuda/11.1.0
+module load cuda/11.4.3
 
 # Activate conda env
 source ~/.bashrc
