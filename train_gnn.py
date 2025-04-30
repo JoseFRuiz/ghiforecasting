@@ -384,7 +384,7 @@ def main(skip_training=False):
             epochs=CONFIG["model_params"]["epochs"],
             batch_size=CONFIG["model_params"]["batch_size"],
             validation_data=([X_val, np.tile(adjacency_matrix, (X_val.shape[0], 1, 1))], y_val),
-            verbose=1  # Set to 0 to suppress progress output
+            verbose=0  # Set to 0 to suppress progress output
         )
         
         # Save model
