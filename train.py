@@ -457,30 +457,42 @@ def evaluate_model(y_true, y_pred):
     # Add small epsilon to avoid division by zero
     epsilon = 1e-10
     
-    # Calculate metrics only for non-zero periods
-    metrics = {
-        "Mean Absolute Error (Non-zero)": float(mean_absolute_error(y_true_nonzero, y_pred_nonzero)),
-        "Mean Squared Error (Non-zero)": float(mean_squared_error(y_true_nonzero, y_pred_nonzero)),
-        "Root Mean Squared Error (Non-zero)": float(np.sqrt(mean_squared_error(y_true_nonzero, y_pred_nonzero))),
-        "R² Score (Non-zero)": float(r2_score(y_true_nonzero, y_pred_nonzero)),
-        # Add percentage-based metrics with epsilon to avoid division by zero
-        "Mean Absolute Percentage Error (Non-zero)": float(np.mean(np.abs((y_true_nonzero - y_pred_nonzero) / (y_true_nonzero + epsilon))) * 100),
-        "Mean Squared Percentage Error (Non-zero)": float(np.mean(np.square((y_true_nonzero - y_pred_nonzero) / (y_true_nonzero + epsilon))) * 100)
-    }
+    # Initialize metrics dictionary
+    metrics = {}
     
-    # Also calculate percentage of non-zero values
-    metrics["Non-zero Values Percentage"] = float(100 * len(y_true_nonzero) / len(y_true))
-    
-    # Optionally, you might want to keep the original metrics for comparison
+    # Calculate metrics for all values
     metrics.update({
         "Mean Absolute Error (All)": float(mean_absolute_error(y_true, y_pred)),
         "Mean Squared Error (All)": float(mean_squared_error(y_true, y_pred)),
         "Root Mean Squared Error (All)": float(np.sqrt(mean_squared_error(y_true, y_pred))),
         "R² Score (All)": float(r2_score(y_true, y_pred)),
-        # Add percentage-based metrics for all values with epsilon
         "Mean Absolute Percentage Error (All)": float(np.mean(np.abs((y_true - y_pred) / (y_true + epsilon))) * 100),
         "Mean Squared Percentage Error (All)": float(np.mean(np.square((y_true - y_pred) / (y_true + epsilon))) * 100)
     })
+    
+    # Calculate percentage of non-zero values
+    metrics["Non-zero Values Percentage"] = float(100 * len(y_true_nonzero) / len(y_true))
+    
+    # Only calculate non-zero metrics if there are non-zero values
+    if len(y_true_nonzero) > 0:
+        metrics.update({
+            "Mean Absolute Error (Non-zero)": float(mean_absolute_error(y_true_nonzero, y_pred_nonzero)),
+            "Mean Squared Error (Non-zero)": float(mean_squared_error(y_true_nonzero, y_pred_nonzero)),
+            "Root Mean Squared Error (Non-zero)": float(np.sqrt(mean_squared_error(y_true_nonzero, y_pred_nonzero))),
+            "R² Score (Non-zero)": float(r2_score(y_true_nonzero, y_pred_nonzero)),
+            "Mean Absolute Percentage Error (Non-zero)": float(np.mean(np.abs((y_true_nonzero - y_pred_nonzero) / (y_true_nonzero + epsilon))) * 100),
+            "Mean Squared Percentage Error (Non-zero)": float(np.mean(np.square((y_true_nonzero - y_pred_nonzero) / (y_true_nonzero + epsilon))) * 100)
+        })
+    else:
+        # If no non-zero values, set these metrics to NaN
+        metrics.update({
+            "Mean Absolute Error (Non-zero)": float('nan'),
+            "Mean Squared Error (Non-zero)": float('nan'),
+            "Root Mean Squared Error (Non-zero)": float('nan'),
+            "R² Score (Non-zero)": float('nan'),
+            "Mean Absolute Percentage Error (Non-zero)": float('nan'),
+            "Mean Squared Percentage Error (Non-zero)": float('nan')
+        })
     
     return metrics
 
