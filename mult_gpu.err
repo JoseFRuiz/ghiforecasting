@@ -1,40 +1,51 @@
 GPU Driver '550' detected
-2025-04-29 22:31:42.072425: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+2025-04-30 08:30:48.644358: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
 To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2025-04-29 22:31:42.686172: E tensorflow/stream_executor/cuda/cuda_blas.cc:2981] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
-2025-04-29 22:31:45.081027: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.4.3/lib64:/opt/slurm/lib64::
-2025-04-29 22:31:45.082196: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.4.3/lib64:/opt/slurm/lib64::
-2025-04-29 22:31:45.082220: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
+2025-04-30 08:30:49.257735: E tensorflow/stream_executor/cuda/cuda_blas.cc:2981] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2025-04-30 08:30:51.912527: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.4.3/lib64:/opt/slurm/lib64::
+2025-04-30 08:30:51.913921: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.4.3/lib64:/opt/slurm/lib64::
+2025-04-30 08:30:51.913947: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
 WARNING:tensorflow:From /blue/azare/jruizmunoz/ghiforecasting/train_gnn.py:38: is_gpu_available (from tensorflow.python.framework.test_util) is deprecated and will be removed in a future version.
 Instructions for updating:
 Use `tf.config.list_physical_devices('GPU')` instead.
-2025-04-29 22:31:48.969822: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+2025-04-30 08:30:56.191431: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
 To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2025-04-29 22:31:49.404934: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudnn.so.8'; dlerror: libcudnn.so.8: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.4.3/lib64:/opt/slurm/lib64::
-2025-04-29 22:31:49.405028: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+2025-04-30 08:30:56.639437: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudnn.so.8'; dlerror: libcudnn.so.8: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.4.3/lib64:/opt/slurm/lib64::
+2025-04-30 08:30:56.639530: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
 Skipping registering GPU devices...
-2025-04-29 22:31:49.799978: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+2025-04-30 08:30:56.931771: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
 Skipping registering GPU devices...
 COMET WARNING: To get all data logged automatically, import comet_ml before the following modules: sklearn.
-COMET INFO: Experiment is live on comet.com https://www.comet.com/josefruiz/ghi-forecasting/927cceecd7c44df09e3be2eaef81386c
+COMET INFO: Experiment is live on comet.com https://www.comet.com/josefruiz/ghi-forecasting/8e4c4b95ca2644e28169d89e09f32c4c
 
+WARNING:tensorflow:Skipping full serialization of Keras layer <keras.layers.core.dense.Dense object at 0x1538e81ae6a0>, because it is not built.
+WARNING:tensorflow:Skipping full serialization of Keras layer <keras.layers.core.dense.Dense object at 0x1538e81490a0>, because it is not built.
+WARNING:absl:Found untraced functions such as lstm_cell_layer_call_fn, lstm_cell_layer_call_and_return_conditional_losses, lstm_cell_1_layer_call_fn, lstm_cell_1_layer_call_and_return_conditional_losses, dense_2_layer_call_fn while saving (showing 5 of 16). These functions will not be directly callable after loading.
 Traceback (most recent call last):
   File "/blue/azare/jruizmunoz/ghiforecasting/train_gnn.py", line 483, in <module>
     main(skip_training=args.skip_training) 
-  File "/blue/azare/jruizmunoz/ghiforecasting/train_gnn.py", line 391, in main
-    model.save(model_path)
-  File "/home/jruizmunoz/anaconda3/envs/ghifo_py39/lib/python3.9/site-packages/keras/utils/traceback_utils.py", line 70, in error_handler
-    raise e.with_traceback(filtered_tb) from None
-  File "/home/jruizmunoz/anaconda3/envs/ghifo_py39/lib/python3.9/site-packages/keras/saving/save.py", line 153, in save_model
-    raise NotImplementedError(
-NotImplementedError: Saving the model to HDF5 format requires the model to be a Functional model or a Sequential model. It does not work for subclassed models, because such models are defined via the body of a Python method, which isn't safely serializable. Consider saving to the Tensorflow SavedModel format (by setting save_format="tf") or using `save_weights`.
+  File "/blue/azare/jruizmunoz/ghiforecasting/train_gnn.py", line 410, in main
+    metrics = evaluate_model(y_test_rescaled, y_pred_rescaled)
+  File "/blue/azare/jruizmunoz/ghiforecasting/train.py", line 462, in evaluate_model
+    "Mean Absolute Error (Non-zero)": float(mean_absolute_error(y_true_nonzero, y_pred_nonzero)),
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py39/lib/python3.9/site-packages/sklearn/utils/_param_validation.py", line 216, in wrapper
+    return func(*args, **kwargs)
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py39/lib/python3.9/site-packages/sklearn/metrics/_regression.py", line 277, in mean_absolute_error
+    _check_reg_targets_with_floating_dtype(
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py39/lib/python3.9/site-packages/sklearn/metrics/_regression.py", line 198, in _check_reg_targets_with_floating_dtype
+    y_type, y_true, y_pred, multioutput = _check_reg_targets(
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py39/lib/python3.9/site-packages/sklearn/metrics/_regression.py", line 105, in _check_reg_targets
+    y_true = check_array(y_true, ensure_2d=False, dtype=dtype)
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py39/lib/python3.9/site-packages/sklearn/utils/validation.py", line 1130, in check_array
+    raise ValueError(
+ValueError: Found array with 0 sample(s) (shape=(0,)) while a minimum of 1 is required.
 COMET INFO: ---------------------------------------------------------------------------------------
 COMET INFO: Comet.ml Experiment Summary
 COMET INFO: ---------------------------------------------------------------------------------------
 COMET INFO:   Data:
 COMET INFO:     display_summary_level : 1
 COMET INFO:     name                  : GHI_Forecasting_GNN
-COMET INFO:     url                   : https://www.comet.com/josefruiz/ghi-forecasting/927cceecd7c44df09e3be2eaef81386c
+COMET INFO:     url                   : https://www.comet.com/josefruiz/ghi-forecasting/8e4c4b95ca2644e28169d89e09f32c4c
 COMET INFO:   Others:
 COMET INFO:     Name             : GHI_Forecasting_GNN
 COMET INFO:     trainable_params : 71427
