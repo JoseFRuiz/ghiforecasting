@@ -264,7 +264,7 @@ def create_graph_structure(df):
     
     return adjacency_matrix, locations
 
-def prepare_gnn_data(df, adjacency_matrix, locations):
+def prepare_gnn_data(df, adjacency_matrix, locations, feature_combination="all"):
     """
     Prepare data for GNN training.
     
@@ -272,6 +272,7 @@ def prepare_gnn_data(df, adjacency_matrix, locations):
         df: DataFrame containing all data
         adjacency_matrix: Graph adjacency matrix
         locations: List of locations
+        feature_combination: String specifying which features to use
     
     Returns:
         tuple: (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler, feature_columns
@@ -293,12 +294,31 @@ def prepare_gnn_data(df, adjacency_matrix, locations):
         df_split["month_cos"] = np.cos(2 * np.pi * df_split["Month"] / 12)
     
     print("3. Defining feature columns...")
-    # Define feature columns
-    feature_columns = [
-        'GHI', 'Temperature', 'Relative Humidity', 'Pressure',
-        'Precipitable Water', 'Wind Direction', 'Wind Speed',
-        'hour_sin', 'hour_cos', 'month_sin', 'month_cos'
-    ]
+    # Define feature groups
+    ghi_features = ["GHI"] + [f"GHI_lag_{lag}" for lag in range(1, 25)]
+    meteorological_features = {
+        "Temperature": ["Temperature_lag_24"],
+        "Relative Humidity": ["Relative Humidity_lag_24"],
+        "Pressure": ["Pressure_lag_24"],
+        "Precipitable Water": ["Precipitable Water_lag_24"],
+        "Wind Direction": ["Wind Direction_lag_24"],
+        "Wind Speed": ["Wind Speed_lag_24"]
+    }
+    
+    # Select features based on combination
+    if feature_combination == "ghi_only":
+        feature_columns = ghi_features
+    elif feature_combination == "meteorological_only":
+        feature_columns = [f for features in meteorological_features.values() for f in features]
+    elif feature_combination in meteorological_features:
+        feature_columns = ghi_features + meteorological_features[feature_combination]
+    elif feature_combination == "all":
+        feature_columns = (ghi_features + 
+                         [f for features in meteorological_features.values() for f in features])
+    else:
+        raise ValueError(f"Invalid feature combination: {feature_combination}")
+    
+    print(f"Selected features: {feature_columns}")
     
     print("4. Adding lag features...")
     # Add lag features
@@ -307,7 +327,6 @@ def prepare_gnn_data(df, adjacency_matrix, locations):
         df_train[f'GHI_lag_{lag}'] = df_train.groupby('location')['GHI'].shift(lag)
         df_val[f'GHI_lag_{lag}'] = df_val.groupby('location')['GHI'].shift(lag)
         df_test[f'GHI_lag_{lag}'] = df_test.groupby('location')['GHI'].shift(lag)
-        feature_columns.append(f'GHI_lag_{lag}')
     
     print("5. Creating target variable...")
     # Create target
@@ -374,6 +393,19 @@ def main(skip_training=False):
     # Create necessary directories
     os.makedirs("models", exist_ok=True)
     
+    # Define feature combinations to test
+    feature_combinations = [
+        "ghi_only",
+        "Temperature",
+        "Relative Humidity",
+        "Pressure",
+        "Precipitable Water",
+        "Wind Direction",
+        "Wind Speed",
+        "all",
+        "meteorological_only"
+    ]
+    
     # Try to create experiment
     try:
         experiment = setup_experiment()
@@ -406,132 +438,171 @@ def main(skip_training=False):
     adjacency_matrix, locations = create_graph_structure(df)
     num_locations = len(locations)
     
-    # Prepare data for GNN
-    print("\nPreparing data for GNN...")
-    (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler, feature_columns = prepare_gnn_data(df, adjacency_matrix, locations)
+    # Dictionary to store results
+    all_results = {
+        'metrics': {},
+        'histories': {},
+        'predictions': {}
+    }
     
-    # Create and train model
-    print("\nCreating GNN model...")
-    model = GNNGHIForecaster(num_locations)
-    
-    # Build model with a sample batch
-    sample_batch_size = 32
-    sample_features = np.zeros((sample_batch_size, num_locations, 24, len(feature_columns)))
-    sample_adj = np.tile(adjacency_matrix, (sample_batch_size, 1, 1))
-    model([sample_features, sample_adj])  # This builds the model
-    
-    model.compile(
-        optimizer='adam',
-        loss=MeanSquaredError(),
-        metrics=['mae', 'mse']
-    )
-    model.summary()
-    
-    model_path = os.path.join("models", "gnn_ghi_forecast")
-    
-    if skip_training:
-        if os.path.exists(model_path):
-            print(f"\nLoading pre-trained model...")
-            model = tf.keras.models.load_model(model_path)
-            history = None
-        else:
-            print(f"× No pre-trained model found")
-            return
-    else:
-        print("\nTraining model...")
-        history = model.fit(
-            [X_train, np.tile(adjacency_matrix, (X_train.shape[0], 1, 1))], y_train,
-            epochs=CONFIG["model_params"]["epochs"],
-            batch_size=CONFIG["model_params"]["batch_size"],
-            validation_data=([X_val, np.tile(adjacency_matrix, (X_val.shape[0], 1, 1))], y_val),
-            verbose=0  # Set to 0 to suppress progress output
-        )
+    for feature_combo in feature_combinations:
+        print(f"\nTesting feature combination: {feature_combo}")
         
-        # Save model using SavedModel format
-        model.save(model_path, save_format="tf")
-        print(f"✓ Model saved to {model_path}")
-    
-    # Evaluate model
-    print("\nEvaluating model...")
-    results = {}
-    
-    for location in locations:
-        # Get test data for this location
-        location_idx = locations.index(location)
-        y_pred = model.predict([X_test, np.tile(adjacency_matrix, (X_test.shape[0], 1, 1))])
-        y_pred_loc = y_pred[:, location_idx]
-        y_test_loc = y_test[:, location_idx]
-        
-        # Rescale predictions
-        y_pred_rescaled = target_scaler.inverse_transform(y_pred_loc.reshape(-1, 1)).ravel()
-        y_test_rescaled = target_scaler.inverse_transform(y_test_loc.reshape(-1, 1)).ravel()
-        
-        # Calculate metrics
-        metrics = evaluate_model(y_test_rescaled, y_pred_rescaled)
-        results[location] = metrics
-        
-        print(f"\nResults for {location}:")
-        for metric_name, metric_value in metrics.items():
-            print(f"✅ {metric_name}: {metric_value:.4f}")
-    
-    # Log results if experiment exists
-    if experiment:
         try:
-            # Log metrics
-            for location, metrics in results.items():
+            # Prepare data for GNN
+            print("\nPreparing data for GNN...")
+            (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler, feature_columns = prepare_gnn_data(
+                df, adjacency_matrix, locations, feature_combo
+            )
+            
+            # Create and train model
+            print("\nCreating GNN model...")
+            model = GNNGHIForecaster(num_locations)
+            
+            # Build model with a sample batch
+            sample_batch_size = 32
+            sample_features = np.zeros((sample_batch_size, num_locations, 24, len(feature_columns)))
+            sample_adj = np.tile(adjacency_matrix, (sample_batch_size, 1, 1))
+            model([sample_features, sample_adj])  # This builds the model
+            
+            model.compile(
+                optimizer='adam',
+                loss=MeanSquaredError(),
+                metrics=['mae', 'mse']
+            )
+            model.summary()
+            
+            model_path = os.path.join("models", f"gnn_ghi_forecast_{feature_combo}")
+            
+            if skip_training:
+                if os.path.exists(model_path):
+                    print(f"\nLoading pre-trained model for {feature_combo}...")
+                    model = tf.keras.models.load_model(model_path)
+                    history = None
+                else:
+                    print(f"× No pre-trained model found for {feature_combo}")
+                    continue
+            else:
+                print("\nTraining model...")
+                history = model.fit(
+                    [X_train, np.tile(adjacency_matrix, (X_train.shape[0], 1, 1))], y_train,
+                    epochs=CONFIG["model_params"]["epochs"],
+                    batch_size=CONFIG["model_params"]["batch_size"],
+                    validation_data=([X_val, np.tile(adjacency_matrix, (X_val.shape[0], 1, 1))], y_val),
+                    verbose=0
+                )
+                
+                # Save model using SavedModel format
+                model.save(model_path, save_format="tf")
+                print(f"✓ Model saved to {model_path}")
+            
+            # Evaluate model
+            print("\nEvaluating model...")
+            results = {}
+            
+            for location in locations:
+                # Get test data for this location
+                location_idx = locations.index(location)
+                y_pred = model.predict([X_test, np.tile(adjacency_matrix, (X_test.shape[0], 1, 1))])
+                y_pred_loc = y_pred[:, location_idx]
+                y_test_loc = y_test[:, location_idx]
+                
+                # Rescale predictions
+                y_pred_rescaled = target_scaler.inverse_transform(y_pred_loc.reshape(-1, 1)).ravel()
+                y_test_rescaled = target_scaler.inverse_transform(y_test_loc.reshape(-1, 1)).ravel()
+                
+                # Calculate metrics
+                metrics = evaluate_model(y_test_rescaled, y_pred_rescaled)
+                results[location] = metrics
+                
+                print(f"\nResults for {location}:")
                 for metric_name, metric_value in metrics.items():
-                    experiment.log_metric(f"{location}_{metric_name}", metric_value)
+                    print(f"✅ {metric_name}: {metric_value:.4f}")
             
-            # Log plots
-            if history:
-                loss_fig = plot_loss_history(history)
-                experiment.log_figure(figure_name="loss_history", figure=loss_fig)
-                plt.close()
+            # Store results
+            all_results['metrics'][feature_combo] = results
+            all_results['histories'][feature_combo] = history
             
-            print("✓ Results logged to Comet.ml")
+            # Log results if experiment exists
+            if experiment:
+                try:
+                    # Log metrics
+                    for location, metrics in results.items():
+                        for metric_name, metric_value in metrics.items():
+                            experiment.log_metric(f"{location}_{feature_combo}_{metric_name}", metric_value)
+                    
+                    # Log plots
+                    if history:
+                        loss_fig = plot_loss_history(history)
+                        experiment.log_figure(figure_name=f"loss_history_{feature_combo}", figure=loss_fig)
+                        plt.close()
+                    
+                    print("✓ Results logged to Comet.ml")
+                except Exception as e:
+                    print(f"× Warning: Could not log results: {str(e)}")
+            
         except Exception as e:
-            print(f"× Warning: Could not log results: {str(e)}")
+            print(f"× Error processing {feature_combo}: {str(e)}")
+            continue
     
-    # Save results
-    print("\nSaving results...")
+    # Create comparative analysis
+    print("\nGenerating comparative analysis...")
     try:
+        # Create directories for results
         os.makedirs("results_gnn", exist_ok=True)
         os.makedirs("results_gnn/plots", exist_ok=True)
         os.makedirs("results_gnn/tables", exist_ok=True)
         
         # Create metrics table
         records = []
-        for location, metrics in results.items():
-            for metric_name, value in metrics.items():
-                records.append({
-                    'Location': location,
-                    'Metric': metric_name,
-                    'Value': value
-                })
+        for feature_combo, location_metrics in all_results['metrics'].items():
+            for location, metrics in location_metrics.items():
+                for metric_name, value in metrics.items():
+                    records.append({
+                        'Location': location,
+                        'Feature Combination': feature_combo,
+                        'Metric': metric_name,
+                        'Value': value
+                    })
         
         metrics_df = pd.DataFrame(records)
+        
+        # Save results
         metrics_df.to_csv("results_gnn/tables/gnn_metrics.csv", index=False)
         
         # Create plots for each metric
         for metric in metrics_df['Metric'].unique():
             metric_data = metrics_df[metrics_df['Metric'] == metric]
             
-            plt.figure(figsize=(10, 6))
-            plt.bar(metric_data['Location'], metric_data['Value'])
-            plt.title(f'{metric} Across Locations')
-            plt.xlabel('Location')
+            plt.figure(figsize=(15, 8))
+            pivot_data = metric_data.pivot(
+                index='Feature Combination',
+                columns='Location',
+                values='Value'
+            )
+            ax = pivot_data.plot(kind='bar', width=0.8)
+            plt.title(f'{metric} Comparison Across Locations and Feature Combinations')
+            plt.xlabel('Feature Combination')
             plt.ylabel(metric)
-            plt.xticks(rotation=45)
+            plt.xticks(rotation=45, ha='right')
+            plt.legend(title='Location', bbox_to_anchor=(1.05, 1), loc='upper left')
+            
+            # Add value labels
+            for container in ax.containers:
+                ax.bar_label(container, fmt='%.3f', rotation=90, padding=3)
+            
+            plt.grid(True, axis='y', linestyle='--', alpha=0.7)
             plt.tight_layout()
             
-            plot_path = f"results_gnn/plots/{metric.lower().replace(' ', '_')}.png"
+            # Save plot
+            plot_path = f"results_gnn/plots/gnn_comparison_{metric.lower().replace(' ', '_')}.png"
             plt.savefig(plot_path, bbox_inches='tight', dpi=300)
             plt.close()
         
-        print("✓ Results saved to 'results_gnn' directory")
+        print("\nResults have been saved in the 'results_gnn' directory")
         
     except Exception as e:
-        print(f"× Error saving results: {str(e)}")
+        print(f"× Error in comparative analysis: {str(e)}")
 
 if __name__ == "__main__":
     import argparse
