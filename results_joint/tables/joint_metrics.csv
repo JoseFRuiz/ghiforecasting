@@ -1,352 +1,352 @@
 Location,Feature Combination,Metric,Value
-New Delhi,ghi_only,Mean Absolute Error (Non-zero),134.67436690939
-New Delhi,ghi_only,Mean Squared Error (Non-zero),33795.396339892686
-New Delhi,ghi_only,Root Mean Squared Error (Non-zero),183.83524237722398
-New Delhi,ghi_only,R² Score (Non-zero),0.5272719513897427
-New Delhi,ghi_only,Mean Absolute Percentage Error (Non-zero),163.55506523894786
-New Delhi,ghi_only,Mean Squared Percentage Error (Non-zero),1641.1608314590176
+New Delhi,ghi_only,Mean Absolute Error (All),66.98046016575725
+New Delhi,ghi_only,Mean Squared Error (All),17237.64401832774
+New Delhi,ghi_only,Root Mean Squared Error (All),131.29220852102284
+New Delhi,ghi_only,R² Score (All),0.7297697869258744
+New Delhi,ghi_only,Mean Absolute Percentage Error (All),2163616410199.5254
+New Delhi,ghi_only,Mean Squared Percentage Error (All),4.270311191624575e+23
 New Delhi,ghi_only,Non-zero Values Percentage,49.06648451730419
-New Delhi,ghi_only,Mean Absolute Error (All),69.65956916124009
-New Delhi,ghi_only,Mean Squared Error (All),16639.569117474093
-New Delhi,ghi_only,Root Mean Squared Error (All),128.994453824473
-New Delhi,ghi_only,R² Score (All),0.7391456568371064
-New Delhi,ghi_only,Mean Absolute Percentage Error (All),3579591772947.0645
-New Delhi,ghi_only,Mean Squared Percentage Error (All),5.73562047990609e+23
-Shimla,ghi_only,Mean Absolute Error (Non-zero),135.0347886456335
-Shimla,ghi_only,Mean Squared Error (Non-zero),31683.711297426937
-Shimla,ghi_only,Root Mean Squared Error (Non-zero),177.99918903586874
-Shimla,ghi_only,R² Score (Non-zero),0.6451143933687326
-Shimla,ghi_only,Mean Absolute Percentage Error (Non-zero),130.5239290896802
-Shimla,ghi_only,Mean Squared Percentage Error (Non-zero),863.588067064706
+New Delhi,ghi_only,Mean Absolute Error (Non-zero),132.1000360903773
+New Delhi,ghi_only,Mean Squared Error (Non-zero),35044.167267266486
+New Delhi,ghi_only,Root Mean Squared Error (Non-zero),187.2008741092479
+New Delhi,ghi_only,R² Score (Non-zero),0.5098042159111739
+New Delhi,ghi_only,Mean Absolute Percentage Error (Non-zero),164.08463254570788
+New Delhi,ghi_only,Mean Squared Percentage Error (Non-zero),1667.6264951334747
+Shimla,ghi_only,Mean Absolute Error (All),66.00248059043874
+Shimla,ghi_only,Mean Squared Error (All),15480.104214563966
+Shimla,ghi_only,Root Mean Squared Error (All),124.41906692530678
+Shimla,ghi_only,R² Score (All),0.8002498164060606
+Shimla,ghi_only,Mean Absolute Percentage Error (All),1650861544009.284
+Shimla,ghi_only,Mean Squared Percentage Error (All),1.6775321469485784e+23
 Shimla,ghi_only,Non-zero Values Percentage,49.90867579908676
-Shimla,ghi_only,Mean Absolute Error (All),70.98005557680783
-Shimla,ghi_only,Mean Squared Error (All),15856.894019765163
-Shimla,ghi_only,Root Mean Squared Error (All),125.92415979376302
-Shimla,ghi_only,R² Score (All),0.7953878444372638
-Shimla,ghi_only,Mean Absolute Percentage Error (All),3585980695741.7295
-Shimla,ghi_only,Mean Squared Percentage Error (All),4.3973267213725186e+23
-Srinagar,ghi_only,Mean Absolute Error (Non-zero),68.52883643852165
-Srinagar,ghi_only,Mean Squared Error (Non-zero),12348.004039465643
-Srinagar,ghi_only,Root Mean Squared Error (Non-zero),111.12157324059825
-Srinagar,ghi_only,R² Score (Non-zero),0.8582196443897764
-Srinagar,ghi_only,Mean Absolute Percentage Error (Non-zero),55.05347621151424
-Srinagar,ghi_only,Mean Squared Percentage Error (Non-zero),348.13892341532284
+Shimla,ghi_only,Mean Absolute Error (Non-zero),128.9387426457597
+Shimla,ghi_only,Mean Squared Error (Non-zero),30983.248193848958
+Shimla,ghi_only,Root Mean Squared Error (Non-zero),176.02059025537028
+Shimla,ghi_only,R² Score (Non-zero),0.6529602000389971
+Shimla,ghi_only,Mean Absolute Percentage Error (Non-zero),123.3873630798499
+Shimla,ghi_only,Mean Squared Percentage Error (Non-zero),782.0485259624384
+Srinagar,ghi_only,Mean Absolute Error (All),31.529662936838204
+Srinagar,ghi_only,Mean Squared Error (All),6053.629712739753
+Srinagar,ghi_only,Root Mean Squared Error (All),77.80507510914538
+Srinagar,ghi_only,R² Score (All),0.9381201247685345
+Srinagar,ghi_only,Mean Absolute Percentage Error (All),966869953901.989
+Srinagar,ghi_only,Mean Squared Percentage Error (All),5.881927723517598e+22
 Srinagar,ghi_only,Non-zero Values Percentage,49.41620879120879
-Srinagar,ghi_only,Mean Absolute Error (All),36.61564300048264
-Srinagar,ghi_only,Mean Squared Error (All),6128.740297042918
-Srinagar,ghi_only,Root Mean Squared Error (All),78.28627144680553
-Srinagar,ghi_only,R² Score (All),0.9373523484416373
-Srinagar,ghi_only,Mean Absolute Percentage Error (All),2751290103864.016
-Srinagar,ghi_only,Mean Squared Percentage Error (All),2.682483935368006e+23
-New Delhi,Temperature,Mean Absolute Error (Non-zero),135.6849064160942
-New Delhi,Temperature,Mean Squared Error (Non-zero),34110.63340705517
-New Delhi,Temperature,Root Mean Squared Error (Non-zero),184.69064244583473
-New Delhi,Temperature,R² Score (Non-zero),0.5228624335338021
-New Delhi,Temperature,Mean Absolute Percentage Error (Non-zero),180.54910711537966
-New Delhi,Temperature,Mean Squared Percentage Error (Non-zero),2057.4490778039085
+Srinagar,ghi_only,Mean Absolute Error (Non-zero),61.84770894119633
+Srinagar,ghi_only,Mean Squared Error (Non-zero),12238.388846398386
+Srinagar,ghi_only,Root Mean Squared Error (Non-zero),110.6272518252098
+Srinagar,ghi_only,R² Score (Non-zero),0.8594782511252201
+Srinagar,ghi_only,Mean Absolute Percentage Error (Non-zero),49.521513735612785
+Srinagar,ghi_only,Mean Squared Percentage Error (Non-zero),291.5401134786097
+New Delhi,Temperature,Mean Absolute Error (All),66.15489106232631
+New Delhi,Temperature,Mean Squared Error (All),16990.446242596987
+New Delhi,Temperature,Root Mean Squared Error (All),130.34740596803982
+New Delhi,Temperature,R² Score (All),0.7336450443297369
+New Delhi,Temperature,Mean Absolute Percentage Error (All),1102441144404.6511
+New Delhi,Temperature,Mean Squared Percentage Error (All),2.5486393762658856e+23
 New Delhi,Temperature,Non-zero Values Percentage,49.06648451730419
-New Delhi,Temperature,Mean Absolute Error (All),72.38202183635292
-New Delhi,Temperature,Mean Squared Error (All),16834.19029190818
-New Delhi,Temperature,Root Mean Squared Error (All),129.7466388462845
-New Delhi,Temperature,R² Score (All),0.7360946295981089
-New Delhi,Temperature,Mean Absolute Percentage Error (All),5806208237469.952
-New Delhi,Temperature,Mean Squared Percentage Error (All),9.730163248106468e+23
-Shimla,Temperature,Mean Absolute Error (Non-zero),134.71547850794676
-Shimla,Temperature,Mean Squared Error (Non-zero),30849.70738266249
-Shimla,Temperature,Root Mean Squared Error (Non-zero),175.6408477053743
-Shimla,Temperature,R² Score (Non-zero),0.6544559753079693
-Shimla,Temperature,Mean Absolute Percentage Error (Non-zero),130.24148471787916
-Shimla,Temperature,Mean Squared Percentage Error (Non-zero),966.0021389927101
+New Delhi,Temperature,Mean Absolute Error (Non-zero),132.58021347557536
+New Delhi,Temperature,Mean Squared Error (Non-zero),34575.45413275192
+New Delhi,Temperature,Root Mean Squared Error (Non-zero),185.94476097150982
+New Delhi,Temperature,R² Score (Non-zero),0.516360548117153
+New Delhi,Temperature,Mean Absolute Percentage Error (Non-zero),163.78196152000086
+New Delhi,Temperature,Mean Squared Percentage Error (Non-zero),1727.215422575069
+Shimla,Temperature,Mean Absolute Error (All),65.36727010181576
+Shimla,Temperature,Mean Squared Error (All),15094.08675809527
+Shimla,Temperature,Root Mean Squared Error (All),122.85799427833449
+Shimla,Temperature,R² Score (All),0.8052308589579282
+Shimla,Temperature,Mean Absolute Percentage Error (All),757134874711.6405
+Shimla,Temperature,Mean Squared Percentage Error (All),7.874589609074737e+22
 Shimla,Temperature,Non-zero Values Percentage,49.90867579908676
-Shimla,Temperature,Mean Absolute Error (All),72.47950570920831
-Shimla,Temperature,Mean Squared Error (All),15463.059942292888
-Shimla,Temperature,Root Mean Squared Error (All),124.35055264168668
-Shimla,Temperature,R² Score (All),0.8004697501008332
-Shimla,Temperature,Mean Absolute Percentage Error (All),5244794289553.772
-Shimla,Temperature,Mean Squared Percentage Error (All),6.637949971293296e+23
-Srinagar,Temperature,Mean Absolute Error (Non-zero),75.02387159081115
-Srinagar,Temperature,Mean Squared Error (Non-zero),12874.11579937938
-Srinagar,Temperature,Root Mean Squared Error (Non-zero),113.46416085874597
-Srinagar,Temperature,R² Score (Non-zero),0.8521788047388591
-Srinagar,Temperature,Mean Absolute Percentage Error (Non-zero),61.19342589734064
-Srinagar,Temperature,Mean Squared Percentage Error (Non-zero),428.06795504542697
+Shimla,Temperature,Mean Absolute Error (Non-zero),129.456721086447
+Shimla,Temperature,Mean Squared Error (Non-zero),30227.634628531356
+Shimla,Temperature,Root Mean Squared Error (Non-zero),173.86096349822566
+Shimla,Temperature,R² Score (Non-zero),0.6614237406889314
+Shimla,Temperature,Mean Absolute Percentage Error (Non-zero),117.61066889059497
+Shimla,Temperature,Mean Squared Percentage Error (Non-zero),776.1522440852598
+Srinagar,Temperature,Mean Absolute Error (All),34.942016696471356
+Srinagar,Temperature,Mean Squared Error (All),6098.289365300516
+Srinagar,Temperature,Root Mean Squared Error (All),78.09154477470986
+Srinagar,Temperature,R² Score (All),0.937663616217553
+Srinagar,Temperature,Mean Absolute Percentage Error (All),621673989619.6003
+Srinagar,Temperature,Mean Squared Percentage Error (All),9.881023626335237e+22
 Srinagar,Temperature,Non-zero Values Percentage,49.41620879120879
-Srinagar,Temperature,Mean Absolute Error (All),41.872384200275164
-Srinagar,Temperature,Mean Squared Error (All),6421.491394860402
-Srinagar,Temperature,Root Mean Squared Error (All),80.13420864312819
-Srinagar,Temperature,R² Score (All),0.934359862566808
-Srinagar,Temperature,Mean Absolute Percentage Error (All),4798431171741.788
-Srinagar,Temperature,Mean Squared Percentage Error (All),5.959145141708816e+23
-New Delhi,Relative Humidity,Mean Absolute Error (Non-zero),135.6183691117714
-New Delhi,Relative Humidity,Mean Squared Error (Non-zero),33341.44327802083
-New Delhi,Relative Humidity,Root Mean Squared Error (Non-zero),182.59639448253307
-New Delhi,Relative Humidity,R² Score (Non-zero),0.5336218205536092
-New Delhi,Relative Humidity,Mean Absolute Percentage Error (Non-zero),160.02542548575946
-New Delhi,Relative Humidity,Mean Squared Percentage Error (Non-zero),1542.178933870283
+Srinagar,Temperature,Mean Absolute Error (Non-zero),69.45158996694144
+Srinagar,Temperature,Mean Squared Error (Non-zero),12320.670667793753
+Srinagar,Temperature,Root Mean Squared Error (Non-zero),110.99851651168025
+Srinagar,Temperature,R² Score (Non-zero),0.858533487432205
+Srinagar,Temperature,Mean Absolute Percentage Error (Non-zero),53.0982635291864
+Srinagar,Temperature,Mean Squared Percentage Error (Non-zero),319.7559927063189
+New Delhi,Relative Humidity,Mean Absolute Error (All),66.93633460552057
+New Delhi,Relative Humidity,Mean Squared Error (All),16649.174910114205
+New Delhi,Relative Humidity,Root Mean Squared Error (All),129.03168180766383
+New Delhi,Relative Humidity,R² Score (All),0.7389950692400356
+New Delhi,Relative Humidity,Mean Absolute Percentage Error (All),1494470869168.025
+New Delhi,Relative Humidity,Mean Squared Percentage Error (All),3.1494488546220654e+23
 New Delhi,Relative Humidity,Non-zero Values Percentage,49.06648451730419
-New Delhi,Relative Humidity,Mean Absolute Error (All),71.65214157158776
-New Delhi,Relative Humidity,Mean Squared Error (All),16429.60746034989
-New Delhi,Relative Humidity,Root Mean Squared Error (All),128.17803033417968
-New Delhi,Relative Humidity,R² Score (All),0.7424371729678343
-New Delhi,Relative Humidity,Mean Absolute Percentage Error (All),5108975488818.541
-New Delhi,Relative Humidity,Mean Squared Percentage Error (All),7.013335649404406e+23
-Shimla,Relative Humidity,Mean Absolute Error (Non-zero),134.47264425076156
-Shimla,Relative Humidity,Mean Squared Error (Non-zero),31231.48261073483
-Shimla,Relative Humidity,Root Mean Squared Error (Non-zero),176.72431244946134
-Shimla,Relative Humidity,R² Score (Non-zero),0.6501797548822943
-Shimla,Relative Humidity,Mean Absolute Percentage Error (Non-zero),132.1630152771262
-Shimla,Relative Humidity,Mean Squared Percentage Error (Non-zero),880.6412195627672
+New Delhi,Relative Humidity,Mean Absolute Error (Non-zero),133.37385871480208
+New Delhi,Relative Humidity,Mean Squared Error (Non-zero),33867.68093342301
+New Delhi,Relative Humidity,Root Mean Squared Error (Non-zero),184.03173892952
+New Delhi,Relative Humidity,R² Score (Non-zero),0.5262608386778067
+New Delhi,Relative Humidity,Mean Absolute Percentage Error (Non-zero),156.9076535130083
+New Delhi,Relative Humidity,Mean Squared Percentage Error (Non-zero),1547.2208065966402
+Shimla,Relative Humidity,Mean Absolute Error (All),66.3573506231787
+Shimla,Relative Humidity,Mean Squared Error (All),15502.137418380176
+Shimla,Relative Humidity,Root Mean Squared Error (All),124.50757976276053
+Shimla,Relative Humidity,R² Score (All),0.7999655071761971
+Shimla,Relative Humidity,Mean Absolute Percentage Error (All),884882421171.774
+Shimla,Relative Humidity,Mean Squared Percentage Error (All),1.051361220890396e+23
 Shimla,Relative Humidity,Non-zero Values Percentage,49.90867579908676
-Shimla,Relative Humidity,Mean Absolute Error (All),72.3647465872438
-Shimla,Relative Humidity,Mean Squared Error (All),15654.793912611756
-Shimla,Relative Humidity,Root Mean Squared Error (All),125.11911889320415
-Shimla,Relative Humidity,R² Score (All),0.7979956778826142
-Shimla,Relative Humidity,Mean Absolute Percentage Error (All),5251230529737.8955
-Shimla,Relative Humidity,Mean Squared Percentage Error (All),6.75745091719528e+23
-Srinagar,Relative Humidity,Mean Absolute Error (Non-zero),67.57793291536835
-Srinagar,Relative Humidity,Mean Squared Error (Non-zero),12262.491679292156
-Srinagar,Relative Humidity,Root Mean Squared Error (Non-zero),110.73613538178111
-Srinagar,Relative Humidity,R² Score (Non-zero),0.8592015012790126
-Srinagar,Relative Humidity,Mean Absolute Percentage Error (Non-zero),56.75182894391556
-Srinagar,Relative Humidity,Mean Squared Percentage Error (Non-zero),363.17361424945005
+Shimla,Relative Humidity,Mean Absolute Error (Non-zero),131.1845428751405
+Shimla,Relative Humidity,Mean Squared Error (Non-zero),31039.941569547198
+Shimla,Relative Humidity,Root Mean Squared Error (Non-zero),176.18155853989714
+Shimla,Relative Humidity,R² Score (Non-zero),0.6523251840575115
+Shimla,Relative Humidity,Mean Absolute Percentage Error (Non-zero),122.01541553062884
+Shimla,Relative Humidity,Mean Squared Percentage Error (Non-zero),771.7825726588069
+Srinagar,Relative Humidity,Mean Absolute Error (All),33.341382559107856
+Srinagar,Relative Humidity,Mean Squared Error (All),5977.73223715213
+Srinagar,Relative Humidity,Root Mean Squared Error (All),77.31579552169227
+Srinagar,Relative Humidity,R² Score (All),0.9388959446555456
+Srinagar,Relative Humidity,Mean Absolute Percentage Error (All),837377604608.074
+Srinagar,Relative Humidity,Mean Squared Percentage Error (All),7.81638982326979e+22
 Srinagar,Relative Humidity,Non-zero Values Percentage,49.41620879120879
-Srinagar,Relative Humidity,Mean Absolute Error (All),37.944272992920965
-Srinagar,Relative Humidity,Mean Squared Error (All),6112.65546736445
-Srinagar,Relative Humidity,Root Mean Squared Error (All),78.18347310886394
-Srinagar,Relative Humidity,R² Score (All),0.9375167666999145
-Srinagar,Relative Humidity,Mean Absolute Percentage Error (All),4549820566707.577
-Srinagar,Relative Humidity,Mean Squared Percentage Error (All),5.299697612083234e+23
-New Delhi,Pressure,Mean Absolute Error (Non-zero),136.44150460192333
-New Delhi,Pressure,Mean Squared Error (Non-zero),33985.400575083055
-New Delhi,Pressure,Root Mean Squared Error (Non-zero),184.35129664605847
-New Delhi,Pressure,R² Score (Non-zero),0.5246141831414917
-New Delhi,Pressure,Mean Absolute Percentage Error (Non-zero),188.09869662816467
-New Delhi,Pressure,Mean Squared Percentage Error (Non-zero),2122.3153260987638
+Srinagar,Relative Humidity,Mean Absolute Error (Non-zero),65.77599890727895
+Srinagar,Relative Humidity,Mean Squared Error (Non-zero),12080.885995428524
+Srinagar,Relative Humidity,Root Mean Squared Error (Non-zero),109.91308382275753
+Srinagar,Relative Humidity,R² Score (Non-zero),0.8612867061717815
+Srinagar,Relative Humidity,Mean Absolute Percentage Error (Non-zero),49.355867897966455
+Srinagar,Relative Humidity,Mean Squared Percentage Error (Non-zero),287.4712149955694
+New Delhi,Pressure,Mean Absolute Error (All),66.21949139895953
+New Delhi,Pressure,Mean Squared Error (All),16632.664515115666
+New Delhi,Pressure,Root Mean Squared Error (All),128.96768787225608
+New Delhi,Pressure,R² Score (All),0.7392538985530002
+New Delhi,Pressure,Mean Absolute Percentage Error (All),1375530571248.556
+New Delhi,Pressure,Mean Squared Percentage Error (All),2.7018827280414057e+23
 New Delhi,Pressure,Non-zero Values Percentage,49.06648451730419
-New Delhi,Pressure,Mean Absolute Error (All),74.34199487175012
-New Delhi,Pressure,Mean Squared Error (All),16845.6580124193
-New Delhi,Pressure,Root Mean Squared Error (All),129.79082406865015
-New Delhi,Pressure,R² Score (All),0.735914853025748
-New Delhi,Pressure,Mean Absolute Percentage Error (All),7394945141162.822
-New Delhi,Pressure,Mean Squared Percentage Error (All),1.7021670110236625e+24
-Shimla,Pressure,Mean Absolute Error (Non-zero),136.29486236109824
-Shimla,Pressure,Mean Squared Error (Non-zero),31587.13927886319
-Shimla,Pressure,Root Mean Squared Error (Non-zero),177.7277110606649
-Shimla,Pressure,R² Score (Non-zero),0.6461960854429305
-Shimla,Pressure,Mean Absolute Percentage Error (Non-zero),150.41984521115148
-Shimla,Pressure,Mean Squared Percentage Error (Non-zero),1181.6755761139902
+New Delhi,Pressure,Mean Absolute Error (Non-zero),132.15530206758504
+New Delhi,Pressure,Mean Squared Error (Non-zero),33843.15353177375
+New Delhi,Pressure,Root Mean Squared Error (Non-zero),183.96508780682748
+New Delhi,Pressure,R² Score (Non-zero),0.5266039265529281
+New Delhi,Pressure,Mean Absolute Percentage Error (Non-zero),157.36258890950685
+New Delhi,Pressure,Mean Squared Percentage Error (Non-zero),1533.4613044834307
+Shimla,Pressure,Mean Absolute Error (All),67.0096694722103
+Shimla,Pressure,Mean Squared Error (All),15547.492858671758
+Shimla,Pressure,Root Mean Squared Error (All),124.68958600729958
+Shimla,Pressure,R² Score (All),0.7993802554621483
+Shimla,Pressure,Mean Absolute Percentage Error (All),1167379218983.6768
+Shimla,Pressure,Mean Squared Percentage Error (All),1.2536242098836752e+23
 Shimla,Pressure,Non-zero Values Percentage,49.90867579908676
-Shimla,Pressure,Mean Absolute Error (All),75.11733660180819
-Shimla,Pressure,Mean Squared Error (All),15910.131288905575
-Shimla,Pressure,Root Mean Squared Error (All),126.13536890541675
-Shimla,Pressure,R² Score (All),0.7947008881908819
-Shimla,Pressure,Mean Absolute Percentage Error (All),7094375615271.213
-Shimla,Pressure,Mean Squared Percentage Error (All),1.4540835201175512e+24
-Srinagar,Pressure,Mean Absolute Error (Non-zero),72.25969861883075
-Srinagar,Pressure,Mean Squared Error (Non-zero),12636.171129845192
-Srinagar,Pressure,Root Mean Squared Error (Non-zero),112.41072515487653
-Srinagar,Pressure,R² Score (Non-zero),0.8549108964805116
-Srinagar,Pressure,Mean Absolute Percentage Error (Non-zero),71.37645365292624
-Srinagar,Pressure,Mean Squared Percentage Error (Non-zero),587.6602968137395
+Shimla,Pressure,Mean Absolute Error (Non-zero),131.92554039771227
+Shimla,Pressure,Mean Squared Error (Non-zero),31126.765773371175
+Shimla,Pressure,Root Mean Squared Error (Non-zero),176.427791952887
+Shimla,Pressure,R² Score (Non-zero),0.6513526761352199
+Shimla,Pressure,Mean Absolute Percentage Error (Non-zero),121.84511143541785
+Shimla,Pressure,Mean Squared Percentage Error (Non-zero),770.401085243893
+Srinagar,Pressure,Mean Absolute Error (All),35.24010853182774
+Srinagar,Pressure,Mean Squared Error (All),6096.522770938826
+Srinagar,Pressure,Root Mean Squared Error (All),78.08023290781621
+Srinagar,Pressure,R² Score (All),0.9376816742494898
+Srinagar,Pressure,Mean Absolute Percentage Error (All),770282009695.5171
+Srinagar,Pressure,Mean Squared Percentage Error (All),4.076177324354738e+22
 Srinagar,Pressure,Non-zero Values Percentage,49.41620879120879
-Srinagar,Pressure,Mean Absolute Error (All),41.47141688516288
-Srinagar,Pressure,Mean Squared Error (All),6326.491698760602
-Srinagar,Pressure,Root Mean Squared Error (All),79.53924627981209
-Srinagar,Pressure,R² Score (All),0.9353309443178626
-Srinagar,Pressure,Mean Absolute Percentage Error (All),5763413343818.535
-Srinagar,Pressure,Mean Squared Percentage Error (All),8.217499002185495e+23
-New Delhi,Precipitable Water,Mean Absolute Error (Non-zero),133.42264279312434
-New Delhi,Precipitable Water,Mean Squared Error (Non-zero),32416.672569319322
-New Delhi,Precipitable Water,Root Mean Squared Error (Non-zero),180.0463067361264
-New Delhi,Precipitable Water,R² Score (Non-zero),0.5465574597199518
-New Delhi,Precipitable Water,Mean Absolute Percentage Error (Non-zero),170.8240034444224
-New Delhi,Precipitable Water,Mean Squared Percentage Error (Non-zero),2352.356946849732
+Srinagar,Pressure,Mean Absolute Error (Non-zero),69.75408952920172
+Srinagar,Pressure,Mean Squared Error (Non-zero),12328.842585549231
+Srinagar,Pressure,Root Mean Squared Error (Non-zero),111.03532134212622
+Srinagar,Pressure,R² Score (Non-zero),0.8584396570931732
+Srinagar,Pressure,Mean Absolute Percentage Error (Non-zero),50.212224614880455
+Srinagar,Pressure,Mean Squared Percentage Error (Non-zero),291.1109571695947
+New Delhi,Precipitable Water,Mean Absolute Error (All),68.60371159671217
+New Delhi,Precipitable Water,Mean Squared Error (All),16120.191534539521
+New Delhi,Precipitable Water,Root Mean Squared Error (All),126.9653162660556
+New Delhi,Precipitable Water,R² Score (All),0.7472878086736976
+New Delhi,Precipitable Water,Mean Absolute Percentage Error (All),4908758442774.07
+New Delhi,Precipitable Water,Mean Squared Percentage Error (All),7.673011608663816e+23
 New Delhi,Precipitable Water,Non-zero Values Percentage,49.06648451730419
-New Delhi,Precipitable Water,Mean Absolute Error (All),67.63542050594474
-New Delhi,Precipitable Water,Mean Squared Error (All),15967.32806918079
-New Delhi,Precipitable Water,Root Mean Squared Error (All),126.36189326367658
-New Delhi,Precipitable Water,R² Score (All),0.7496842108021566
-New Delhi,Precipitable Water,Mean Absolute Percentage Error (All),2169620137362.1272
-New Delhi,Precipitable Water,Mean Squared Percentage Error (All),6.160644193053093e+23
-Shimla,Precipitable Water,Mean Absolute Error (Non-zero),133.78080239398483
-Shimla,Precipitable Water,Mean Squared Error (Non-zero),30535.896635712677
-Shimla,Precipitable Water,Root Mean Squared Error (Non-zero),174.74523351357163
-Shimla,Precipitable Water,R² Score (Non-zero),0.6579709333964725
-Shimla,Precipitable Water,Mean Absolute Percentage Error (Non-zero),128.081202791396
-Shimla,Precipitable Water,Mean Squared Percentage Error (Non-zero),895.023633617167
+New Delhi,Precipitable Water,Mean Absolute Error (Non-zero),129.8135657784004
+New Delhi,Precipitable Water,Mean Squared Error (Non-zero),32697.39329459168
+New Delhi,Precipitable Water,Root Mean Squared Error (Non-zero),180.82420549968325
+New Delhi,Precipitable Water,R² Score (Non-zero),0.5426307544572646
+New Delhi,Precipitable Water,Mean Absolute Percentage Error (Non-zero),165.52764596599056
+New Delhi,Precipitable Water,Mean Squared Percentage Error (Non-zero),2131.71210996864
+Shimla,Precipitable Water,Mean Absolute Error (All),68.2672048884984
+Shimla,Precipitable Water,Mean Squared Error (All),14948.164075397392
+Shimla,Precipitable Water,Root Mean Squared Error (All),122.26268472186185
+Shimla,Precipitable Water,R² Score (All),0.8071137973577872
+Shimla,Precipitable Water,Mean Absolute Percentage Error (All),4225927453504.287
+Shimla,Precipitable Water,Mean Squared Percentage Error (All),4.217303437564357e+23
 Shimla,Precipitable Water,Non-zero Values Percentage,49.90867579908676
-Shimla,Precipitable Water,Mean Absolute Error (All),68.56803695873515
-Shimla,Precipitable Water,Mean Squared Error (All),15263.581053608468
-Shimla,Precipitable Water,Root Mean Squared Error (All),123.54586619393005
-Shimla,Precipitable Water,R² Score (All),0.8030437602034487
-Shimla,Precipitable Water,Mean Absolute Percentage Error (All),1799810010568.2917
-Shimla,Precipitable Water,Mean Squared Percentage Error (All),2.3519399346386564e+23
-Srinagar,Precipitable Water,Mean Absolute Error (Non-zero),73.0605918572461
-Srinagar,Precipitable Water,Mean Squared Error (Non-zero),12858.256458300195
-Srinagar,Precipitable Water,Root Mean Squared Error (Non-zero),113.39425231598027
-Srinagar,Precipitable Water,R² Score (Non-zero),0.8523609024293656
-Srinagar,Precipitable Water,Mean Absolute Percentage Error (Non-zero),54.761110421307755
-Srinagar,Precipitable Water,Mean Squared Percentage Error (Non-zero),340.67504301057613
+Shimla,Precipitable Water,Mean Absolute Error (Non-zero),128.31692368048434
+Shimla,Precipitable Water,Mean Squared Error (Non-zero),29866.53282693287
+Shimla,Precipitable Water,Root Mean Squared Error (Non-zero),172.81936473362256
+Shimla,Precipitable Water,R² Score (Non-zero),0.6654684004421065
+Shimla,Precipitable Water,Mean Absolute Percentage Error (Non-zero),121.02657807152522
+Shimla,Precipitable Water,Mean Squared Percentage Error (Non-zero),784.861910411836
+Srinagar,Precipitable Water,Mean Absolute Error (All),37.16241740487216
+Srinagar,Precipitable Water,Mean Squared Error (All),6124.808518168956
+Srinagar,Precipitable Water,Root Mean Squared Error (All),78.26115587038666
+Srinagar,Precipitable Water,R² Score (All),0.9373925388724538
+Srinagar,Precipitable Water,Mean Absolute Percentage Error (All),3963763528172.808
+Srinagar,Precipitable Water,Mean Squared Percentage Error (All),4.113150005955068e+23
 Srinagar,Precipitable Water,Non-zero Values Percentage,49.41620879120879
-Srinagar,Precipitable Water,Mean Absolute Error (All),37.247494972954016
-Srinagar,Precipitable Water,Mean Squared Error (All),6380.11832415002
-Srinagar,Precipitable Water,Root Mean Squared Error (All),79.87564287159147
-Srinagar,Precipitable Water,R² Score (All),0.9347827758560225
-Srinagar,Precipitable Water,Mean Absolute Percentage Error (All),1143720356711.4575
-Srinagar,Precipitable Water,Mean Squared Percentage Error (All),2.6055465807307268e+23
-New Delhi,Wind Direction,Mean Absolute Error (Non-zero),135.28319127532004
-New Delhi,Wind Direction,Mean Squared Error (Non-zero),34057.66911657357
-New Delhi,Wind Direction,Root Mean Squared Error (Non-zero),184.54720024040887
-New Delhi,Wind Direction,R² Score (Non-zero),0.5236032949645599
-New Delhi,Wind Direction,Mean Absolute Percentage Error (Non-zero),164.6937220576458
-New Delhi,Wind Direction,Mean Squared Percentage Error (Non-zero),1562.126304792668
+Srinagar,Precipitable Water,Mean Absolute Error (Non-zero),67.18170958236878
+Srinagar,Precipitable Water,Mean Squared Error (Non-zero),12311.09623122626
+Srinagar,Precipitable Water,Root Mean Squared Error (Non-zero),110.95537946051223
+Srinagar,Precipitable Water,R² Score (Non-zero),0.8586434215573453
+Srinagar,Precipitable Water,Mean Absolute Percentage Error (Non-zero),55.71350175323994
+Srinagar,Precipitable Water,Mean Squared Percentage Error (Non-zero),351.99309349381434
+New Delhi,Wind Direction,Mean Absolute Error (All),69.14389333663634
+New Delhi,Wind Direction,Mean Squared Error (All),17211.433301868383
+New Delhi,Wind Direction,Root Mean Squared Error (All),131.1923522994705
+New Delhi,Wind Direction,R² Score (All),0.7301806857404749
+New Delhi,Wind Direction,Mean Absolute Percentage Error (All),3949741853774.9375
+New Delhi,Wind Direction,Mean Squared Percentage Error (All),6.874822295145649e+23
 New Delhi,Wind Direction,Non-zero Values Percentage,49.06648451730419
-New Delhi,Wind Direction,Mean Absolute Error (All),69.40521553427469
-New Delhi,Wind Direction,Mean Squared Error (All),16763.873287267343
-New Delhi,Wind Direction,Root Mean Squared Error (All),129.47537714665032
-New Delhi,Wind Direction,R² Score (All),0.7371969716076447
-New Delhi,Wind Direction,Mean Absolute Percentage Error (All),3026509432735.59
-New Delhi,Wind Direction,Mean Squared Percentage Error (All),5.2972343229081655e+23
-Shimla,Wind Direction,Mean Absolute Error (Non-zero),133.789345448593
-Shimla,Wind Direction,Mean Squared Error (Non-zero),31169.751457577357
-Shimla,Wind Direction,Root Mean Squared Error (Non-zero),176.54957223844343
-Shimla,Wind Direction,R² Score (Non-zero),0.650871198429759
-Shimla,Wind Direction,Mean Absolute Percentage Error (Non-zero),127.30672731321762
-Shimla,Wind Direction,Mean Squared Percentage Error (Non-zero),860.9627751138227
+New Delhi,Wind Direction,Mean Absolute Error (Non-zero),132.8690084979595
+New Delhi,Wind Direction,Mean Squared Error (Non-zero),34937.66722348174
+New Delhi,Wind Direction,Root Mean Squared Error (Non-zero),186.91620374778034
+New Delhi,Wind Direction,R² Score (Non-zero),0.5112939323615722
+New Delhi,Wind Direction,Mean Absolute Percentage Error (Non-zero),174.22271144631034
+New Delhi,Wind Direction,Mean Squared Percentage Error (Non-zero),1927.6301225348466
+Shimla,Wind Direction,Mean Absolute Error (All),68.30638297241028
+Shimla,Wind Direction,Mean Squared Error (All),15295.005288636115
+Shimla,Wind Direction,Root Mean Squared Error (All),123.67297719646
+Shimla,Wind Direction,R² Score (All),0.8026382721893456
+Shimla,Wind Direction,Mean Absolute Percentage Error (All),3421841368073.473
+Shimla,Wind Direction,Mean Squared Percentage Error (All),2.953664905475908e+23
 Shimla,Wind Direction,Non-zero Values Percentage,49.90867579908676
-Shimla,Wind Direction,Mean Absolute Error (All),69.48278881156281
-Shimla,Wind Direction,Mean Squared Error (All),15588.601222433188
-Shimla,Wind Direction,Root Mean Squared Error (All),124.85431999908208
-Shimla,Wind Direction,R² Score (All),0.7988498066295838
-Shimla,Wind Direction,Mean Absolute Percentage Error (All),2710298137967.8394
-Shimla,Wind Direction,Mean Squared Percentage Error (All),3.219102008978102e+23
-Srinagar,Wind Direction,Mean Absolute Error (Non-zero),72.91101918205057
-Srinagar,Wind Direction,Mean Squared Error (Non-zero),12757.1409295573
-Srinagar,Wind Direction,Root Mean Squared Error (Non-zero),112.94751404770845
-Srinagar,Wind Direction,R² Score (Non-zero),0.8535219156244588
-Srinagar,Wind Direction,Mean Absolute Percentage Error (Non-zero),52.332357309847964
-Srinagar,Wind Direction,Mean Squared Percentage Error (Non-zero),299.34233211080533
+Shimla,Wind Direction,Mean Absolute Error (Non-zero),130.0065380728583
+Shimla,Wind Direction,Mean Squared Error (Non-zero),30586.803587084327
+Shimla,Wind Direction,Root Mean Squared Error (Non-zero),174.89083334207177
+Shimla,Wind Direction,R² Score (Non-zero),0.6574007304884331
+Shimla,Wind Direction,Mean Absolute Percentage Error (Non-zero),124.88660270996812
+Shimla,Wind Direction,Mean Squared Percentage Error (Non-zero),850.6085248594386
+Srinagar,Wind Direction,Mean Absolute Error (All),35.90744190796828
+Srinagar,Wind Direction,Mean Squared Error (All),6081.142722950804
+Srinagar,Wind Direction,Root Mean Squared Error (All),77.98168197051668
+Srinagar,Wind Direction,R² Score (All),0.937838888267478
+Srinagar,Wind Direction,Mean Absolute Percentage Error (All),2950218435362.2793
+Srinagar,Wind Direction,Mean Squared Percentage Error (All),2.1762316628785524e+23
 Srinagar,Wind Direction,Non-zero Values Percentage,49.41620879120879
-Srinagar,Wind Direction,Mean Absolute Error (All),37.83743869769813
-Srinagar,Wind Direction,Mean Squared Error (All),6315.096873978228
-Srinagar,Wind Direction,Root Mean Squared Error (All),79.46758379350808
-Srinagar,Wind Direction,R² Score (All),0.9354474215999689
-Srinagar,Wind Direction,Mean Absolute Percentage Error (All),1807577226923.5962
-Srinagar,Wind Direction,Mean Squared Percentage Error (All),1.1001476439437922e+23
-New Delhi,Wind Speed,Mean Absolute Error (Non-zero),134.9408124700223
-New Delhi,Wind Speed,Mean Squared Error (Non-zero),33962.92512716398
-New Delhi,Wind Speed,Root Mean Squared Error (Non-zero),184.29032836034554
-New Delhi,Wind Speed,R² Score (Non-zero),0.5249285684065605
-New Delhi,Wind Speed,Mean Absolute Percentage Error (Non-zero),156.06731327983573
-New Delhi,Wind Speed,Mean Squared Percentage Error (Non-zero),1393.9244523989432
+Srinagar,Wind Direction,Mean Absolute Error (Non-zero),66.69314437269308
+Srinagar,Wind Direction,Mean Squared Error (Non-zero),12261.928938992161
+Srinagar,Wind Direction,Root Mean Squared Error (Non-zero),110.73359444627525
+Srinagar,Wind Direction,R² Score (Non-zero),0.8592079626892611
+Srinagar,Wind Direction,Mean Absolute Percentage Error (Non-zero),53.290358660738704
+Srinagar,Wind Direction,Mean Squared Percentage Error (Non-zero),325.169079614958
+New Delhi,Wind Speed,Mean Absolute Error (All),65.81086155155398
+New Delhi,Wind Speed,Mean Squared Error (All),17139.25598074236
+New Delhi,Wind Speed,Root Mean Squared Error (All),130.91698125431384
+New Delhi,Wind Speed,R² Score (All),0.7313121914640104
+New Delhi,Wind Speed,Mean Absolute Percentage Error (All),1521693499019.3704
+New Delhi,Wind Speed,Mean Squared Percentage Error (All),2.035248048868022e+23
 New Delhi,Wind Speed,Non-zero Values Percentage,49.06648451730419
-New Delhi,Wind Speed,Mean Absolute Error (All),70.014871511683
-New Delhi,Wind Speed,Mean Squared Error (All),16715.875900342944
-New Delhi,Wind Speed,Root Mean Squared Error (All),129.28989094412194
-New Delhi,Wind Speed,R² Score (All),0.7379494145796537
-New Delhi,Wind Speed,Mean Absolute Percentage Error (All),3804158653631.597
-New Delhi,Wind Speed,Mean Squared Percentage Error (All),5.146250119941626e+23
-Shimla,Wind Speed,Mean Absolute Error (Non-zero),133.20868558449584
-Shimla,Wind Speed,Mean Squared Error (Non-zero),30714.694830673325
-Shimla,Wind Speed,Root Mean Squared Error (Non-zero),175.25608357678578
-Shimla,Wind Speed,R² Score (Non-zero),0.6559682353764228
-Shimla,Wind Speed,Mean Absolute Percentage Error (Non-zero),125.2514652255959
-Shimla,Wind Speed,Mean Squared Percentage Error (Non-zero),777.9760341921062
+New Delhi,Wind Speed,Mean Absolute Error (Non-zero),131.02460607287503
+New Delhi,Wind Speed,Mean Squared Error (Non-zero),34889.19915225715
+New Delhi,Wind Speed,Root Mean Squared Error (Non-zero),186.78650687953117
+New Delhi,Wind Speed,R² Score (Non-zero),0.5119719009375128
+New Delhi,Wind Speed,Mean Absolute Percentage Error (Non-zero),145.53538601354444
+New Delhi,Wind Speed,Mean Squared Percentage Error (Non-zero),1211.3637074336752
+Shimla,Wind Speed,Mean Absolute Error (All),65.1067255041949
+Shimla,Wind Speed,Mean Squared Error (All),15054.962287632055
+Shimla,Wind Speed,Root Mean Squared Error (All),122.69866457151053
+Shimla,Wind Speed,R² Score (All),0.8057357082825658
+Shimla,Wind Speed,Mean Absolute Percentage Error (All),1546036136959.5964
+Shimla,Wind Speed,Mean Squared Percentage Error (All),1.2008404056446387e+23
 Shimla,Wind Speed,Non-zero Values Percentage,49.90867579908676
-Shimla,Wind Speed,Mean Absolute Error (All),70.53877696582715
-Shimla,Wind Speed,Mean Squared Error (All),15379.92377885713
-Shimla,Wind Speed,Root Mean Squared Error (All),124.01582067969042
-Shimla,Wind Speed,R² Score (All),0.8015425118651864
-Shimla,Wind Speed,Mean Absolute Percentage Error (All),4056085941298.824
-Shimla,Wind Speed,Mean Squared Percentage Error (All),5.062631313751979e+23
-Srinagar,Wind Speed,Mean Absolute Error (Non-zero),69.43393834177918
-Srinagar,Wind Speed,Mean Squared Error (Non-zero),12265.88939399142
-Srinagar,Wind Speed,Root Mean Squared Error (Non-zero),110.75147580954133
-Srinagar,Wind Speed,R² Score (Non-zero),0.8591624885611042
-Srinagar,Wind Speed,Mean Absolute Percentage Error (Non-zero),54.07796607358891
-Srinagar,Wind Speed,Mean Squared Percentage Error (Non-zero),313.3289884622287
+Shimla,Wind Speed,Mean Absolute Error (Non-zero),127.35398875971725
+Shimla,Wind Speed,Mean Squared Error (Non-zero),30140.95974842689
+Shimla,Wind Speed,Root Mean Squared Error (Non-zero),173.61151963054436
+Shimla,Wind Speed,R² Score (Non-zero),0.6623945760534129
+Shimla,Wind Speed,Mean Absolute Percentage Error (Non-zero),114.95854184538831
+Shimla,Wind Speed,Mean Squared Percentage Error (Non-zero),696.6828530284823
+Srinagar,Wind Speed,Mean Absolute Error (All),32.326790118073646
+Srinagar,Wind Speed,Mean Squared Error (All),6061.438853280997
+Srinagar,Wind Speed,Root Mean Squared Error (All),77.85524294022206
+Srinagar,Wind Speed,R² Score (All),0.9380403001566424
+Srinagar,Wind Speed,Mean Absolute Percentage Error (All),738745823276.1489
+Srinagar,Wind Speed,Mean Squared Percentage Error (All),4.26470167782719e+22
 Srinagar,Wind Speed,Non-zero Values Percentage,49.41620879120879
-Srinagar,Wind Speed,Mean Absolute Error (All),37.36357538290186
-Srinagar,Wind Speed,Mean Squared Error (All),6090.309013128901
-Srinagar,Wind Speed,Root Mean Squared Error (All),78.04043191275213
-Srinagar,Wind Speed,R² Score (All),0.9377451909454627
-Srinagar,Wind Speed,Mean Absolute Percentage Error (All),3051955439995.8022
-Srinagar,Wind Speed,Mean Squared Percentage Error (All),2.8971500095366972e+23
-New Delhi,all,Mean Absolute Error (Non-zero),133.1647564817194
-New Delhi,all,Mean Squared Error (Non-zero),32708.15782317365
-New Delhi,all,Root Mean Squared Error (Non-zero),180.85396822622846
-New Delhi,all,R² Score (Non-zero),0.5424801808542926
-New Delhi,all,Mean Absolute Percentage Error (Non-zero),168.458529822427
-New Delhi,all,Mean Squared Percentage Error (Non-zero),2026.215226461468
+Srinagar,Wind Speed,Mean Absolute Error (Non-zero),63.92243570988173
+Srinagar,Wind Speed,Mean Squared Error (Non-zero),12257.46430122893
+Srinagar,Wind Speed,Root Mean Squared Error (Non-zero),110.71343324650776
+Srinagar,Wind Speed,R² Score (Non-zero),0.8592592258673196
+Srinagar,Wind Speed,Mean Absolute Percentage Error (Non-zero),48.30242983692092
+Srinagar,Wind Speed,Mean Squared Percentage Error (Non-zero),277.8541108203019
+New Delhi,all,Mean Absolute Error (All),65.68318508452785
+New Delhi,all,Mean Squared Error (All),15888.473051858195
+New Delhi,all,Root Mean Squared Error (All),126.04948651961338
+New Delhi,all,R² Score (All),0.7509204010907131
+New Delhi,all,Mean Absolute Percentage Error (All),1670820748663.05
+New Delhi,all,Mean Squared Percentage Error (All),2.23921680450232e+23
 New Delhi,all,Non-zero Values Percentage,49.06648451730419
-New Delhi,all,Mean Absolute Error (All),68.90321401364164
-New Delhi,all,Mean Squared Error (All),16096.270100600987
-New Delhi,all,Root Mean Squared Error (All),126.87107669047735
-New Delhi,all,R² Score (All),0.7476628189815666
-New Delhi,all,Mean Absolute Percentage Error (All),3563949392115.6274
-New Delhi,all,Mean Squared Percentage Error (All),4.752690639806968e+23
-Shimla,all,Mean Absolute Error (Non-zero),131.5822872090318
-Shimla,all,Mean Squared Error (Non-zero),29960.1432612189
-Shimla,all,Root Mean Squared Error (Non-zero),173.08998602235457
-Shimla,all,R² Score (Non-zero),0.6644198807328225
-Shimla,all,Mean Absolute Percentage Error (Non-zero),122.96898720737897
-Shimla,all,Mean Squared Percentage Error (Non-zero),835.2742151472014
+New Delhi,all,Mean Absolute Error (Non-zero),130.4604659691211
+New Delhi,all,Mean Squared Error (Non-zero),32335.882710769114
+New Delhi,all,Root Mean Squared Error (Non-zero),179.82180821793867
+New Delhi,all,R² Score (Non-zero),0.5476875435868735
+New Delhi,all,Mean Absolute Percentage Error (Non-zero),156.73293753314258
+New Delhi,all,Mean Squared Percentage Error (Non-zero),1728.0023856323667
+Shimla,all,Mean Absolute Error (All),65.9617804690311
+Shimla,all,Mean Squared Error (All),14853.613035942639
+Shimla,all,Root Mean Squared Error (All),121.87539963398126
+Shimla,all,R² Score (All),0.8083338529354697
+Shimla,all,Mean Absolute Percentage Error (All),1544148588429.1592
+Shimla,all,Mean Squared Percentage Error (All),1.0516899842318152e+23
 Shimla,all,Non-zero Values Percentage,49.90867579908676
-Shimla,all,Mean Absolute Error (All),69.05000719000759
-Shimla,all,Mean Squared Error (All),14983.642788763149
-Shimla,all,Root Mean Squared Error (All),122.40769088894353
-Shimla,all,R² Score (All),0.8066559916860515
-Shimla,all,Mean Absolute Percentage Error (All),3379030057890.093
-Shimla,all,Mean Squared Percentage Error (All),3.0932019579470445e+23
-Srinagar,all,Mean Absolute Error (Non-zero),68.69373081689746
-Srinagar,all,Mean Squared Error (Non-zero),12265.571817278162
-Srinagar,all,Root Mean Squared Error (Non-zero),110.75004206445324
-Srinagar,all,R² Score (Non-zero),0.8591661349916686
-Srinagar,all,Mean Absolute Percentage Error (Non-zero),55.33378455279436
-Srinagar,all,Mean Squared Percentage Error (Non-zero),353.61393647298587
+Shimla,all,Mean Absolute Error (Non-zero),129.07100989812028
+Shimla,all,Mean Squared Error (Non-zero),29740.512843604483
+Shimla,all,Root Mean Squared Error (Non-zero),172.45437902124863
+Shimla,all,R² Score (Non-zero),0.6668799357831316
+Shimla,all,Mean Absolute Percentage Error (Non-zero),116.4130266623652
+Shimla,all,Mean Squared Percentage Error (Non-zero),752.7470063703497
+Srinagar,all,Mean Absolute Error (All),36.21443092567853
+Srinagar,all,Mean Squared Error (All),6165.535999413206
+Srinagar,all,Root Mean Squared Error (All),78.52092714310756
+Srinagar,all,R² Score (All),0.9369762247638155
+Srinagar,all,Mean Absolute Percentage Error (All),1096766839191.6744
+Srinagar,all,Mean Squared Percentage Error (All),1.0577463458977604e+23
 Srinagar,all,Non-zero Values Percentage,49.41620879120879
-Srinagar,all,Mean Absolute Error (All),36.72398232698659
-Srinagar,all,Mean Squared Error (All),6084.853890777103
-Srinagar,all,Root Mean Squared Error (All),78.00547346678374
-Srinagar,all,R² Score (All),0.9378009529108488
-Srinagar,all,Mean Absolute Percentage Error (All),2778144880064.948
-Srinagar,all,Mean Squared Percentage Error (All),2.3673312115263695e+23
-New Delhi,meteorological_only,Mean Absolute Error (Non-zero),184.79422604719613
-New Delhi,meteorological_only,Mean Squared Error (Non-zero),55651.811728837994
-New Delhi,meteorological_only,Root Mean Squared Error (Non-zero),235.90636220508762
-New Delhi,meteorological_only,R² Score (Non-zero),0.22154567753524512
-New Delhi,meteorological_only,Mean Absolute Percentage Error (Non-zero),129.67952176223466
-New Delhi,meteorological_only,Mean Squared Percentage Error (Non-zero),791.6534713612684
+Srinagar,all,Mean Absolute Error (Non-zero),71.06507145234603
+Srinagar,all,Mean Squared Error (Non-zero),12455.343472341012
+Srinagar,all,Root Mean Squared Error (Non-zero),111.60351012553777
+Srinagar,all,R² Score (Non-zero),0.856987168038503
+Srinagar,all,Mean Absolute Percentage Error (Non-zero),52.967727775963716
+Srinagar,all,Mean Squared Percentage Error (Non-zero),323.7651212446018
+New Delhi,meteorological_only,Mean Absolute Error (All),90.6698953456946
+New Delhi,meteorological_only,Mean Squared Error (All),23718.07487307961
+New Delhi,meteorological_only,Root Mean Squared Error (All),154.0067364535708
+New Delhi,meteorological_only,R² Score (All),0.628177701091535
+New Delhi,meteorological_only,Mean Absolute Percentage Error (All),7109008566650.087
+New Delhi,meteorological_only,Mean Squared Percentage Error (All),3.322741317285789e+24
 New Delhi,meteorological_only,Non-zero Values Percentage,49.06648451730419
-New Delhi,meteorological_only,Mean Absolute Error (All),95.28937437834549
-New Delhi,meteorological_only,Mean Squared Error (All),27521.440298744925
-New Delhi,meteorological_only,Root Mean Squared Error (All),165.89587185564602
-New Delhi,meteorological_only,R² Score (All),0.5685532971832331
-New Delhi,meteorological_only,Mean Absolute Percentage Error (All),4617344066089.514
-New Delhi,meteorological_only,Mean Squared Percentage Error (All),2.1505271321535335e+24
-Shimla,meteorological_only,Mean Absolute Error (Non-zero),186.42014236676644
-Shimla,meteorological_only,Mean Squared Error (Non-zero),60221.003717195876
-Shimla,meteorological_only,Root Mean Squared Error (Non-zero),245.39968157517214
-Shimla,meteorological_only,R² Score (Non-zero),0.32547146274948935
-Shimla,meteorological_only,Mean Absolute Percentage Error (Non-zero),116.57538634056628
-Shimla,meteorological_only,Mean Squared Percentage Error (Non-zero),929.3266788810529
+New Delhi,meteorological_only,Mean Absolute Error (Non-zero),170.30135254475468
+New Delhi,meteorological_only,Mean Squared Error (Non-zero),47661.45561763979
+New Delhi,meteorological_only,Root Mean Squared Error (Non-zero),218.31503754354574
+New Delhi,meteorological_only,R² Score (Non-zero),0.3333143164989202
+New Delhi,meteorological_only,Mean Absolute Percentage Error (Non-zero),177.64900394570887
+New Delhi,meteorological_only,Mean Squared Percentage Error (Non-zero),1909.4692617417743
+Shimla,meteorological_only,Mean Absolute Error (All),99.44969081465254
+Shimla,meteorological_only,Mean Squared Error (All),26971.27826065977
+Shimla,meteorological_only,Root Mean Squared Error (All),164.22934652692183
+Shimla,meteorological_only,R² Score (All),0.6519714783792387
+Shimla,meteorological_only,Mean Absolute Percentage Error (All),12854734128550.537
+Shimla,meteorological_only,Mean Squared Percentage Error (All),8.853319745592782e+24
 Shimla,meteorological_only,Non-zero Values Percentage,49.90867579908676
-Shimla,meteorological_only,Mean Absolute Error (All),99.30372093870331
-Shimla,meteorological_only,Mean Squared Error (All),30290.606458761995
-Shimla,meteorological_only,Root Mean Squared Error (All),174.0419675215205
-Shimla,meteorological_only,R² Score (All),0.6091399568475127
-Shimla,meteorological_only,Mean Absolute Percentage Error (All),6263896460736.04
-Shimla,meteorological_only,Mean Squared Percentage Error (All),2.3510095059072518e+24
-Srinagar,meteorological_only,Mean Absolute Error (Non-zero),198.55678382815822
-Srinagar,meteorological_only,Mean Squared Error (Non-zero),63776.77139605996
-Srinagar,meteorological_only,Root Mean Squared Error (Non-zero),252.5406331584285
-Srinagar,meteorological_only,R² Score (Non-zero),0.2677121501333245
-Srinagar,meteorological_only,Mean Absolute Percentage Error (Non-zero),134.1760148530111
-Srinagar,meteorological_only,Mean Squared Percentage Error (Non-zero),3267.2941623570173
+Shimla,meteorological_only,Mean Absolute Error (Non-zero),173.50682080762712
+Shimla,meteorological_only,Mean Squared Error (Non-zero),52267.35806638615
+Shimla,meteorological_only,Root Mean Squared Error (Non-zero),228.6205547766564
+Shimla,meteorological_only,R² Score (Non-zero),0.41455933301887216
+Shimla,meteorological_only,Mean Absolute Percentage Error (Non-zero),158.31041424138454
+Shimla,meteorological_only,Mean Squared Percentage Error (Non-zero),2341.071110582741
+Srinagar,meteorological_only,Mean Absolute Error (All),136.9424093034683
+Srinagar,meteorological_only,Mean Squared Error (All),40598.109515131815
+Srinagar,meteorological_only,Root Mean Squared Error (All),201.48972558205497
+Srinagar,meteorological_only,R² Score (All),0.585008322173581
+Srinagar,meteorological_only,Mean Absolute Percentage Error (All),47602457200181.6
+Srinagar,meteorological_only,Mean Squared Percentage Error (All),1.3353879458443948e+26
 Srinagar,meteorological_only,Non-zero Values Percentage,49.41620879120879
-Srinagar,meteorological_only,Mean Absolute Error (All),118.94347947121173
-Srinagar,meteorological_only,Mean Squared Error (All),35122.723480379784
-Srinagar,meteorological_only,Root Mean Squared Error (All),187.41057462261776
-Srinagar,meteorological_only,R² Score (All),0.6409774218298636
-Srinagar,meteorological_only,Mean Absolute Percentage Error (All),20824244605646.28
-Srinagar,meteorological_only,Mean Squared Percentage Error (All),3.6066609670108648e+25
+Srinagar,meteorological_only,Mean Absolute Error (Non-zero),180.7907856324839
+Srinagar,meteorological_only,Mean Squared Error (Non-zero),55132.17367969081
+Srinagar,meteorological_only,Root Mean Squared Error (Non-zero),234.80241412662437
+Srinagar,meteorological_only,R² Score (Non-zero),0.36696982241921594
+Srinagar,meteorological_only,Mean Absolute Percentage Error (Non-zero),259.52506645670763
+Srinagar,meteorological_only,Mean Squared Percentage Error (Non-zero),23007.29509377351

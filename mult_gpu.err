@@ -42,3 +42,398 @@ To enable them in other operations, rebuild TensorFlow with the appropriate comp
   df_split.loc[:, ghi_features] = ghi_scaler.transform(df_split[ghi_features])
 /blue/azare/jruizmunoz/ghiforecasting/train_joint.py:263: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[0. 0. 0. ... 0. 0. 0.]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
   df_split.loc[:, ghi_features] = ghi_scaler.transform(df_split[ghi_features])
+/blue/azare/jruizmunoz/ghiforecasting/train_joint.py:249: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[0. 0. 0. ... 0. 0. 0.]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  df_split.loc[:, ghi_features] = ghi_scaler.fit_transform(df_split[ghi_features])
+/blue/azare/jruizmunoz/ghiforecasting/train_joint.py:263: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[0. 0. 0. ... 0. 0. 0.]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  df_split.loc[:, ghi_features] = ghi_scaler.transform(df_split[ghi_features])
+/blue/azare/jruizmunoz/ghiforecasting/train_joint.py:263: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[0. 0. 0. ... 0. 0. 0.]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  df_split.loc[:, ghi_features] = ghi_scaler.transform(df_split[ghi_features])
+/blue/azare/jruizmunoz/ghiforecasting/train_joint.py:249: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[0. 0. 0. ... 0. 0. 0.]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  df_split.loc[:, ghi_features] = ghi_scaler.fit_transform(df_split[ghi_features])
+/blue/azare/jruizmunoz/ghiforecasting/train_joint.py:263: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[0. 0. 0. ... 0. 0. 0.]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  df_split.loc[:, ghi_features] = ghi_scaler.transform(df_split[ghi_features])
+/blue/azare/jruizmunoz/ghiforecasting/train_joint.py:263: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[0. 0. 0. ... 0. 0. 0.]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  df_split.loc[:, ghi_features] = ghi_scaler.transform(df_split[ghi_features])
+/blue/azare/jruizmunoz/ghiforecasting/train_joint.py:249: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[0. 0. 0. ... 0. 0. 0.]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  df_split.loc[:, ghi_features] = ghi_scaler.fit_transform(df_split[ghi_features])
+/blue/azare/jruizmunoz/ghiforecasting/train_joint.py:263: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[0. 0. 0. ... 0. 0. 0.]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  df_split.loc[:, ghi_features] = ghi_scaler.transform(df_split[ghi_features])
+/blue/azare/jruizmunoz/ghiforecasting/train_joint.py:263: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[0. 0. 0. ... 0. 0. 0.]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  df_split.loc[:, ghi_features] = ghi_scaler.transform(df_split[ghi_features])
+/blue/azare/jruizmunoz/ghiforecasting/train_joint.py:249: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[0. 0. 0. ... 0. 0. 0.]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  df_split.loc[:, ghi_features] = ghi_scaler.fit_transform(df_split[ghi_features])
+/blue/azare/jruizmunoz/ghiforecasting/train_joint.py:263: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[0. 0. 0. ... 0. 0. 0.]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  df_split.loc[:, ghi_features] = ghi_scaler.transform(df_split[ghi_features])
+/blue/azare/jruizmunoz/ghiforecasting/train_joint.py:263: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value '[0. 0. 0. ... 0. 0. 0.]' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  df_split.loc[:, ghi_features] = ghi_scaler.transform(df_split[ghi_features])
+COMET INFO: ---------------------------------------------------------------------------------------
+COMET INFO: Comet.ml Experiment Summary
+COMET INFO: ---------------------------------------------------------------------------------------
+COMET INFO:   Data:
+COMET INFO:     display_summary_level : 1
+COMET INFO:     name                  : GHI_Forecasting_Joint_Training
+COMET INFO:     url                   : https://www.comet.com/josefruiz/ghi-forecasting/9e03c92b5f3340778be06ee4482a991e
+COMET INFO:   Metrics:
+COMET INFO:     New Delhi_Precipitable Water_Mean Absolute Error (All)                  : 68.60371159671217
+COMET INFO:     New Delhi_Precipitable Water_Mean Absolute Error (Non-zero)             : 129.8135657784004
+COMET INFO:     New Delhi_Precipitable Water_Mean Absolute Percentage Error (All)       : 4908758442774.07
+COMET INFO:     New Delhi_Precipitable Water_Mean Absolute Percentage Error (Non-zero)  : 165.52764596599056
+COMET INFO:     New Delhi_Precipitable Water_Mean Squared Error (All)                   : 16120.191534539521
+COMET INFO:     New Delhi_Precipitable Water_Mean Squared Error (Non-zero)              : 32697.39329459168
+COMET INFO:     New Delhi_Precipitable Water_Mean Squared Percentage Error (All)        : 7.673011608663816e+23
+COMET INFO:     New Delhi_Precipitable Water_Mean Squared Percentage Error (Non-zero)   : 2131.71210996864
+COMET INFO:     New Delhi_Precipitable Water_Non-zero Values Percentage                 : 49.06648451730419
+COMET INFO:     New Delhi_Precipitable Water_Root Mean Squared Error (All)              : 126.9653162660556
+COMET INFO:     New Delhi_Precipitable Water_Root Mean Squared Error (Non-zero)         : 180.82420549968325
+COMET INFO:     New Delhi_Precipitable Water_R² Score (All)                             : 0.7472878086736976
+COMET INFO:     New Delhi_Precipitable Water_R² Score (Non-zero)                        : 0.5426307544572646
+COMET INFO:     New Delhi_Pressure_Mean Absolute Error (All)                            : 66.21949139895953
+COMET INFO:     New Delhi_Pressure_Mean Absolute Error (Non-zero)                       : 132.15530206758504
+COMET INFO:     New Delhi_Pressure_Mean Absolute Percentage Error (All)                 : 1375530571248.556
+COMET INFO:     New Delhi_Pressure_Mean Absolute Percentage Error (Non-zero)            : 157.36258890950685
+COMET INFO:     New Delhi_Pressure_Mean Squared Error (All)                             : 16632.664515115666
+COMET INFO:     New Delhi_Pressure_Mean Squared Error (Non-zero)                        : 33843.15353177375
+COMET INFO:     New Delhi_Pressure_Mean Squared Percentage Error (All)                  : 2.7018827280414057e+23
+COMET INFO:     New Delhi_Pressure_Mean Squared Percentage Error (Non-zero)             : 1533.4613044834307
+COMET INFO:     New Delhi_Pressure_Non-zero Values Percentage                           : 49.06648451730419
+COMET INFO:     New Delhi_Pressure_Root Mean Squared Error (All)                        : 128.96768787225608
+COMET INFO:     New Delhi_Pressure_Root Mean Squared Error (Non-zero)                   : 183.96508780682748
+COMET INFO:     New Delhi_Pressure_R² Score (All)                                       : 0.7392538985530002
+COMET INFO:     New Delhi_Pressure_R² Score (Non-zero)                                  : 0.5266039265529281
+COMET INFO:     New Delhi_Relative Humidity_Mean Absolute Error (All)                   : 66.93633460552057
+COMET INFO:     New Delhi_Relative Humidity_Mean Absolute Error (Non-zero)              : 133.37385871480208
+COMET INFO:     New Delhi_Relative Humidity_Mean Absolute Percentage Error (All)        : 1494470869168.025
+COMET INFO:     New Delhi_Relative Humidity_Mean Absolute Percentage Error (Non-zero)   : 156.9076535130083
+COMET INFO:     New Delhi_Relative Humidity_Mean Squared Error (All)                    : 16649.174910114205
+COMET INFO:     New Delhi_Relative Humidity_Mean Squared Error (Non-zero)               : 33867.68093342301
+COMET INFO:     New Delhi_Relative Humidity_Mean Squared Percentage Error (All)         : 3.1494488546220654e+23
+COMET INFO:     New Delhi_Relative Humidity_Mean Squared Percentage Error (Non-zero)    : 1547.2208065966402
+COMET INFO:     New Delhi_Relative Humidity_Non-zero Values Percentage                  : 49.06648451730419
+COMET INFO:     New Delhi_Relative Humidity_Root Mean Squared Error (All)               : 129.03168180766383
+COMET INFO:     New Delhi_Relative Humidity_Root Mean Squared Error (Non-zero)          : 184.03173892952
+COMET INFO:     New Delhi_Relative Humidity_R² Score (All)                              : 0.7389950692400356
+COMET INFO:     New Delhi_Relative Humidity_R² Score (Non-zero)                         : 0.5262608386778067
+COMET INFO:     New Delhi_Temperature_Mean Absolute Error (All)                         : 66.15489106232631
+COMET INFO:     New Delhi_Temperature_Mean Absolute Error (Non-zero)                    : 132.58021347557536
+COMET INFO:     New Delhi_Temperature_Mean Absolute Percentage Error (All)              : 1102441144404.6511
+COMET INFO:     New Delhi_Temperature_Mean Absolute Percentage Error (Non-zero)         : 163.78196152000086
+COMET INFO:     New Delhi_Temperature_Mean Squared Error (All)                          : 16990.446242596987
+COMET INFO:     New Delhi_Temperature_Mean Squared Error (Non-zero)                     : 34575.45413275192
+COMET INFO:     New Delhi_Temperature_Mean Squared Percentage Error (All)               : 2.5486393762658856e+23
+COMET INFO:     New Delhi_Temperature_Mean Squared Percentage Error (Non-zero)          : 1727.215422575069
+COMET INFO:     New Delhi_Temperature_Non-zero Values Percentage                        : 49.06648451730419
+COMET INFO:     New Delhi_Temperature_Root Mean Squared Error (All)                     : 130.34740596803982
+COMET INFO:     New Delhi_Temperature_Root Mean Squared Error (Non-zero)                : 185.94476097150982
+COMET INFO:     New Delhi_Temperature_R² Score (All)                                    : 0.7336450443297369
+COMET INFO:     New Delhi_Temperature_R² Score (Non-zero)                               : 0.516360548117153
+COMET INFO:     New Delhi_Wind Direction_Mean Absolute Error (All)                      : 69.14389333663634
+COMET INFO:     New Delhi_Wind Direction_Mean Absolute Error (Non-zero)                 : 132.8690084979595
+COMET INFO:     New Delhi_Wind Direction_Mean Absolute Percentage Error (All)           : 3949741853774.9375
+COMET INFO:     New Delhi_Wind Direction_Mean Absolute Percentage Error (Non-zero)      : 174.22271144631034
+COMET INFO:     New Delhi_Wind Direction_Mean Squared Error (All)                       : 17211.433301868383
+COMET INFO:     New Delhi_Wind Direction_Mean Squared Error (Non-zero)                  : 34937.66722348174
+COMET INFO:     New Delhi_Wind Direction_Mean Squared Percentage Error (All)            : 6.874822295145649e+23
+COMET INFO:     New Delhi_Wind Direction_Mean Squared Percentage Error (Non-zero)       : 1927.6301225348466
+COMET INFO:     New Delhi_Wind Direction_Non-zero Values Percentage                     : 49.06648451730419
+COMET INFO:     New Delhi_Wind Direction_Root Mean Squared Error (All)                  : 131.1923522994705
+COMET INFO:     New Delhi_Wind Direction_Root Mean Squared Error (Non-zero)             : 186.91620374778034
+COMET INFO:     New Delhi_Wind Direction_R² Score (All)                                 : 0.7301806857404749
+COMET INFO:     New Delhi_Wind Direction_R² Score (Non-zero)                            : 0.5112939323615722
+COMET INFO:     New Delhi_Wind Speed_Mean Absolute Error (All)                          : 65.81086155155398
+COMET INFO:     New Delhi_Wind Speed_Mean Absolute Error (Non-zero)                     : 131.02460607287503
+COMET INFO:     New Delhi_Wind Speed_Mean Absolute Percentage Error (All)               : 1521693499019.3704
+COMET INFO:     New Delhi_Wind Speed_Mean Absolute Percentage Error (Non-zero)          : 145.53538601354444
+COMET INFO:     New Delhi_Wind Speed_Mean Squared Error (All)                           : 17139.25598074236
+COMET INFO:     New Delhi_Wind Speed_Mean Squared Error (Non-zero)                      : 34889.19915225715
+COMET INFO:     New Delhi_Wind Speed_Mean Squared Percentage Error (All)                : 2.035248048868022e+23
+COMET INFO:     New Delhi_Wind Speed_Mean Squared Percentage Error (Non-zero)           : 1211.3637074336752
+COMET INFO:     New Delhi_Wind Speed_Non-zero Values Percentage                         : 49.06648451730419
+COMET INFO:     New Delhi_Wind Speed_Root Mean Squared Error (All)                      : 130.91698125431384
+COMET INFO:     New Delhi_Wind Speed_Root Mean Squared Error (Non-zero)                 : 186.78650687953117
+COMET INFO:     New Delhi_Wind Speed_R² Score (All)                                     : 0.7313121914640104
+COMET INFO:     New Delhi_Wind Speed_R² Score (Non-zero)                                : 0.5119719009375128
+COMET INFO:     New Delhi_all_Mean Absolute Error (All)                                 : 65.68318508452785
+COMET INFO:     New Delhi_all_Mean Absolute Error (Non-zero)                            : 130.4604659691211
+COMET INFO:     New Delhi_all_Mean Absolute Percentage Error (All)                      : 1670820748663.05
+COMET INFO:     New Delhi_all_Mean Absolute Percentage Error (Non-zero)                 : 156.73293753314258
+COMET INFO:     New Delhi_all_Mean Squared Error (All)                                  : 15888.473051858195
+COMET INFO:     New Delhi_all_Mean Squared Error (Non-zero)                             : 32335.882710769114
+COMET INFO:     New Delhi_all_Mean Squared Percentage Error (All)                       : 2.23921680450232e+23
+COMET INFO:     New Delhi_all_Mean Squared Percentage Error (Non-zero)                  : 1728.0023856323667
+COMET INFO:     New Delhi_all_Non-zero Values Percentage                                : 49.06648451730419
+COMET INFO:     New Delhi_all_Root Mean Squared Error (All)                             : 126.04948651961338
+COMET INFO:     New Delhi_all_Root Mean Squared Error (Non-zero)                        : 179.82180821793867
+COMET INFO:     New Delhi_all_R² Score (All)                                            : 0.7509204010907131
+COMET INFO:     New Delhi_all_R² Score (Non-zero)                                       : 0.5476875435868735
+COMET INFO:     New Delhi_ghi_only_Mean Absolute Error (All)                            : 66.98046016575725
+COMET INFO:     New Delhi_ghi_only_Mean Absolute Error (Non-zero)                       : 132.1000360903773
+COMET INFO:     New Delhi_ghi_only_Mean Absolute Percentage Error (All)                 : 2163616410199.5254
+COMET INFO:     New Delhi_ghi_only_Mean Absolute Percentage Error (Non-zero)            : 164.08463254570788
+COMET INFO:     New Delhi_ghi_only_Mean Squared Error (All)                             : 17237.64401832774
+COMET INFO:     New Delhi_ghi_only_Mean Squared Error (Non-zero)                        : 35044.167267266486
+COMET INFO:     New Delhi_ghi_only_Mean Squared Percentage Error (All)                  : 4.270311191624575e+23
+COMET INFO:     New Delhi_ghi_only_Mean Squared Percentage Error (Non-zero)             : 1667.6264951334747
+COMET INFO:     New Delhi_ghi_only_Non-zero Values Percentage                           : 49.06648451730419
+COMET INFO:     New Delhi_ghi_only_Root Mean Squared Error (All)                        : 131.29220852102284
+COMET INFO:     New Delhi_ghi_only_Root Mean Squared Error (Non-zero)                   : 187.2008741092479
+COMET INFO:     New Delhi_ghi_only_R² Score (All)                                       : 0.7297697869258744
+COMET INFO:     New Delhi_ghi_only_R² Score (Non-zero)                                  : 0.5098042159111739
+COMET INFO:     New Delhi_meteorological_only_Mean Absolute Error (All)                 : 90.6698953456946
+COMET INFO:     New Delhi_meteorological_only_Mean Absolute Error (Non-zero)            : 170.30135254475468
+COMET INFO:     New Delhi_meteorological_only_Mean Absolute Percentage Error (All)      : 7109008566650.087
+COMET INFO:     New Delhi_meteorological_only_Mean Absolute Percentage Error (Non-zero) : 177.64900394570887
+COMET INFO:     New Delhi_meteorological_only_Mean Squared Error (All)                  : 23718.07487307961
+COMET INFO:     New Delhi_meteorological_only_Mean Squared Error (Non-zero)             : 47661.45561763979
+COMET INFO:     New Delhi_meteorological_only_Mean Squared Percentage Error (All)       : 3.322741317285789e+24
+COMET INFO:     New Delhi_meteorological_only_Mean Squared Percentage Error (Non-zero)  : 1909.4692617417743
+COMET INFO:     New Delhi_meteorological_only_Non-zero Values Percentage                : 49.06648451730419
+COMET INFO:     New Delhi_meteorological_only_Root Mean Squared Error (All)             : 154.0067364535708
+COMET INFO:     New Delhi_meteorological_only_Root Mean Squared Error (Non-zero)        : 218.31503754354574
+COMET INFO:     New Delhi_meteorological_only_R² Score (All)                            : 0.628177701091535
+COMET INFO:     New Delhi_meteorological_only_R² Score (Non-zero)                       : 0.3333143164989202
+COMET INFO:     Shimla_Precipitable Water_Mean Absolute Error (All)                     : 68.2672048884984
+COMET INFO:     Shimla_Precipitable Water_Mean Absolute Error (Non-zero)                : 128.31692368048434
+COMET INFO:     Shimla_Precipitable Water_Mean Absolute Percentage Error (All)          : 4225927453504.287
+COMET INFO:     Shimla_Precipitable Water_Mean Absolute Percentage Error (Non-zero)     : 121.02657807152522
+COMET INFO:     Shimla_Precipitable Water_Mean Squared Error (All)                      : 14948.164075397392
+COMET INFO:     Shimla_Precipitable Water_Mean Squared Error (Non-zero)                 : 29866.53282693287
+COMET INFO:     Shimla_Precipitable Water_Mean Squared Percentage Error (All)           : 4.217303437564357e+23
+COMET INFO:     Shimla_Precipitable Water_Mean Squared Percentage Error (Non-zero)      : 784.861910411836
+COMET INFO:     Shimla_Precipitable Water_Non-zero Values Percentage                    : 49.90867579908676
+COMET INFO:     Shimla_Precipitable Water_Root Mean Squared Error (All)                 : 122.26268472186185
+COMET INFO:     Shimla_Precipitable Water_Root Mean Squared Error (Non-zero)            : 172.81936473362256
+COMET INFO:     Shimla_Precipitable Water_R² Score (All)                                : 0.8071137973577872
+COMET INFO:     Shimla_Precipitable Water_R² Score (Non-zero)                           : 0.6654684004421065
+COMET INFO:     Shimla_Pressure_Mean Absolute Error (All)                               : 67.0096694722103
+COMET INFO:     Shimla_Pressure_Mean Absolute Error (Non-zero)                          : 131.92554039771227
+COMET INFO:     Shimla_Pressure_Mean Absolute Percentage Error (All)                    : 1167379218983.6768
+COMET INFO:     Shimla_Pressure_Mean Absolute Percentage Error (Non-zero)               : 121.84511143541785
+COMET INFO:     Shimla_Pressure_Mean Squared Error (All)                                : 15547.492858671758
+COMET INFO:     Shimla_Pressure_Mean Squared Error (Non-zero)                           : 31126.765773371175
+COMET INFO:     Shimla_Pressure_Mean Squared Percentage Error (All)                     : 1.2536242098836752e+23
+COMET INFO:     Shimla_Pressure_Mean Squared Percentage Error (Non-zero)                : 770.401085243893
+COMET INFO:     Shimla_Pressure_Non-zero Values Percentage                              : 49.90867579908676
+COMET INFO:     Shimla_Pressure_Root Mean Squared Error (All)                           : 124.68958600729958
+COMET INFO:     Shimla_Pressure_Root Mean Squared Error (Non-zero)                      : 176.427791952887
+COMET INFO:     Shimla_Pressure_R² Score (All)                                          : 0.7993802554621483
+COMET INFO:     Shimla_Pressure_R² Score (Non-zero)                                     : 0.6513526761352199
+COMET INFO:     Shimla_Relative Humidity_Mean Absolute Error (All)                      : 66.3573506231787
+COMET INFO:     Shimla_Relative Humidity_Mean Absolute Error (Non-zero)                 : 131.1845428751405
+COMET INFO:     Shimla_Relative Humidity_Mean Absolute Percentage Error (All)           : 884882421171.774
+COMET INFO:     Shimla_Relative Humidity_Mean Absolute Percentage Error (Non-zero)      : 122.01541553062884
+COMET INFO:     Shimla_Relative Humidity_Mean Squared Error (All)                       : 15502.137418380176
+COMET INFO:     Shimla_Relative Humidity_Mean Squared Error (Non-zero)                  : 31039.941569547198
+COMET INFO:     Shimla_Relative Humidity_Mean Squared Percentage Error (All)            : 1.051361220890396e+23
+COMET INFO:     Shimla_Relative Humidity_Mean Squared Percentage Error (Non-zero)       : 771.7825726588069
+COMET INFO:     Shimla_Relative Humidity_Non-zero Values Percentage                     : 49.90867579908676
+COMET INFO:     Shimla_Relative Humidity_Root Mean Squared Error (All)                  : 124.50757976276053
+COMET INFO:     Shimla_Relative Humidity_Root Mean Squared Error (Non-zero)             : 176.18155853989714
+COMET INFO:     Shimla_Relative Humidity_R² Score (All)                                 : 0.7999655071761971
+COMET INFO:     Shimla_Relative Humidity_R² Score (Non-zero)                            : 0.6523251840575115
+COMET INFO:     Shimla_Temperature_Mean Absolute Error (All)                            : 65.36727010181576
+COMET INFO:     Shimla_Temperature_Mean Absolute Error (Non-zero)                       : 129.456721086447
+COMET INFO:     Shimla_Temperature_Mean Absolute Percentage Error (All)                 : 757134874711.6405
+COMET INFO:     Shimla_Temperature_Mean Absolute Percentage Error (Non-zero)            : 117.61066889059497
+COMET INFO:     Shimla_Temperature_Mean Squared Error (All)                             : 15094.08675809527
+COMET INFO:     Shimla_Temperature_Mean Squared Error (Non-zero)                        : 30227.634628531356
+COMET INFO:     Shimla_Temperature_Mean Squared Percentage Error (All)                  : 7.874589609074737e+22
+COMET INFO:     Shimla_Temperature_Mean Squared Percentage Error (Non-zero)             : 776.1522440852598
+COMET INFO:     Shimla_Temperature_Non-zero Values Percentage                           : 49.90867579908676
+COMET INFO:     Shimla_Temperature_Root Mean Squared Error (All)                        : 122.85799427833449
+COMET INFO:     Shimla_Temperature_Root Mean Squared Error (Non-zero)                   : 173.86096349822566
+COMET INFO:     Shimla_Temperature_R² Score (All)                                       : 0.8052308589579282
+COMET INFO:     Shimla_Temperature_R² Score (Non-zero)                                  : 0.6614237406889314
+COMET INFO:     Shimla_Wind Direction_Mean Absolute Error (All)                         : 68.30638297241028
+COMET INFO:     Shimla_Wind Direction_Mean Absolute Error (Non-zero)                    : 130.0065380728583
+COMET INFO:     Shimla_Wind Direction_Mean Absolute Percentage Error (All)              : 3421841368073.473
+COMET INFO:     Shimla_Wind Direction_Mean Absolute Percentage Error (Non-zero)         : 124.88660270996812
+COMET INFO:     Shimla_Wind Direction_Mean Squared Error (All)                          : 15295.005288636115
+COMET INFO:     Shimla_Wind Direction_Mean Squared Error (Non-zero)                     : 30586.803587084327
+COMET INFO:     Shimla_Wind Direction_Mean Squared Percentage Error (All)               : 2.953664905475908e+23
+COMET INFO:     Shimla_Wind Direction_Mean Squared Percentage Error (Non-zero)          : 850.6085248594386
+COMET INFO:     Shimla_Wind Direction_Non-zero Values Percentage                        : 49.90867579908676
+COMET INFO:     Shimla_Wind Direction_Root Mean Squared Error (All)                     : 123.67297719646
+COMET INFO:     Shimla_Wind Direction_Root Mean Squared Error (Non-zero)                : 174.89083334207177
+COMET INFO:     Shimla_Wind Direction_R² Score (All)                                    : 0.8026382721893456
+COMET INFO:     Shimla_Wind Direction_R² Score (Non-zero)                               : 0.6574007304884331
+COMET INFO:     Shimla_Wind Speed_Mean Absolute Error (All)                             : 65.1067255041949
+COMET INFO:     Shimla_Wind Speed_Mean Absolute Error (Non-zero)                        : 127.35398875971725
+COMET INFO:     Shimla_Wind Speed_Mean Absolute Percentage Error (All)                  : 1546036136959.5964
+COMET INFO:     Shimla_Wind Speed_Mean Absolute Percentage Error (Non-zero)             : 114.95854184538831
+COMET INFO:     Shimla_Wind Speed_Mean Squared Error (All)                              : 15054.962287632055
+COMET INFO:     Shimla_Wind Speed_Mean Squared Error (Non-zero)                         : 30140.95974842689
+COMET INFO:     Shimla_Wind Speed_Mean Squared Percentage Error (All)                   : 1.2008404056446387e+23
+COMET INFO:     Shimla_Wind Speed_Mean Squared Percentage Error (Non-zero)              : 696.6828530284823
+COMET INFO:     Shimla_Wind Speed_Non-zero Values Percentage                            : 49.90867579908676
+COMET INFO:     Shimla_Wind Speed_Root Mean Squared Error (All)                         : 122.69866457151053
+COMET INFO:     Shimla_Wind Speed_Root Mean Squared Error (Non-zero)                    : 173.61151963054436
+COMET INFO:     Shimla_Wind Speed_R² Score (All)                                        : 0.8057357082825658
+COMET INFO:     Shimla_Wind Speed_R² Score (Non-zero)                                   : 0.6623945760534129
+COMET INFO:     Shimla_all_Mean Absolute Error (All)                                    : 65.9617804690311
+COMET INFO:     Shimla_all_Mean Absolute Error (Non-zero)                               : 129.07100989812028
+COMET INFO:     Shimla_all_Mean Absolute Percentage Error (All)                         : 1544148588429.1592
+COMET INFO:     Shimla_all_Mean Absolute Percentage Error (Non-zero)                    : 116.4130266623652
+COMET INFO:     Shimla_all_Mean Squared Error (All)                                     : 14853.613035942639
+COMET INFO:     Shimla_all_Mean Squared Error (Non-zero)                                : 29740.512843604483
+COMET INFO:     Shimla_all_Mean Squared Percentage Error (All)                          : 1.0516899842318152e+23
+COMET INFO:     Shimla_all_Mean Squared Percentage Error (Non-zero)                     : 752.7470063703497
+COMET INFO:     Shimla_all_Non-zero Values Percentage                                   : 49.90867579908676
+COMET INFO:     Shimla_all_Root Mean Squared Error (All)                                : 121.87539963398126
+COMET INFO:     Shimla_all_Root Mean Squared Error (Non-zero)                           : 172.45437902124863
+COMET INFO:     Shimla_all_R² Score (All)                                               : 0.8083338529354697
+COMET INFO:     Shimla_all_R² Score (Non-zero)                                          : 0.6668799357831316
+COMET INFO:     Shimla_ghi_only_Mean Absolute Error (All)                               : 66.00248059043874
+COMET INFO:     Shimla_ghi_only_Mean Absolute Error (Non-zero)                          : 128.9387426457597
+COMET INFO:     Shimla_ghi_only_Mean Absolute Percentage Error (All)                    : 1650861544009.284
+COMET INFO:     Shimla_ghi_only_Mean Absolute Percentage Error (Non-zero)               : 123.3873630798499
+COMET INFO:     Shimla_ghi_only_Mean Squared Error (All)                                : 15480.104214563966
+COMET INFO:     Shimla_ghi_only_Mean Squared Error (Non-zero)                           : 30983.248193848958
+COMET INFO:     Shimla_ghi_only_Mean Squared Percentage Error (All)                     : 1.6775321469485784e+23
+COMET INFO:     Shimla_ghi_only_Mean Squared Percentage Error (Non-zero)                : 782.0485259624384
+COMET INFO:     Shimla_ghi_only_Non-zero Values Percentage                              : 49.90867579908676
+COMET INFO:     Shimla_ghi_only_Root Mean Squared Error (All)                           : 124.41906692530678
+COMET INFO:     Shimla_ghi_only_Root Mean Squared Error (Non-zero)                      : 176.02059025537028
+COMET INFO:     Shimla_ghi_only_R² Score (All)                                          : 0.8002498164060606
+COMET INFO:     Shimla_ghi_only_R² Score (Non-zero)                                     : 0.6529602000389971
+COMET INFO:     Shimla_meteorological_only_Mean Absolute Error (All)                    : 99.44969081465254
+COMET INFO:     Shimla_meteorological_only_Mean Absolute Error (Non-zero)               : 173.50682080762712
+COMET INFO:     Shimla_meteorological_only_Mean Absolute Percentage Error (All)         : 12854734128550.537
+COMET INFO:     Shimla_meteorological_only_Mean Absolute Percentage Error (Non-zero)    : 158.31041424138454
+COMET INFO:     Shimla_meteorological_only_Mean Squared Error (All)                     : 26971.27826065977
+COMET INFO:     Shimla_meteorological_only_Mean Squared Error (Non-zero)                : 52267.35806638615
+COMET INFO:     Shimla_meteorological_only_Mean Squared Percentage Error (All)          : 8.853319745592782e+24
+COMET INFO:     Shimla_meteorological_only_Mean Squared Percentage Error (Non-zero)     : 2341.071110582741
+COMET INFO:     Shimla_meteorological_only_Non-zero Values Percentage                   : 49.90867579908676
+COMET INFO:     Shimla_meteorological_only_Root Mean Squared Error (All)                : 164.22934652692183
+COMET INFO:     Shimla_meteorological_only_Root Mean Squared Error (Non-zero)           : 228.6205547766564
+COMET INFO:     Shimla_meteorological_only_R² Score (All)                               : 0.6519714783792387
+COMET INFO:     Shimla_meteorological_only_R² Score (Non-zero)                          : 0.41455933301887216
+COMET INFO:     Srinagar_Precipitable Water_Mean Absolute Error (All)                   : 37.16241740487216
+COMET INFO:     Srinagar_Precipitable Water_Mean Absolute Error (Non-zero)              : 67.18170958236878
+COMET INFO:     Srinagar_Precipitable Water_Mean Absolute Percentage Error (All)        : 3963763528172.808
+COMET INFO:     Srinagar_Precipitable Water_Mean Absolute Percentage Error (Non-zero)   : 55.71350175323994
+COMET INFO:     Srinagar_Precipitable Water_Mean Squared Error (All)                    : 6124.808518168956
+COMET INFO:     Srinagar_Precipitable Water_Mean Squared Error (Non-zero)               : 12311.09623122626
+COMET INFO:     Srinagar_Precipitable Water_Mean Squared Percentage Error (All)         : 4.113150005955068e+23
+COMET INFO:     Srinagar_Precipitable Water_Mean Squared Percentage Error (Non-zero)    : 351.99309349381434
+COMET INFO:     Srinagar_Precipitable Water_Non-zero Values Percentage                  : 49.41620879120879
+COMET INFO:     Srinagar_Precipitable Water_Root Mean Squared Error (All)               : 78.26115587038666
+COMET INFO:     Srinagar_Precipitable Water_Root Mean Squared Error (Non-zero)          : 110.95537946051223
+COMET INFO:     Srinagar_Precipitable Water_R² Score (All)                              : 0.9373925388724538
+COMET INFO:     Srinagar_Precipitable Water_R² Score (Non-zero)                         : 0.8586434215573453
+COMET INFO:     Srinagar_Pressure_Mean Absolute Error (All)                             : 35.24010853182774
+COMET INFO:     Srinagar_Pressure_Mean Absolute Error (Non-zero)                        : 69.75408952920172
+COMET INFO:     Srinagar_Pressure_Mean Absolute Percentage Error (All)                  : 770282009695.5171
+COMET INFO:     Srinagar_Pressure_Mean Absolute Percentage Error (Non-zero)             : 50.212224614880455
+COMET INFO:     Srinagar_Pressure_Mean Squared Error (All)                              : 6096.522770938826
+COMET INFO:     Srinagar_Pressure_Mean Squared Error (Non-zero)                         : 12328.842585549231
+COMET INFO:     Srinagar_Pressure_Mean Squared Percentage Error (All)                   : 4.076177324354738e+22
+COMET INFO:     Srinagar_Pressure_Mean Squared Percentage Error (Non-zero)              : 291.1109571695947
+COMET INFO:     Srinagar_Pressure_Non-zero Values Percentage                            : 49.41620879120879
+COMET INFO:     Srinagar_Pressure_Root Mean Squared Error (All)                         : 78.08023290781621
+COMET INFO:     Srinagar_Pressure_Root Mean Squared Error (Non-zero)                    : 111.03532134212622
+COMET INFO:     Srinagar_Pressure_R² Score (All)                                        : 0.9376816742494898
+COMET INFO:     Srinagar_Pressure_R² Score (Non-zero)                                   : 0.8584396570931732
+COMET INFO:     Srinagar_Relative Humidity_Mean Absolute Error (All)                    : 33.341382559107856
+COMET INFO:     Srinagar_Relative Humidity_Mean Absolute Error (Non-zero)               : 65.77599890727895
+COMET INFO:     Srinagar_Relative Humidity_Mean Absolute Percentage Error (All)         : 837377604608.074
+COMET INFO:     Srinagar_Relative Humidity_Mean Absolute Percentage Error (Non-zero)    : 49.355867897966455
+COMET INFO:     Srinagar_Relative Humidity_Mean Squared Error (All)                     : 5977.73223715213
+COMET INFO:     Srinagar_Relative Humidity_Mean Squared Error (Non-zero)                : 12080.885995428524
+COMET INFO:     Srinagar_Relative Humidity_Mean Squared Percentage Error (All)          : 7.81638982326979e+22
+COMET INFO:     Srinagar_Relative Humidity_Mean Squared Percentage Error (Non-zero)     : 287.4712149955694
+COMET INFO:     Srinagar_Relative Humidity_Non-zero Values Percentage                   : 49.41620879120879
+COMET INFO:     Srinagar_Relative Humidity_Root Mean Squared Error (All)                : 77.31579552169227
+COMET INFO:     Srinagar_Relative Humidity_Root Mean Squared Error (Non-zero)           : 109.91308382275753
+COMET INFO:     Srinagar_Relative Humidity_R² Score (All)                               : 0.9388959446555456
+COMET INFO:     Srinagar_Relative Humidity_R² Score (Non-zero)                          : 0.8612867061717815
+COMET INFO:     Srinagar_Temperature_Mean Absolute Error (All)                          : 34.942016696471356
+COMET INFO:     Srinagar_Temperature_Mean Absolute Error (Non-zero)                     : 69.45158996694144
+COMET INFO:     Srinagar_Temperature_Mean Absolute Percentage Error (All)               : 621673989619.6003
+COMET INFO:     Srinagar_Temperature_Mean Absolute Percentage Error (Non-zero)          : 53.0982635291864
+COMET INFO:     Srinagar_Temperature_Mean Squared Error (All)                           : 6098.289365300516
+COMET INFO:     Srinagar_Temperature_Mean Squared Error (Non-zero)                      : 12320.670667793753
+COMET INFO:     Srinagar_Temperature_Mean Squared Percentage Error (All)                : 9.881023626335237e+22
+COMET INFO:     Srinagar_Temperature_Mean Squared Percentage Error (Non-zero)           : 319.7559927063189
+COMET INFO:     Srinagar_Temperature_Non-zero Values Percentage                         : 49.41620879120879
+COMET INFO:     Srinagar_Temperature_Root Mean Squared Error (All)                      : 78.09154477470986
+COMET INFO:     Srinagar_Temperature_Root Mean Squared Error (Non-zero)                 : 110.99851651168025
+COMET INFO:     Srinagar_Temperature_R² Score (All)                                     : 0.937663616217553
+COMET INFO:     Srinagar_Temperature_R² Score (Non-zero)                                : 0.858533487432205
+COMET INFO:     Srinagar_Wind Direction_Mean Absolute Error (All)                       : 35.90744190796828
+COMET INFO:     Srinagar_Wind Direction_Mean Absolute Error (Non-zero)                  : 66.69314437269308
+COMET INFO:     Srinagar_Wind Direction_Mean Absolute Percentage Error (All)            : 2950218435362.2793
+COMET INFO:     Srinagar_Wind Direction_Mean Absolute Percentage Error (Non-zero)       : 53.290358660738704
+COMET INFO:     Srinagar_Wind Direction_Mean Squared Error (All)                        : 6081.142722950804
+COMET INFO:     Srinagar_Wind Direction_Mean Squared Error (Non-zero)                   : 12261.928938992161
+COMET INFO:     Srinagar_Wind Direction_Mean Squared Percentage Error (All)             : 2.1762316628785524e+23
+COMET INFO:     Srinagar_Wind Direction_Mean Squared Percentage Error (Non-zero)        : 325.169079614958
+COMET INFO:     Srinagar_Wind Direction_Non-zero Values Percentage                      : 49.41620879120879
+COMET INFO:     Srinagar_Wind Direction_Root Mean Squared Error (All)                   : 77.98168197051668
+COMET INFO:     Srinagar_Wind Direction_Root Mean Squared Error (Non-zero)              : 110.73359444627525
+COMET INFO:     Srinagar_Wind Direction_R² Score (All)                                  : 0.937838888267478
+COMET INFO:     Srinagar_Wind Direction_R² Score (Non-zero)                             : 0.8592079626892611
+COMET INFO:     Srinagar_Wind Speed_Mean Absolute Error (All)                           : 32.326790118073646
+COMET INFO:     Srinagar_Wind Speed_Mean Absolute Error (Non-zero)                      : 63.92243570988173
+COMET INFO:     Srinagar_Wind Speed_Mean Absolute Percentage Error (All)                : 738745823276.1489
+COMET INFO:     Srinagar_Wind Speed_Mean Absolute Percentage Error (Non-zero)           : 48.30242983692092
+COMET INFO:     Srinagar_Wind Speed_Mean Squared Error (All)                            : 6061.438853280997
+COMET INFO:     Srinagar_Wind Speed_Mean Squared Error (Non-zero)                       : 12257.46430122893
+COMET INFO:     Srinagar_Wind Speed_Mean Squared Percentage Error (All)                 : 4.26470167782719e+22
+COMET INFO:     Srinagar_Wind Speed_Mean Squared Percentage Error (Non-zero)            : 277.8541108203019
+COMET INFO:     Srinagar_Wind Speed_Non-zero Values Percentage                          : 49.41620879120879
+COMET INFO:     Srinagar_Wind Speed_Root Mean Squared Error (All)                       : 77.85524294022206
+COMET INFO:     Srinagar_Wind Speed_Root Mean Squared Error (Non-zero)                  : 110.71343324650776
+COMET INFO:     Srinagar_Wind Speed_R² Score (All)                                      : 0.9380403001566424
+COMET INFO:     Srinagar_Wind Speed_R² Score (Non-zero)                                 : 0.8592592258673196
+COMET INFO:     Srinagar_all_Mean Absolute Error (All)                                  : 36.21443092567853
+COMET INFO:     Srinagar_all_Mean Absolute Error (Non-zero)                             : 71.06507145234603
+COMET INFO:     Srinagar_all_Mean Absolute Percentage Error (All)                       : 1096766839191.6744
+COMET INFO:     Srinagar_all_Mean Absolute Percentage Error (Non-zero)                  : 52.967727775963716
+COMET INFO:     Srinagar_all_Mean Squared Error (All)                                   : 6165.535999413206
+COMET INFO:     Srinagar_all_Mean Squared Error (Non-zero)                              : 12455.343472341012
+COMET INFO:     Srinagar_all_Mean Squared Percentage Error (All)                        : 1.0577463458977604e+23
+COMET INFO:     Srinagar_all_Mean Squared Percentage Error (Non-zero)                   : 323.7651212446018
+COMET INFO:     Srinagar_all_Non-zero Values Percentage                                 : 49.41620879120879
+COMET INFO:     Srinagar_all_Root Mean Squared Error (All)                              : 78.52092714310756
+COMET INFO:     Srinagar_all_Root Mean Squared Error (Non-zero)                         : 111.60351012553777
+COMET INFO:     Srinagar_all_R² Score (All)                                             : 0.9369762247638155
+COMET INFO:     Srinagar_all_R² Score (Non-zero)                                        : 0.856987168038503
+COMET INFO:     Srinagar_ghi_only_Mean Absolute Error (All)                             : 31.529662936838204
+COMET INFO:     Srinagar_ghi_only_Mean Absolute Error (Non-zero)                        : 61.84770894119633
+COMET INFO:     Srinagar_ghi_only_Mean Absolute Percentage Error (All)                  : 966869953901.989
+COMET INFO:     Srinagar_ghi_only_Mean Absolute Percentage Error (Non-zero)             : 49.521513735612785
+COMET INFO:     Srinagar_ghi_only_Mean Squared Error (All)                              : 6053.629712739753
+COMET INFO:     Srinagar_ghi_only_Mean Squared Error (Non-zero)                         : 12238.388846398386
+COMET INFO:     Srinagar_ghi_only_Mean Squared Percentage Error (All)                   : 5.881927723517598e+22
+COMET INFO:     Srinagar_ghi_only_Mean Squared Percentage Error (Non-zero)              : 291.5401134786097
+COMET INFO:     Srinagar_ghi_only_Non-zero Values Percentage                            : 49.41620879120879
+COMET INFO:     Srinagar_ghi_only_Root Mean Squared Error (All)                         : 77.80507510914538
+COMET INFO:     Srinagar_ghi_only_Root Mean Squared Error (Non-zero)                    : 110.6272518252098
+COMET INFO:     Srinagar_ghi_only_R² Score (All)                                        : 0.9381201247685345
+COMET INFO:     Srinagar_ghi_only_R² Score (Non-zero)                                   : 0.8594782511252201
+COMET INFO:     Srinagar_meteorological_only_Mean Absolute Error (All)                  : 136.9424093034683
+COMET INFO:     Srinagar_meteorological_only_Mean Absolute Error (Non-zero)             : 180.7907856324839
+COMET INFO:     Srinagar_meteorological_only_Mean Absolute Percentage Error (All)       : 47602457200181.6
+COMET INFO:     Srinagar_meteorological_only_Mean Absolute Percentage Error (Non-zero)  : 259.52506645670763
+COMET INFO:     Srinagar_meteorological_only_Mean Squared Error (All)                   : 40598.109515131815
+COMET INFO:     Srinagar_meteorological_only_Mean Squared Error (Non-zero)              : 55132.17367969081
+COMET INFO:     Srinagar_meteorological_only_Mean Squared Percentage Error (All)        : 1.3353879458443948e+26
+COMET INFO:     Srinagar_meteorological_only_Mean Squared Percentage Error (Non-zero)   : 23007.29509377351
+COMET INFO:     Srinagar_meteorological_only_Non-zero Values Percentage                 : 49.41620879120879
+COMET INFO:     Srinagar_meteorological_only_Root Mean Squared Error (All)              : 201.48972558205497
+COMET INFO:     Srinagar_meteorological_only_Root Mean Squared Error (Non-zero)         : 234.80241412662437
+COMET INFO:     Srinagar_meteorological_only_R² Score (All)                             : 0.585008322173581
+COMET INFO:     Srinagar_meteorological_only_R² Score (Non-zero)                        : 0.36696982241921594
+COMET INFO:   Others:
+COMET INFO:     Name             : GHI_Forecasting_Joint_Training
+COMET INFO:     trainable_params : 135105
+COMET INFO:   Parameters:
+COMET INFO:     feature_ranges : {"ghi": [0, 1.2], "meteorological": [0, 1]}
+COMET INFO:     model_params   : {"batch_size": 32, "dense_units": [16, 1], "dropout_rate": 0.2, "epochs": 20, "lstm_units": [64, 32]}
+COMET INFO:     random_seed    : 42
+COMET INFO:   Uploads:
+COMET INFO:     figures      : 9
+COMET INFO:     git metadata : 1
+COMET INFO:     model graph  : 1
+COMET INFO: 
