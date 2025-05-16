@@ -28,6 +28,6 @@ source ~/.bashrc
 source activate ghifo_py39
 
 # Run training script
-python train_gnn.py
+python train_joint.py
 
 conda deactivate
