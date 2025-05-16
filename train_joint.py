@@ -337,11 +337,20 @@ def evaluate_joint_model(model, X_test, y_test, target_scaler, locations):
     """
     results = {}
     
-    for location in locations:
-        # Get test data for this location
-        location_mask = X_test[:, 0, -len(locations):].argmax(axis=1) == locations.index(location)
+    # Get the location columns (they are the last len(locations) columns in the input)
+    location_columns = X_test[:, 0, -len(locations):]
+    
+    print("\nEvaluating model for each location:")
+    print(f"Total test samples: {len(X_test)}")
+    
+    for i, location in enumerate(locations):
+        # Get test data for this location using the one-hot encoded location columns
+        location_mask = location_columns[:, i] == 1
         X_loc = X_test[location_mask]
         y_loc = y_test[location_mask]
+        
+        print(f"\nLocation: {location}")
+        print(f"Number of test samples: {len(X_loc)}")
         
         if len(X_loc) == 0:
             print(f"Warning: No test data for {location}")
@@ -356,7 +365,7 @@ def evaluate_joint_model(model, X_test, y_test, target_scaler, locations):
         metrics = evaluate_model(y_test_rescaled, y_pred_rescaled)
         results[location] = metrics
         
-        print(f"\nResults for {location}:")
+        print(f"Results for {location}:")
         for metric_name, metric_value in metrics.items():
             print(f"✅ {metric_name}: {metric_value:.4f}")
     

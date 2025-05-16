@@ -1,0 +1,586 @@
+Location,Metric,Feature Combination,Individual,Joint,GNN,Complete
+Jaisalmer,Root Mean Squared Error (Non-zero),ghi_only,True,False,True,False
+Jaisalmer,Root Mean Squared Error (Non-zero),all,True,False,True,False
+Jaisalmer,Root Mean Squared Error (Non-zero),Wind Direction,True,False,True,False
+Jaisalmer,Root Mean Squared Error (Non-zero),Wind Speed,True,False,True,False
+Jaisalmer,Root Mean Squared Error (Non-zero),Relative Humidity,True,False,True,False
+Jaisalmer,Root Mean Squared Error (Non-zero),Temperature,True,False,True,False
+Jaisalmer,Root Mean Squared Error (Non-zero),meteorological_only,True,False,True,False
+Jaisalmer,Root Mean Squared Error (Non-zero),Precipitable Water,True,False,True,False
+Jaisalmer,Root Mean Squared Error (Non-zero),Pressure,True,False,True,False
+Jaisalmer,Mean Absolute Error (All),ghi_only,True,False,True,False
+Jaisalmer,Mean Absolute Error (All),all,True,False,True,False
+Jaisalmer,Mean Absolute Error (All),Wind Direction,True,False,True,False
+Jaisalmer,Mean Absolute Error (All),Wind Speed,True,False,True,False
+Jaisalmer,Mean Absolute Error (All),Relative Humidity,True,False,True,False
+Jaisalmer,Mean Absolute Error (All),Temperature,True,False,True,False
+Jaisalmer,Mean Absolute Error (All),meteorological_only,True,False,True,False
+Jaisalmer,Mean Absolute Error (All),Precipitable Water,True,False,True,False
+Jaisalmer,Mean Absolute Error (All),Pressure,True,False,True,False
+Jaisalmer,Root Mean Squared Error (All),ghi_only,True,False,True,False
+Jaisalmer,Root Mean Squared Error (All),all,True,False,True,False
+Jaisalmer,Root Mean Squared Error (All),Wind Direction,True,False,True,False
+Jaisalmer,Root Mean Squared Error (All),Wind Speed,True,False,True,False
+Jaisalmer,Root Mean Squared Error (All),Relative Humidity,True,False,True,False
+Jaisalmer,Root Mean Squared Error (All),Temperature,True,False,True,False
+Jaisalmer,Root Mean Squared Error (All),meteorological_only,True,False,True,False
+Jaisalmer,Root Mean Squared Error (All),Precipitable Water,True,False,True,False
+Jaisalmer,Root Mean Squared Error (All),Pressure,True,False,True,False
+Jaisalmer,Mean Absolute Error (Non-zero),ghi_only,True,False,True,False
+Jaisalmer,Mean Absolute Error (Non-zero),all,True,False,True,False
+Jaisalmer,Mean Absolute Error (Non-zero),Wind Direction,True,False,True,False
+Jaisalmer,Mean Absolute Error (Non-zero),Wind Speed,True,False,True,False
+Jaisalmer,Mean Absolute Error (Non-zero),Relative Humidity,True,False,True,False
+Jaisalmer,Mean Absolute Error (Non-zero),Temperature,True,False,True,False
+Jaisalmer,Mean Absolute Error (Non-zero),meteorological_only,True,False,True,False
+Jaisalmer,Mean Absolute Error (Non-zero),Precipitable Water,True,False,True,False
+Jaisalmer,Mean Absolute Error (Non-zero),Pressure,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (Non-zero),ghi_only,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (Non-zero),all,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (Non-zero),Wind Direction,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (Non-zero),Wind Speed,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (Non-zero),Relative Humidity,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (Non-zero),Temperature,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (Non-zero),meteorological_only,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (Non-zero),Precipitable Water,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (Non-zero),Pressure,True,False,True,False
+Jaisalmer,Mean Squared Error (Non-zero),ghi_only,True,False,True,False
+Jaisalmer,Mean Squared Error (Non-zero),all,True,False,True,False
+Jaisalmer,Mean Squared Error (Non-zero),Wind Direction,True,False,True,False
+Jaisalmer,Mean Squared Error (Non-zero),Wind Speed,True,False,True,False
+Jaisalmer,Mean Squared Error (Non-zero),Relative Humidity,True,False,True,False
+Jaisalmer,Mean Squared Error (Non-zero),Temperature,True,False,True,False
+Jaisalmer,Mean Squared Error (Non-zero),meteorological_only,True,False,True,False
+Jaisalmer,Mean Squared Error (Non-zero),Precipitable Water,True,False,True,False
+Jaisalmer,Mean Squared Error (Non-zero),Pressure,True,False,True,False
+Jaisalmer,R² Score (All),ghi_only,True,False,True,False
+Jaisalmer,R² Score (All),all,True,False,True,False
+Jaisalmer,R² Score (All),Wind Direction,True,False,True,False
+Jaisalmer,R² Score (All),Wind Speed,True,False,True,False
+Jaisalmer,R² Score (All),Relative Humidity,True,False,True,False
+Jaisalmer,R² Score (All),Temperature,True,False,True,False
+Jaisalmer,R² Score (All),meteorological_only,True,False,True,False
+Jaisalmer,R² Score (All),Precipitable Water,True,False,True,False
+Jaisalmer,R² Score (All),Pressure,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (All),ghi_only,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (All),all,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (All),Wind Direction,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (All),Wind Speed,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (All),Relative Humidity,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (All),Temperature,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (All),meteorological_only,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (All),Precipitable Water,True,False,True,False
+Jaisalmer,Mean Absolute Percentage Error (All),Pressure,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (All),ghi_only,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (All),all,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (All),Wind Direction,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (All),Wind Speed,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (All),Relative Humidity,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (All),Temperature,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (All),meteorological_only,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (All),Precipitable Water,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (All),Pressure,True,False,True,False
+Jaisalmer,R² Score (Non-zero),ghi_only,True,False,True,False
+Jaisalmer,R² Score (Non-zero),all,True,False,True,False
+Jaisalmer,R² Score (Non-zero),Wind Direction,True,False,True,False
+Jaisalmer,R² Score (Non-zero),Wind Speed,True,False,True,False
+Jaisalmer,R² Score (Non-zero),Relative Humidity,True,False,True,False
+Jaisalmer,R² Score (Non-zero),Temperature,True,False,True,False
+Jaisalmer,R² Score (Non-zero),meteorological_only,True,False,True,False
+Jaisalmer,R² Score (Non-zero),Precipitable Water,True,False,True,False
+Jaisalmer,R² Score (Non-zero),Pressure,True,False,True,False
+Jaisalmer,Mean Squared Error (All),ghi_only,True,False,True,False
+Jaisalmer,Mean Squared Error (All),all,True,False,True,False
+Jaisalmer,Mean Squared Error (All),Wind Direction,True,False,True,False
+Jaisalmer,Mean Squared Error (All),Wind Speed,True,False,True,False
+Jaisalmer,Mean Squared Error (All),Relative Humidity,True,False,True,False
+Jaisalmer,Mean Squared Error (All),Temperature,True,False,True,False
+Jaisalmer,Mean Squared Error (All),meteorological_only,True,False,True,False
+Jaisalmer,Mean Squared Error (All),Precipitable Water,True,False,True,False
+Jaisalmer,Mean Squared Error (All),Pressure,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (Non-zero),ghi_only,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (Non-zero),all,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (Non-zero),Wind Direction,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (Non-zero),Wind Speed,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (Non-zero),Relative Humidity,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (Non-zero),Temperature,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (Non-zero),meteorological_only,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (Non-zero),Precipitable Water,True,False,True,False
+Jaisalmer,Mean Squared Percentage Error (Non-zero),Pressure,True,False,True,False
+Jaisalmer,Non-zero Values Percentage,ghi_only,True,False,True,False
+Jaisalmer,Non-zero Values Percentage,all,True,False,True,False
+Jaisalmer,Non-zero Values Percentage,Wind Direction,True,False,True,False
+Jaisalmer,Non-zero Values Percentage,Wind Speed,True,False,True,False
+Jaisalmer,Non-zero Values Percentage,Relative Humidity,True,False,True,False
+Jaisalmer,Non-zero Values Percentage,Temperature,True,False,True,False
+Jaisalmer,Non-zero Values Percentage,meteorological_only,True,False,True,False
+Jaisalmer,Non-zero Values Percentage,Precipitable Water,True,False,True,False
+Jaisalmer,Non-zero Values Percentage,Pressure,True,False,True,False
+Jodhpur,Root Mean Squared Error (Non-zero),ghi_only,True,False,True,False
+Jodhpur,Root Mean Squared Error (Non-zero),all,True,False,True,False
+Jodhpur,Root Mean Squared Error (Non-zero),Wind Direction,True,False,True,False
+Jodhpur,Root Mean Squared Error (Non-zero),Wind Speed,True,False,True,False
+Jodhpur,Root Mean Squared Error (Non-zero),Relative Humidity,True,False,True,False
+Jodhpur,Root Mean Squared Error (Non-zero),Temperature,True,False,True,False
+Jodhpur,Root Mean Squared Error (Non-zero),meteorological_only,True,False,True,False
+Jodhpur,Root Mean Squared Error (Non-zero),Precipitable Water,True,False,True,False
+Jodhpur,Root Mean Squared Error (Non-zero),Pressure,True,False,True,False
+Jodhpur,Mean Absolute Error (All),ghi_only,True,False,True,False
+Jodhpur,Mean Absolute Error (All),all,True,False,True,False
+Jodhpur,Mean Absolute Error (All),Wind Direction,True,False,True,False
+Jodhpur,Mean Absolute Error (All),Wind Speed,True,False,True,False
+Jodhpur,Mean Absolute Error (All),Relative Humidity,True,False,True,False
+Jodhpur,Mean Absolute Error (All),Temperature,True,False,True,False
+Jodhpur,Mean Absolute Error (All),meteorological_only,True,False,True,False
+Jodhpur,Mean Absolute Error (All),Precipitable Water,True,False,True,False
+Jodhpur,Mean Absolute Error (All),Pressure,True,False,True,False
+Jodhpur,Root Mean Squared Error (All),ghi_only,True,False,True,False
+Jodhpur,Root Mean Squared Error (All),all,True,False,True,False
+Jodhpur,Root Mean Squared Error (All),Wind Direction,True,False,True,False
+Jodhpur,Root Mean Squared Error (All),Wind Speed,True,False,True,False
+Jodhpur,Root Mean Squared Error (All),Relative Humidity,True,False,True,False
+Jodhpur,Root Mean Squared Error (All),Temperature,True,False,True,False
+Jodhpur,Root Mean Squared Error (All),meteorological_only,True,False,True,False
+Jodhpur,Root Mean Squared Error (All),Precipitable Water,True,False,True,False
+Jodhpur,Root Mean Squared Error (All),Pressure,True,False,True,False
+Jodhpur,Mean Absolute Error (Non-zero),ghi_only,True,False,True,False
+Jodhpur,Mean Absolute Error (Non-zero),all,True,False,True,False
+Jodhpur,Mean Absolute Error (Non-zero),Wind Direction,True,False,True,False
+Jodhpur,Mean Absolute Error (Non-zero),Wind Speed,True,False,True,False
+Jodhpur,Mean Absolute Error (Non-zero),Relative Humidity,True,False,True,False
+Jodhpur,Mean Absolute Error (Non-zero),Temperature,True,False,True,False
+Jodhpur,Mean Absolute Error (Non-zero),meteorological_only,True,False,True,False
+Jodhpur,Mean Absolute Error (Non-zero),Precipitable Water,True,False,True,False
+Jodhpur,Mean Absolute Error (Non-zero),Pressure,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (Non-zero),ghi_only,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (Non-zero),all,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (Non-zero),Wind Direction,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (Non-zero),Wind Speed,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (Non-zero),Relative Humidity,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (Non-zero),Temperature,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (Non-zero),meteorological_only,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (Non-zero),Precipitable Water,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (Non-zero),Pressure,True,False,True,False
+Jodhpur,Mean Squared Error (Non-zero),ghi_only,True,False,True,False
+Jodhpur,Mean Squared Error (Non-zero),all,True,False,True,False
+Jodhpur,Mean Squared Error (Non-zero),Wind Direction,True,False,True,False
+Jodhpur,Mean Squared Error (Non-zero),Wind Speed,True,False,True,False
+Jodhpur,Mean Squared Error (Non-zero),Relative Humidity,True,False,True,False
+Jodhpur,Mean Squared Error (Non-zero),Temperature,True,False,True,False
+Jodhpur,Mean Squared Error (Non-zero),meteorological_only,True,False,True,False
+Jodhpur,Mean Squared Error (Non-zero),Precipitable Water,True,False,True,False
+Jodhpur,Mean Squared Error (Non-zero),Pressure,True,False,True,False
+Jodhpur,R² Score (All),ghi_only,True,False,True,False
+Jodhpur,R² Score (All),all,True,False,True,False
+Jodhpur,R² Score (All),Wind Direction,True,False,True,False
+Jodhpur,R² Score (All),Wind Speed,True,False,True,False
+Jodhpur,R² Score (All),Relative Humidity,True,False,True,False
+Jodhpur,R² Score (All),Temperature,True,False,True,False
+Jodhpur,R² Score (All),meteorological_only,True,False,True,False
+Jodhpur,R² Score (All),Precipitable Water,True,False,True,False
+Jodhpur,R² Score (All),Pressure,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (All),ghi_only,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (All),all,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (All),Wind Direction,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (All),Wind Speed,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (All),Relative Humidity,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (All),Temperature,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (All),meteorological_only,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (All),Precipitable Water,True,False,True,False
+Jodhpur,Mean Absolute Percentage Error (All),Pressure,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (All),ghi_only,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (All),all,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (All),Wind Direction,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (All),Wind Speed,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (All),Relative Humidity,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (All),Temperature,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (All),meteorological_only,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (All),Precipitable Water,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (All),Pressure,True,False,True,False
+Jodhpur,R² Score (Non-zero),ghi_only,True,False,True,False
+Jodhpur,R² Score (Non-zero),all,True,False,True,False
+Jodhpur,R² Score (Non-zero),Wind Direction,True,False,True,False
+Jodhpur,R² Score (Non-zero),Wind Speed,True,False,True,False
+Jodhpur,R² Score (Non-zero),Relative Humidity,True,False,True,False
+Jodhpur,R² Score (Non-zero),Temperature,True,False,True,False
+Jodhpur,R² Score (Non-zero),meteorological_only,True,False,True,False
+Jodhpur,R² Score (Non-zero),Precipitable Water,True,False,True,False
+Jodhpur,R² Score (Non-zero),Pressure,True,False,True,False
+Jodhpur,Mean Squared Error (All),ghi_only,True,False,True,False
+Jodhpur,Mean Squared Error (All),all,True,False,True,False
+Jodhpur,Mean Squared Error (All),Wind Direction,True,False,True,False
+Jodhpur,Mean Squared Error (All),Wind Speed,True,False,True,False
+Jodhpur,Mean Squared Error (All),Relative Humidity,True,False,True,False
+Jodhpur,Mean Squared Error (All),Temperature,True,False,True,False
+Jodhpur,Mean Squared Error (All),meteorological_only,True,False,True,False
+Jodhpur,Mean Squared Error (All),Precipitable Water,True,False,True,False
+Jodhpur,Mean Squared Error (All),Pressure,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (Non-zero),ghi_only,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (Non-zero),all,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (Non-zero),Wind Direction,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (Non-zero),Wind Speed,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (Non-zero),Relative Humidity,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (Non-zero),Temperature,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (Non-zero),meteorological_only,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (Non-zero),Precipitable Water,True,False,True,False
+Jodhpur,Mean Squared Percentage Error (Non-zero),Pressure,True,False,True,False
+Jodhpur,Non-zero Values Percentage,ghi_only,True,False,True,False
+Jodhpur,Non-zero Values Percentage,all,True,False,True,False
+Jodhpur,Non-zero Values Percentage,Wind Direction,True,False,True,False
+Jodhpur,Non-zero Values Percentage,Wind Speed,True,False,True,False
+Jodhpur,Non-zero Values Percentage,Relative Humidity,True,False,True,False
+Jodhpur,Non-zero Values Percentage,Temperature,True,False,True,False
+Jodhpur,Non-zero Values Percentage,meteorological_only,True,False,True,False
+Jodhpur,Non-zero Values Percentage,Precipitable Water,True,False,True,False
+Jodhpur,Non-zero Values Percentage,Pressure,True,False,True,False
+New Delhi,Root Mean Squared Error (Non-zero),ghi_only,True,True,True,True
+New Delhi,Root Mean Squared Error (Non-zero),all,True,True,True,True
+New Delhi,Root Mean Squared Error (Non-zero),Wind Direction,True,True,True,True
+New Delhi,Root Mean Squared Error (Non-zero),Wind Speed,True,True,True,True
+New Delhi,Root Mean Squared Error (Non-zero),Relative Humidity,True,True,True,True
+New Delhi,Root Mean Squared Error (Non-zero),Temperature,True,True,True,True
+New Delhi,Root Mean Squared Error (Non-zero),meteorological_only,True,True,True,True
+New Delhi,Root Mean Squared Error (Non-zero),Precipitable Water,True,True,True,True
+New Delhi,Root Mean Squared Error (Non-zero),Pressure,True,True,True,True
+New Delhi,Mean Absolute Error (All),ghi_only,True,True,True,True
+New Delhi,Mean Absolute Error (All),all,True,True,True,True
+New Delhi,Mean Absolute Error (All),Wind Direction,True,True,True,True
+New Delhi,Mean Absolute Error (All),Wind Speed,True,True,True,True
+New Delhi,Mean Absolute Error (All),Relative Humidity,True,True,True,True
+New Delhi,Mean Absolute Error (All),Temperature,True,True,True,True
+New Delhi,Mean Absolute Error (All),meteorological_only,True,True,True,True
+New Delhi,Mean Absolute Error (All),Precipitable Water,True,True,True,True
+New Delhi,Mean Absolute Error (All),Pressure,True,True,True,True
+New Delhi,Root Mean Squared Error (All),ghi_only,True,True,True,True
+New Delhi,Root Mean Squared Error (All),all,True,True,True,True
+New Delhi,Root Mean Squared Error (All),Wind Direction,True,True,True,True
+New Delhi,Root Mean Squared Error (All),Wind Speed,True,True,True,True
+New Delhi,Root Mean Squared Error (All),Relative Humidity,True,True,True,True
+New Delhi,Root Mean Squared Error (All),Temperature,True,True,True,True
+New Delhi,Root Mean Squared Error (All),meteorological_only,True,True,True,True
+New Delhi,Root Mean Squared Error (All),Precipitable Water,True,True,True,True
+New Delhi,Root Mean Squared Error (All),Pressure,True,True,True,True
+New Delhi,Mean Absolute Error (Non-zero),ghi_only,True,True,True,True
+New Delhi,Mean Absolute Error (Non-zero),all,True,True,True,True
+New Delhi,Mean Absolute Error (Non-zero),Wind Direction,True,True,True,True
+New Delhi,Mean Absolute Error (Non-zero),Wind Speed,True,True,True,True
+New Delhi,Mean Absolute Error (Non-zero),Relative Humidity,True,True,True,True
+New Delhi,Mean Absolute Error (Non-zero),Temperature,True,True,True,True
+New Delhi,Mean Absolute Error (Non-zero),meteorological_only,True,True,True,True
+New Delhi,Mean Absolute Error (Non-zero),Precipitable Water,True,True,True,True
+New Delhi,Mean Absolute Error (Non-zero),Pressure,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (Non-zero),ghi_only,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (Non-zero),all,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (Non-zero),Wind Direction,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (Non-zero),Wind Speed,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (Non-zero),Relative Humidity,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (Non-zero),Temperature,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (Non-zero),meteorological_only,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (Non-zero),Precipitable Water,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (Non-zero),Pressure,True,True,True,True
+New Delhi,Mean Squared Error (Non-zero),ghi_only,True,True,True,True
+New Delhi,Mean Squared Error (Non-zero),all,True,True,True,True
+New Delhi,Mean Squared Error (Non-zero),Wind Direction,True,True,True,True
+New Delhi,Mean Squared Error (Non-zero),Wind Speed,True,True,True,True
+New Delhi,Mean Squared Error (Non-zero),Relative Humidity,True,True,True,True
+New Delhi,Mean Squared Error (Non-zero),Temperature,True,True,True,True
+New Delhi,Mean Squared Error (Non-zero),meteorological_only,True,True,True,True
+New Delhi,Mean Squared Error (Non-zero),Precipitable Water,True,True,True,True
+New Delhi,Mean Squared Error (Non-zero),Pressure,True,True,True,True
+New Delhi,R² Score (All),ghi_only,True,True,True,True
+New Delhi,R² Score (All),all,True,True,True,True
+New Delhi,R² Score (All),Wind Direction,True,True,True,True
+New Delhi,R² Score (All),Wind Speed,True,True,True,True
+New Delhi,R² Score (All),Relative Humidity,True,True,True,True
+New Delhi,R² Score (All),Temperature,True,True,True,True
+New Delhi,R² Score (All),meteorological_only,True,True,True,True
+New Delhi,R² Score (All),Precipitable Water,True,True,True,True
+New Delhi,R² Score (All),Pressure,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (All),ghi_only,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (All),all,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (All),Wind Direction,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (All),Wind Speed,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (All),Relative Humidity,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (All),Temperature,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (All),meteorological_only,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (All),Precipitable Water,True,True,True,True
+New Delhi,Mean Absolute Percentage Error (All),Pressure,True,True,True,True
+New Delhi,Mean Squared Percentage Error (All),ghi_only,True,True,True,True
+New Delhi,Mean Squared Percentage Error (All),all,True,True,True,True
+New Delhi,Mean Squared Percentage Error (All),Wind Direction,True,True,True,True
+New Delhi,Mean Squared Percentage Error (All),Wind Speed,True,True,True,True
+New Delhi,Mean Squared Percentage Error (All),Relative Humidity,True,True,True,True
+New Delhi,Mean Squared Percentage Error (All),Temperature,True,True,True,True
+New Delhi,Mean Squared Percentage Error (All),meteorological_only,True,True,True,True
+New Delhi,Mean Squared Percentage Error (All),Precipitable Water,True,True,True,True
+New Delhi,Mean Squared Percentage Error (All),Pressure,True,True,True,True
+New Delhi,R² Score (Non-zero),ghi_only,True,True,True,True
+New Delhi,R² Score (Non-zero),all,True,True,True,True
+New Delhi,R² Score (Non-zero),Wind Direction,True,True,True,True
+New Delhi,R² Score (Non-zero),Wind Speed,True,True,True,True
+New Delhi,R² Score (Non-zero),Relative Humidity,True,True,True,True
+New Delhi,R² Score (Non-zero),Temperature,True,True,True,True
+New Delhi,R² Score (Non-zero),meteorological_only,True,True,True,True
+New Delhi,R² Score (Non-zero),Precipitable Water,True,True,True,True
+New Delhi,R² Score (Non-zero),Pressure,True,True,True,True
+New Delhi,Mean Squared Error (All),ghi_only,True,True,True,True
+New Delhi,Mean Squared Error (All),all,True,True,True,True
+New Delhi,Mean Squared Error (All),Wind Direction,True,True,True,True
+New Delhi,Mean Squared Error (All),Wind Speed,True,True,True,True
+New Delhi,Mean Squared Error (All),Relative Humidity,True,True,True,True
+New Delhi,Mean Squared Error (All),Temperature,True,True,True,True
+New Delhi,Mean Squared Error (All),meteorological_only,True,True,True,True
+New Delhi,Mean Squared Error (All),Precipitable Water,True,True,True,True
+New Delhi,Mean Squared Error (All),Pressure,True,True,True,True
+New Delhi,Mean Squared Percentage Error (Non-zero),ghi_only,True,True,True,True
+New Delhi,Mean Squared Percentage Error (Non-zero),all,True,True,True,True
+New Delhi,Mean Squared Percentage Error (Non-zero),Wind Direction,True,True,True,True
+New Delhi,Mean Squared Percentage Error (Non-zero),Wind Speed,True,True,True,True
+New Delhi,Mean Squared Percentage Error (Non-zero),Relative Humidity,True,True,True,True
+New Delhi,Mean Squared Percentage Error (Non-zero),Temperature,True,True,True,True
+New Delhi,Mean Squared Percentage Error (Non-zero),meteorological_only,True,True,True,True
+New Delhi,Mean Squared Percentage Error (Non-zero),Precipitable Water,True,True,True,True
+New Delhi,Mean Squared Percentage Error (Non-zero),Pressure,True,True,True,True
+New Delhi,Non-zero Values Percentage,ghi_only,True,True,True,True
+New Delhi,Non-zero Values Percentage,all,True,True,True,True
+New Delhi,Non-zero Values Percentage,Wind Direction,True,True,True,True
+New Delhi,Non-zero Values Percentage,Wind Speed,True,True,True,True
+New Delhi,Non-zero Values Percentage,Relative Humidity,True,True,True,True
+New Delhi,Non-zero Values Percentage,Temperature,True,True,True,True
+New Delhi,Non-zero Values Percentage,meteorological_only,True,True,True,True
+New Delhi,Non-zero Values Percentage,Precipitable Water,True,True,True,True
+New Delhi,Non-zero Values Percentage,Pressure,True,True,True,True
+Shimla,Root Mean Squared Error (Non-zero),ghi_only,True,True,True,True
+Shimla,Root Mean Squared Error (Non-zero),all,True,True,True,True
+Shimla,Root Mean Squared Error (Non-zero),Wind Direction,True,True,True,True
+Shimla,Root Mean Squared Error (Non-zero),Wind Speed,True,True,True,True
+Shimla,Root Mean Squared Error (Non-zero),Relative Humidity,True,True,True,True
+Shimla,Root Mean Squared Error (Non-zero),Temperature,True,True,True,True
+Shimla,Root Mean Squared Error (Non-zero),meteorological_only,True,True,True,True
+Shimla,Root Mean Squared Error (Non-zero),Precipitable Water,True,True,True,True
+Shimla,Root Mean Squared Error (Non-zero),Pressure,True,True,True,True
+Shimla,Mean Absolute Error (All),ghi_only,True,True,True,True
+Shimla,Mean Absolute Error (All),all,True,True,True,True
+Shimla,Mean Absolute Error (All),Wind Direction,True,True,True,True
+Shimla,Mean Absolute Error (All),Wind Speed,True,True,True,True
+Shimla,Mean Absolute Error (All),Relative Humidity,True,True,True,True
+Shimla,Mean Absolute Error (All),Temperature,True,True,True,True
+Shimla,Mean Absolute Error (All),meteorological_only,True,True,True,True
+Shimla,Mean Absolute Error (All),Precipitable Water,True,True,True,True
+Shimla,Mean Absolute Error (All),Pressure,True,True,True,True
+Shimla,Root Mean Squared Error (All),ghi_only,True,True,True,True
+Shimla,Root Mean Squared Error (All),all,True,True,True,True
+Shimla,Root Mean Squared Error (All),Wind Direction,True,True,True,True
+Shimla,Root Mean Squared Error (All),Wind Speed,True,True,True,True
+Shimla,Root Mean Squared Error (All),Relative Humidity,True,True,True,True
+Shimla,Root Mean Squared Error (All),Temperature,True,True,True,True
+Shimla,Root Mean Squared Error (All),meteorological_only,True,True,True,True
+Shimla,Root Mean Squared Error (All),Precipitable Water,True,True,True,True
+Shimla,Root Mean Squared Error (All),Pressure,True,True,True,True
+Shimla,Mean Absolute Error (Non-zero),ghi_only,True,True,True,True
+Shimla,Mean Absolute Error (Non-zero),all,True,True,True,True
+Shimla,Mean Absolute Error (Non-zero),Wind Direction,True,True,True,True
+Shimla,Mean Absolute Error (Non-zero),Wind Speed,True,True,True,True
+Shimla,Mean Absolute Error (Non-zero),Relative Humidity,True,True,True,True
+Shimla,Mean Absolute Error (Non-zero),Temperature,True,True,True,True
+Shimla,Mean Absolute Error (Non-zero),meteorological_only,True,True,True,True
+Shimla,Mean Absolute Error (Non-zero),Precipitable Water,True,True,True,True
+Shimla,Mean Absolute Error (Non-zero),Pressure,True,True,True,True
+Shimla,Mean Absolute Percentage Error (Non-zero),ghi_only,True,True,True,True
+Shimla,Mean Absolute Percentage Error (Non-zero),all,True,True,True,True
+Shimla,Mean Absolute Percentage Error (Non-zero),Wind Direction,True,True,True,True
+Shimla,Mean Absolute Percentage Error (Non-zero),Wind Speed,True,True,True,True
+Shimla,Mean Absolute Percentage Error (Non-zero),Relative Humidity,True,True,True,True
+Shimla,Mean Absolute Percentage Error (Non-zero),Temperature,True,True,True,True
+Shimla,Mean Absolute Percentage Error (Non-zero),meteorological_only,True,True,True,True
+Shimla,Mean Absolute Percentage Error (Non-zero),Precipitable Water,True,True,True,True
+Shimla,Mean Absolute Percentage Error (Non-zero),Pressure,True,True,True,True
+Shimla,Mean Squared Error (Non-zero),ghi_only,True,True,True,True
+Shimla,Mean Squared Error (Non-zero),all,True,True,True,True
+Shimla,Mean Squared Error (Non-zero),Wind Direction,True,True,True,True
+Shimla,Mean Squared Error (Non-zero),Wind Speed,True,True,True,True
+Shimla,Mean Squared Error (Non-zero),Relative Humidity,True,True,True,True
+Shimla,Mean Squared Error (Non-zero),Temperature,True,True,True,True
+Shimla,Mean Squared Error (Non-zero),meteorological_only,True,True,True,True
+Shimla,Mean Squared Error (Non-zero),Precipitable Water,True,True,True,True
+Shimla,Mean Squared Error (Non-zero),Pressure,True,True,True,True
+Shimla,R² Score (All),ghi_only,True,True,True,True
+Shimla,R² Score (All),all,True,True,True,True
+Shimla,R² Score (All),Wind Direction,True,True,True,True
+Shimla,R² Score (All),Wind Speed,True,True,True,True
+Shimla,R² Score (All),Relative Humidity,True,True,True,True
+Shimla,R² Score (All),Temperature,True,True,True,True
+Shimla,R² Score (All),meteorological_only,True,True,True,True
+Shimla,R² Score (All),Precipitable Water,True,True,True,True
+Shimla,R² Score (All),Pressure,True,True,True,True
+Shimla,Mean Absolute Percentage Error (All),ghi_only,True,True,True,True
+Shimla,Mean Absolute Percentage Error (All),all,True,True,True,True
+Shimla,Mean Absolute Percentage Error (All),Wind Direction,True,True,True,True
+Shimla,Mean Absolute Percentage Error (All),Wind Speed,True,True,True,True
+Shimla,Mean Absolute Percentage Error (All),Relative Humidity,True,True,True,True
+Shimla,Mean Absolute Percentage Error (All),Temperature,True,True,True,True
+Shimla,Mean Absolute Percentage Error (All),meteorological_only,True,True,True,True
+Shimla,Mean Absolute Percentage Error (All),Precipitable Water,True,True,True,True
+Shimla,Mean Absolute Percentage Error (All),Pressure,True,True,True,True
+Shimla,Mean Squared Percentage Error (All),ghi_only,True,True,True,True
+Shimla,Mean Squared Percentage Error (All),all,True,True,True,True
+Shimla,Mean Squared Percentage Error (All),Wind Direction,True,True,True,True
+Shimla,Mean Squared Percentage Error (All),Wind Speed,True,True,True,True
+Shimla,Mean Squared Percentage Error (All),Relative Humidity,True,True,True,True
+Shimla,Mean Squared Percentage Error (All),Temperature,True,True,True,True
+Shimla,Mean Squared Percentage Error (All),meteorological_only,True,True,True,True
+Shimla,Mean Squared Percentage Error (All),Precipitable Water,True,True,True,True
+Shimla,Mean Squared Percentage Error (All),Pressure,True,True,True,True
+Shimla,R² Score (Non-zero),ghi_only,True,True,True,True
+Shimla,R² Score (Non-zero),all,True,True,True,True
+Shimla,R² Score (Non-zero),Wind Direction,True,True,True,True
+Shimla,R² Score (Non-zero),Wind Speed,True,True,True,True
+Shimla,R² Score (Non-zero),Relative Humidity,True,True,True,True
+Shimla,R² Score (Non-zero),Temperature,True,True,True,True
+Shimla,R² Score (Non-zero),meteorological_only,True,True,True,True
+Shimla,R² Score (Non-zero),Precipitable Water,True,True,True,True
+Shimla,R² Score (Non-zero),Pressure,True,True,True,True
+Shimla,Mean Squared Error (All),ghi_only,True,True,True,True
+Shimla,Mean Squared Error (All),all,True,True,True,True
+Shimla,Mean Squared Error (All),Wind Direction,True,True,True,True
+Shimla,Mean Squared Error (All),Wind Speed,True,True,True,True
+Shimla,Mean Squared Error (All),Relative Humidity,True,True,True,True
+Shimla,Mean Squared Error (All),Temperature,True,True,True,True
+Shimla,Mean Squared Error (All),meteorological_only,True,True,True,True
+Shimla,Mean Squared Error (All),Precipitable Water,True,True,True,True
+Shimla,Mean Squared Error (All),Pressure,True,True,True,True
+Shimla,Mean Squared Percentage Error (Non-zero),ghi_only,True,True,True,True
+Shimla,Mean Squared Percentage Error (Non-zero),all,True,True,True,True
+Shimla,Mean Squared Percentage Error (Non-zero),Wind Direction,True,True,True,True
+Shimla,Mean Squared Percentage Error (Non-zero),Wind Speed,True,True,True,True
+Shimla,Mean Squared Percentage Error (Non-zero),Relative Humidity,True,True,True,True
+Shimla,Mean Squared Percentage Error (Non-zero),Temperature,True,True,True,True
+Shimla,Mean Squared Percentage Error (Non-zero),meteorological_only,True,True,True,True
+Shimla,Mean Squared Percentage Error (Non-zero),Precipitable Water,True,True,True,True
+Shimla,Mean Squared Percentage Error (Non-zero),Pressure,True,True,True,True
+Shimla,Non-zero Values Percentage,ghi_only,True,True,True,True
+Shimla,Non-zero Values Percentage,all,True,True,True,True
+Shimla,Non-zero Values Percentage,Wind Direction,True,True,True,True
+Shimla,Non-zero Values Percentage,Wind Speed,True,True,True,True
+Shimla,Non-zero Values Percentage,Relative Humidity,True,True,True,True
+Shimla,Non-zero Values Percentage,Temperature,True,True,True,True
+Shimla,Non-zero Values Percentage,meteorological_only,True,True,True,True
+Shimla,Non-zero Values Percentage,Precipitable Water,True,True,True,True
+Shimla,Non-zero Values Percentage,Pressure,True,True,True,True
+Srinagar,Root Mean Squared Error (Non-zero),ghi_only,True,True,True,True
+Srinagar,Root Mean Squared Error (Non-zero),all,True,True,True,True
+Srinagar,Root Mean Squared Error (Non-zero),Wind Direction,True,True,True,True
+Srinagar,Root Mean Squared Error (Non-zero),Wind Speed,True,True,True,True
+Srinagar,Root Mean Squared Error (Non-zero),Relative Humidity,True,True,True,True
+Srinagar,Root Mean Squared Error (Non-zero),Temperature,True,True,True,True
+Srinagar,Root Mean Squared Error (Non-zero),meteorological_only,True,True,True,True
+Srinagar,Root Mean Squared Error (Non-zero),Precipitable Water,True,True,True,True
+Srinagar,Root Mean Squared Error (Non-zero),Pressure,True,True,True,True
+Srinagar,Mean Absolute Error (All),ghi_only,True,True,True,True
+Srinagar,Mean Absolute Error (All),all,True,True,True,True
+Srinagar,Mean Absolute Error (All),Wind Direction,True,True,True,True
+Srinagar,Mean Absolute Error (All),Wind Speed,True,True,True,True
+Srinagar,Mean Absolute Error (All),Relative Humidity,True,True,True,True
+Srinagar,Mean Absolute Error (All),Temperature,True,True,True,True
+Srinagar,Mean Absolute Error (All),meteorological_only,True,True,True,True
+Srinagar,Mean Absolute Error (All),Precipitable Water,True,True,True,True
+Srinagar,Mean Absolute Error (All),Pressure,True,True,True,True
+Srinagar,Root Mean Squared Error (All),ghi_only,True,True,True,True
+Srinagar,Root Mean Squared Error (All),all,True,True,True,True
+Srinagar,Root Mean Squared Error (All),Wind Direction,True,True,True,True
+Srinagar,Root Mean Squared Error (All),Wind Speed,True,True,True,True
+Srinagar,Root Mean Squared Error (All),Relative Humidity,True,True,True,True
+Srinagar,Root Mean Squared Error (All),Temperature,True,True,True,True
+Srinagar,Root Mean Squared Error (All),meteorological_only,True,True,True,True
+Srinagar,Root Mean Squared Error (All),Precipitable Water,True,True,True,True
+Srinagar,Root Mean Squared Error (All),Pressure,True,True,True,True
+Srinagar,Mean Absolute Error (Non-zero),ghi_only,True,True,True,True
+Srinagar,Mean Absolute Error (Non-zero),all,True,True,True,True
+Srinagar,Mean Absolute Error (Non-zero),Wind Direction,True,True,True,True
+Srinagar,Mean Absolute Error (Non-zero),Wind Speed,True,True,True,True
+Srinagar,Mean Absolute Error (Non-zero),Relative Humidity,True,True,True,True
+Srinagar,Mean Absolute Error (Non-zero),Temperature,True,True,True,True
+Srinagar,Mean Absolute Error (Non-zero),meteorological_only,True,True,True,True
+Srinagar,Mean Absolute Error (Non-zero),Precipitable Water,True,True,True,True
+Srinagar,Mean Absolute Error (Non-zero),Pressure,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (Non-zero),ghi_only,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (Non-zero),all,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (Non-zero),Wind Direction,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (Non-zero),Wind Speed,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (Non-zero),Relative Humidity,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (Non-zero),Temperature,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (Non-zero),meteorological_only,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (Non-zero),Precipitable Water,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (Non-zero),Pressure,True,True,True,True
+Srinagar,Mean Squared Error (Non-zero),ghi_only,True,True,True,True
+Srinagar,Mean Squared Error (Non-zero),all,True,True,True,True
+Srinagar,Mean Squared Error (Non-zero),Wind Direction,True,True,True,True
+Srinagar,Mean Squared Error (Non-zero),Wind Speed,True,True,True,True
+Srinagar,Mean Squared Error (Non-zero),Relative Humidity,True,True,True,True
+Srinagar,Mean Squared Error (Non-zero),Temperature,True,True,True,True
+Srinagar,Mean Squared Error (Non-zero),meteorological_only,True,True,True,True
+Srinagar,Mean Squared Error (Non-zero),Precipitable Water,True,True,True,True
+Srinagar,Mean Squared Error (Non-zero),Pressure,True,True,True,True
+Srinagar,R² Score (All),ghi_only,True,True,True,True
+Srinagar,R² Score (All),all,True,True,True,True
+Srinagar,R² Score (All),Wind Direction,True,True,True,True
+Srinagar,R² Score (All),Wind Speed,True,True,True,True
+Srinagar,R² Score (All),Relative Humidity,True,True,True,True
+Srinagar,R² Score (All),Temperature,True,True,True,True
+Srinagar,R² Score (All),meteorological_only,True,True,True,True
+Srinagar,R² Score (All),Precipitable Water,True,True,True,True
+Srinagar,R² Score (All),Pressure,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (All),ghi_only,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (All),all,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (All),Wind Direction,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (All),Wind Speed,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (All),Relative Humidity,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (All),Temperature,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (All),meteorological_only,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (All),Precipitable Water,True,True,True,True
+Srinagar,Mean Absolute Percentage Error (All),Pressure,True,True,True,True
+Srinagar,Mean Squared Percentage Error (All),ghi_only,True,True,True,True
+Srinagar,Mean Squared Percentage Error (All),all,True,True,True,True
+Srinagar,Mean Squared Percentage Error (All),Wind Direction,True,True,True,True
+Srinagar,Mean Squared Percentage Error (All),Wind Speed,True,True,True,True
+Srinagar,Mean Squared Percentage Error (All),Relative Humidity,True,True,True,True
+Srinagar,Mean Squared Percentage Error (All),Temperature,True,True,True,True
+Srinagar,Mean Squared Percentage Error (All),meteorological_only,True,True,True,True
+Srinagar,Mean Squared Percentage Error (All),Precipitable Water,True,True,True,True
+Srinagar,Mean Squared Percentage Error (All),Pressure,True,True,True,True
+Srinagar,R² Score (Non-zero),ghi_only,True,True,True,True
+Srinagar,R² Score (Non-zero),all,True,True,True,True
+Srinagar,R² Score (Non-zero),Wind Direction,True,True,True,True
+Srinagar,R² Score (Non-zero),Wind Speed,True,True,True,True
+Srinagar,R² Score (Non-zero),Relative Humidity,True,True,True,True
+Srinagar,R² Score (Non-zero),Temperature,True,True,True,True
+Srinagar,R² Score (Non-zero),meteorological_only,True,True,True,True
+Srinagar,R² Score (Non-zero),Precipitable Water,True,True,True,True
+Srinagar,R² Score (Non-zero),Pressure,True,True,True,True
+Srinagar,Mean Squared Error (All),ghi_only,True,True,True,True
+Srinagar,Mean Squared Error (All),all,True,True,True,True
+Srinagar,Mean Squared Error (All),Wind Direction,True,True,True,True
+Srinagar,Mean Squared Error (All),Wind Speed,True,True,True,True
+Srinagar,Mean Squared Error (All),Relative Humidity,True,True,True,True
+Srinagar,Mean Squared Error (All),Temperature,True,True,True,True
+Srinagar,Mean Squared Error (All),meteorological_only,True,True,True,True
+Srinagar,Mean Squared Error (All),Precipitable Water,True,True,True,True
+Srinagar,Mean Squared Error (All),Pressure,True,True,True,True
+Srinagar,Mean Squared Percentage Error (Non-zero),ghi_only,True,True,True,True
+Srinagar,Mean Squared Percentage Error (Non-zero),all,True,True,True,True
+Srinagar,Mean Squared Percentage Error (Non-zero),Wind Direction,True,True,True,True
+Srinagar,Mean Squared Percentage Error (Non-zero),Wind Speed,True,True,True,True
+Srinagar,Mean Squared Percentage Error (Non-zero),Relative Humidity,True,True,True,True
+Srinagar,Mean Squared Percentage Error (Non-zero),Temperature,True,True,True,True
+Srinagar,Mean Squared Percentage Error (Non-zero),meteorological_only,True,True,True,True
+Srinagar,Mean Squared Percentage Error (Non-zero),Precipitable Water,True,True,True,True
+Srinagar,Mean Squared Percentage Error (Non-zero),Pressure,True,True,True,True
+Srinagar,Non-zero Values Percentage,ghi_only,True,True,True,True
+Srinagar,Non-zero Values Percentage,all,True,True,True,True
+Srinagar,Non-zero Values Percentage,Wind Direction,True,True,True,True
+Srinagar,Non-zero Values Percentage,Wind Speed,True,True,True,True
+Srinagar,Non-zero Values Percentage,Relative Humidity,True,True,True,True
+Srinagar,Non-zero Values Percentage,Temperature,True,True,True,True
+Srinagar,Non-zero Values Percentage,meteorological_only,True,True,True,True
+Srinagar,Non-zero Values Percentage,Precipitable Water,True,True,True,True
+Srinagar,Non-zero Values Percentage,Pressure,True,True,True,True
