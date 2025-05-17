@@ -106,7 +106,9 @@ def load_all_data(locations):
     all_dfs = []
     
     for city in locations.keys():
-        print(f"\nLoading data for {city}...")
+        print(f"\n{'='*60}")
+        print(f"Loading data for {city}")
+        print(f"{'='*60}")
         try:
             # Use existing load_data function
             df = load_data(locations, city)
@@ -114,11 +116,22 @@ def load_all_data(locations):
             # Add location identifier
             df['location'] = city
             
+            # Print detailed information about the loaded data
+            print(f"\nData loaded for {city}:")
+            print(f"Number of rows: {len(df)}")
+            print(f"Date range: {df['datetime'].min()} to {df['datetime'].max()}")
+            print(f"Columns: {df.columns.tolist()}")
+            print(f"Memory usage: {df.memory_usage().sum() / 1024 / 1024:.2f} MB")
+            
             all_dfs.append(df)
             print(f"✓ Successfully loaded {len(df)} rows for {city}")
             
         except Exception as e:
-            print(f"× Error loading data for {city}: {str(e)}")
+            print(f"× Error loading data for {city}:")
+            print(str(e))
+            import traceback
+            print("\nFull traceback:")
+            print(traceback.format_exc())
             continue
     
     if not all_dfs:
@@ -143,21 +156,38 @@ def create_joint_features(df):
     """
     print("\nCreating joint features...")
     print(f"Initial shape: {df.shape}")
+    print(f"Initial locations: {df['location'].unique()}")
+    print(f"Initial date range: {df['datetime'].min()} to {df['datetime'].max()}")
+    print(f"Initial rows per location:\n{df['location'].value_counts()}")
+    print(f"Initial memory usage: {df.memory_usage().sum() / 1024 / 1024:.2f} MB")
     
     # Create time-based features
+    print("\nCreating time-based features...")
     df["hour_sin"] = np.sin(2 * np.pi * df["Hour"] / 24)
     df["hour_cos"] = np.cos(2 * np.pi * df["Hour"] / 24)
     df["month_sin"] = np.sin(2 * np.pi * df["Month"] / 12)
     df["month_cos"] = np.cos(2 * np.pi * df["Month"] / 12)
+    print("✓ Time-based features created")
+    print(f"Shape after time features: {df.shape}")
+    print(f"Rows per location after time features:\n{df['location'].value_counts()}")
     
     # Create target: GHI for next day at the same hour
+    print("\nCreating target variable...")
     df["target_GHI"] = df["GHI"].shift(-24)
+    print("✓ Target variable created")
+    print(f"Shape after target creation: {df.shape}")
+    print(f"Rows per location after target creation:\n{df['location'].value_counts()}")
     
     # Create lag features for previous 24 hours of GHI
+    print("\nCreating GHI lag features...")
     for lag in range(1, 25):
         df[f"GHI_lag_{lag}"] = df["GHI"].shift(lag)
+    print("✓ GHI lag features created")
+    print(f"Shape after GHI lag features: {df.shape}")
+    print(f"Rows per location after GHI lag features:\n{df['location'].value_counts()}")
     
     # Create lag features for meteorological variables
+    print("\nCreating meteorological lag features...")
     meteorological_features = [
         "Temperature", "Relative Humidity", "Pressure",
         "Precipitable Water", "Wind Direction", "Wind Speed"
@@ -165,8 +195,12 @@ def create_joint_features(df):
     
     for feature in meteorological_features:
         df[f"{feature}_lag_24"] = df[feature].shift(24)
+    print("✓ Meteorological lag features created")
+    print(f"Shape after meteorological features: {df.shape}")
+    print(f"Rows per location after meteorological features:\n{df['location'].value_counts()}")
     
     # Create location-specific features
+    print("\nCreating location features...")
     # One-hot encode location
     encoder = OneHotEncoder(sparse_output=False)
     location_encoded = encoder.fit_transform(df[['location']])
@@ -175,26 +209,43 @@ def create_joint_features(df):
     
     # Combine with original data
     df = pd.concat([df, location_df], axis=1)
+    print("✓ Location features created")
+    print(f"Shape after location features: {df.shape}")
+    print(f"Rows per location after location features:\n{df['location'].value_counts()}")
     
     # Drop rows with missing values
-    df_clean = df.dropna().reset_index(drop=True)
-    print(f"Shape after cleaning: {df_clean.shape}")
-    print(f"Features created: {df_clean.columns.tolist()}")
+    print("\nCleaning data...")
+    print(f"Shape before cleaning: {df.shape}")
+    print(f"Missing values per column:\n{df.isnull().sum()}")
+    print(f"Rows per location before cleaning:\n{df['location'].value_counts()}")
     
+    df_clean = df.dropna().reset_index(drop=True)
+    
+    print(f"\nShape after cleaning: {df_clean.shape}")
+    print(f"Rows per location after cleaning:\n{df_clean['location'].value_counts()}")
+    print(f"Date range after cleaning: {df_clean['datetime'].min()} to {df_clean['datetime'].max()}")
+    print(f"Missing values after cleaning:\n{df_clean.isnull().sum()}")
+    print(f"Memory usage after cleaning: {df_clean.memory_usage().sum() / 1024 / 1024:.2f} MB")
+    
+    print(f"\nFeatures created: {df_clean.columns.tolist()}")
     return df_clean
 
-def split_and_scale_joint_data(df, feature_combination="all"):
+def split_and_scale_joint_data(df, locations, sequence_length=24, target_column="GHI"):
     """
-    Split and scale data for joint training.
+    Split and scale the data for joint model training.
     
     Args:
-        df: Combined DataFrame
-        feature_combination: String specifying which features to use
+        df: DataFrame with all data
+        locations: List of locations
+        sequence_length: Length of input sequences
+        target_column: Name of target column
     
     Returns:
-        tuple: (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler
+        tuple: (X_train, y_train, X_val, y_val, X_test, y_test, target_scaler)
     """
-    print("\nSplitting and scaling joint data...")
+    print("\nSplitting and scaling data:")
+    print(f"Total samples: {len(df)}")
+    print(f"Locations: {locations}")
     
     # Split data by year
     df_train = df[df["Year"].isin([2017, 2018])].copy()
@@ -203,95 +254,38 @@ def split_and_scale_joint_data(df, feature_combination="all"):
     df_val = df_2019.iloc[:split_index].copy()
     df_test = df_2019.iloc[split_index:].copy()
     
-    print(f"Training set size: {len(df_train)}")
-    print(f"Validation set size: {len(df_val)}")
-    print(f"Test set size: {len(df_test)}")
+    print("\nSplit sizes:")
+    print(f"Train: {len(df_train)} samples")
+    print(f"Validation: {len(df_val)} samples")
+    print(f"Test: {len(df_test)} samples")
     
-    # Define feature groups
-    ghi_features = ["GHI"] + [f"GHI_lag_{lag}" for lag in range(1, 25)]
-    meteorological_features = {
-        "Temperature": ["Temperature_lag_24"],
-        "Relative Humidity": ["Relative Humidity_lag_24"],
-        "Pressure": ["Pressure_lag_24"],
-        "Precipitable Water": ["Precipitable Water_lag_24"],
-        "Wind Direction": ["Wind Direction_lag_24"],
-        "Wind Speed": ["Wind Speed_lag_24"]
-    }
-    location_features = [col for col in df.columns if col.startswith("location_")]
+    # Print location distribution in each split
+    for split_name, split_df in [("Train", df_train), ("Validation", df_val), ("Test", df_test)]:
+        print(f"\n{split_name} split location distribution:")
+        for location in locations:
+            count = len(split_df[split_df["location"] == location])
+            print(f"{location}: {count} samples")
     
-    # Select features based on combination
-    if feature_combination == "ghi_only":
-        selected_features = ghi_features + location_features
-    elif feature_combination == "meteorological_only":
-        selected_features = [f for features in meteorological_features.values() for f in features] + location_features
-    elif feature_combination in meteorological_features:
-        selected_features = ghi_features + meteorological_features[feature_combination] + location_features
-    elif feature_combination == "all":
-        selected_features = (ghi_features + 
-                           [f for features in meteorological_features.values() for f in features] + 
-                           location_features)
-    else:
-        raise ValueError(f"Invalid feature combination: {feature_combination}")
+    # Scale target values
+    target_scaler = MinMaxScaler()
+    df_train[target_column] = target_scaler.fit_transform(df_train[[target_column]])
+    df_val[target_column] = target_scaler.transform(df_val[[target_column]])
+    df_test[target_column] = target_scaler.transform(df_test[[target_column]])
     
-    print(f"Selected features: {selected_features}")
+    # Create sequences for each location
+    X_train, y_train = create_sequences_joint(df_train, locations, sequence_length, target_column)
+    X_val, y_val = create_sequences_joint(df_val, locations, sequence_length, target_column)
+    X_test, y_test = create_sequences_joint(df_test, locations, sequence_length, target_column)
     
-    try:
-        # Initialize scalers
-        ghi_scaler = MinMaxScaler(feature_range=CONFIG["feature_ranges"]["ghi"])
-        meteorological_scaler = MinMaxScaler(feature_range=CONFIG["feature_ranges"]["meteorological"])
-        target_scaler = MinMaxScaler(feature_range=CONFIG["feature_ranges"]["ghi"])
-        
-        # Scale features
-        for df_split in [df_train, df_val, df_test]:
-            if df_split is df_train:
-                print("\nFitting and transforming training data...")
-                # Scale GHI features
-                df_split.loc[:, ghi_features] = ghi_scaler.fit_transform(df_split[ghi_features])
-                
-                # Scale meteorological features if needed
-                if feature_combination != "ghi_only":
-                    met_features = [f for f in selected_features if f not in ghi_features and not f.startswith("location_")]
-                    if met_features:
-                        df_split.loc[:, met_features] = meteorological_scaler.fit_transform(df_split[met_features])
-                
-                # Scale target
-                target_values = df_split["target_GHI"].values.reshape(-1, 1)
-                df_split.loc[:, "target_GHI"] = target_scaler.fit_transform(target_values).ravel()
-            else:
-                print("\nTransforming validation/test data...")
-                # Transform using fitted scalers
-                df_split.loc[:, ghi_features] = ghi_scaler.transform(df_split[ghi_features])
-                
-                # Transform meteorological features if needed
-                if feature_combination != "ghi_only":
-                    met_features = [f for f in selected_features if f not in ghi_features and not f.startswith("location_")]
-                    if met_features:
-                        df_split.loc[:, met_features] = meteorological_scaler.transform(df_split[met_features])
-                
-                # Transform target
-                target_values = df_split["target_GHI"].values.reshape(-1, 1)
-                df_split.loc[:, "target_GHI"] = target_scaler.transform(target_values).ravel()
-        
-        # Prepare features for LSTM
-        feature_columns = [col for col in selected_features 
-                          if col not in ["datetime", "GHI", "target_GHI", "Year", "Month", "Day", "Hour", "Minute", "location"]]
-        
-        print(f"\nFeature columns for LSTM: {feature_columns}")
-        
-        X_train, y_train = prepare_lstm_input(df_train, feature_columns, "target_GHI")
-        X_val, y_val = prepare_lstm_input(df_val, feature_columns, "target_GHI")
-        X_test, y_test = prepare_lstm_input(df_test, feature_columns, "target_GHI")
-        
-        print(f"\nFinal shapes:")
-        print(f"X_train: {X_train.shape}, y_train: {y_train.shape}")
-        print(f"X_val: {X_val.shape}, y_val: {y_val.shape}")
-        print(f"X_test: {X_test.shape}, y_test: {y_test.shape}")
-        
-        return (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler
+    print("\nFinal sequence shapes:")
+    print(f"X_train: {X_train.shape}")
+    print(f"y_train: {y_train.shape}")
+    print(f"X_val: {X_val.shape}")
+    print(f"y_val: {y_val.shape}")
+    print(f"X_test: {X_test.shape}")
+    print(f"y_test: {y_test.shape}")
     
-    except Exception as e:
-        print(f"Error in split_and_scale_joint_data: {str(e)}")
-        raise
+    return X_train, y_train, X_val, y_val, X_test, y_test, target_scaler
 
 def create_joint_model(input_shape):
     """Create and compile the joint LSTM model."""
@@ -342,6 +336,8 @@ def evaluate_joint_model(model, X_test, y_test, target_scaler, locations):
     
     print("\nEvaluating model for each location:")
     print(f"Total test samples: {len(X_test)}")
+    print(f"Location columns shape: {location_columns.shape}")
+    print(f"Available locations: {locations}")
     
     for i, location in enumerate(locations):
         # Get test data for this location using the one-hot encoded location columns
@@ -351,32 +347,104 @@ def evaluate_joint_model(model, X_test, y_test, target_scaler, locations):
         
         print(f"\nLocation: {location}")
         print(f"Number of test samples: {len(X_loc)}")
+        print(f"Location mask sum: {np.sum(location_mask)}")
         
         if len(X_loc) == 0:
             print(f"Warning: No test data for {location}")
+            print(f"Location mask statistics:")
+            print(f"- Total samples: {len(location_mask)}")
+            print(f"- True values: {np.sum(location_mask)}")
+            print(f"- False values: {len(location_mask) - np.sum(location_mask)}")
             continue
         
-        # Make predictions
-        y_pred = model.predict(X_loc)
-        y_pred_rescaled = target_scaler.inverse_transform(y_pred.reshape(-1, 1)).ravel()
-        y_test_rescaled = target_scaler.inverse_transform(y_loc.reshape(-1, 1)).ravel()
-        
-        # Calculate metrics
-        metrics = evaluate_model(y_test_rescaled, y_pred_rescaled)
-        results[location] = metrics
-        
-        print(f"Results for {location}:")
-        for metric_name, metric_value in metrics.items():
-            print(f"✅ {metric_name}: {metric_value:.4f}")
+        try:
+            # Make predictions
+            y_pred = model.predict(X_loc)
+            y_pred_rescaled = target_scaler.inverse_transform(y_pred.reshape(-1, 1)).ravel()
+            y_test_rescaled = target_scaler.inverse_transform(y_loc.reshape(-1, 1)).ravel()
+            
+            # Calculate metrics
+            metrics = evaluate_model(y_test_rescaled, y_pred_rescaled)
+            results[location] = metrics
+            
+            print(f"Results for {location}:")
+            for metric_name, metric_value in metrics.items():
+                print(f"✅ {metric_name}: {metric_value:.4f}")
+                
+        except Exception as e:
+            print(f"Error evaluating {location}: {str(e)}")
+            print(f"X_loc shape: {X_loc.shape}")
+            print(f"y_loc shape: {y_loc.shape}")
+            continue
     
     return results
 
-def main(skip_training=False):
+def create_sequences_joint(df, locations, sequence_length, target_column):
+    """
+    Create sequences for joint model training.
+    
+    Args:
+        df: DataFrame with data
+        locations: List of locations
+        sequence_length: Length of input sequences
+        target_column: Name of target column
+    
+    Returns:
+        tuple: (X, y) where X is the input sequences and y is the target values
+    """
+    print(f"\nCreating sequences for {len(df)} samples")
+    print(f"Locations: {locations}")
+    
+    # Initialize lists to store sequences
+    X_sequences = []
+    y_sequences = []
+    
+    # Group data by location
+    for location in locations:
+        df_loc = df[df["location"] == location].copy()
+        print(f"\nProcessing {location}:")
+        print(f"Number of samples: {len(df_loc)}")
+        
+        if len(df_loc) == 0:
+            print(f"Warning: No data for {location}")
+            continue
+        
+        # Create sequences for this location
+        for i in range(len(df_loc) - sequence_length):
+            # Get sequence of features
+            sequence = df_loc.iloc[i:i + sequence_length]
+            
+            # Create one-hot encoded location vector
+            location_vector = np.zeros(len(locations))
+            location_vector[locations.index(location)] = 1
+            
+            # Combine features with location encoding
+            features = sequence[target_column].values
+            features = np.column_stack([features, np.tile(location_vector, (sequence_length, 1))])
+            
+            # Get target value
+            target = df_loc.iloc[i + sequence_length][target_column]
+            
+            X_sequences.append(features)
+            y_sequences.append(target)
+    
+    # Convert to numpy arrays
+    X = np.array(X_sequences)
+    y = np.array(y_sequences)
+    
+    print(f"\nFinal sequence shapes:")
+    print(f"X: {X.shape}")
+    print(f"y: {y.shape}")
+    
+    return X, y
+
+def main(skip_training=False, debug_data_loading=False):
     """
     Main execution function for joint training.
     
     Args:
         skip_training (bool): If True, load pre-trained model instead of training new one
+        debug_data_loading (bool): If True, stop after data loading for debugging
     """
     # Set random seeds for reproducibility
     np.random.seed(CONFIG["random_seed"])
@@ -413,6 +481,11 @@ def main(skip_training=False):
     try:
         df = load_all_data(CONFIG["data_locations"])
         print("✓ Data loaded successfully")
+        
+        if debug_data_loading:
+            print("\nDebug mode: Stopping after data loading")
+            return
+            
     except Exception as e:
         print(f"× Error loading data: {str(e)}")
         return
@@ -438,7 +511,7 @@ def main(skip_training=False):
             
             # Split and scale data
             print("\nSplitting and scaling data...")
-            (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler = split_and_scale_joint_data(df_features, feature_combo)
+            (X_train, y_train, X_val, y_val, X_test, y_test, target_scaler) = split_and_scale_joint_data(df_features, locations)
             
             # Create and train model
             print("\nCreating model...")
@@ -563,6 +636,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='GHI Forecasting using Joint LSTM')
     parser.add_argument('--skip-training', action='store_true',
                       help='Skip training and load pre-trained models')
+    parser.add_argument('--debug-data', action='store_true',
+                      help='Stop after data loading for debugging')
     args = parser.parse_args()
     
-    main(skip_training=args.skip_training) 
+    main(skip_training=args.skip_training, debug_data_loading=args.debug_data) 
