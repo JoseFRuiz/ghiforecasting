@@ -41,7 +41,7 @@ export TF_DISABLE_SEGMENT_REDUCTION_OP_DETERMINISM_EXCEPTIONS=1
 
 # Activate conda env
 source ~/.bashrc
-source activate ghifo_py39
+source activate ghifo_py38  # Changed to new environment
 
 # Print environment information
 echo "CUDA_HOME: $CUDA_HOME"
@@ -53,6 +53,7 @@ echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
 nvidia-smi
 echo "Python version: $(python --version)"
 echo "TensorFlow version: $(python -c 'import tensorflow as tf; print(tf.__version__)')"
+echo "GPU Available: $(python -c 'import tensorflow as tf; print(tf.config.list_physical_devices(\"GPU\"))')"
 echo "CUDA version: $(python -c 'import tensorflow as tf; print(tf.sysconfig.get_build_info()[\"cuda_version\"])')"
 echo "cuDNN version: $(python -c 'import tensorflow as tf; print(tf.sysconfig.get_build_info()[\"cudnn_version\"])')"
 
