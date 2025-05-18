@@ -23,14 +23,9 @@ echo "Directory = $(pwd)"
 module purge
 module load cudnn/9.6.0
 
-# Set up CUDA environment manually
-export CUDA_HOME=/apps/compilers/cuda/11.6
-export PATH=$CUDA_HOME/bin:$PATH
-export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
-
-# Set up cuDNN environment
-export CUDNN_HOME=$HPC_cuDNN_DIR
-export LD_LIBRARY_PATH=$CUDNN_HOME/lib:$LD_LIBRARY_PATH
+# Print loaded modules
+echo "Loaded modules:"
+module list
 
 # Set environment variables for GPU
 export CUDA_VISIBLE_DEVICES=0
