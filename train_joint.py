@@ -508,48 +508,38 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
         valid_sequences = 0
         skipped_sequences = 0
         
+        # Create one-hot encoded location vector
+        location_vector = np.zeros(len(locations))
+        location_vector[locations.index(location)] = 1
+        
         # Calculate the maximum index that allows for a complete sequence
         max_index = len(df_loc) - sequence_length - 1  # -1 to ensure we have a target value
         
+        # Create sequences using rolling window approach
         for i in range(max_index):
-            # Get sequence of features
-            sequence = df_loc.iloc[i:i + sequence_length]
+            # Get sequence window
+            sequence_window = df_loc.iloc[i:i + sequence_length]
+            target_window = df_loc.iloc[i + sequence_length:i + sequence_length + 1]
             
-            # Verify chronological order
-            if not sequence['datetime'].is_monotonic_increasing:
-                print(f"Warning: Non-chronological sequence found at index {i}")
+            # Skip if any data is missing
+            if sequence_window.isnull().any().any() or target_window.isnull().any().any():
                 skipped_sequences += 1
                 continue
             
-            # Check if sequence has any missing values
-            if sequence.isnull().any().any():
+            # Get sequence features and target
+            sequence_features = sequence_window[target_column].values
+            target_value = target_window[target_column].values[0]
+            
+            # Skip if target value is zero (night time)
+            if target_value == 0:
                 skipped_sequences += 1
                 continue
             
-            # Create one-hot encoded location vector
-            location_vector = np.zeros(len(locations))
-            location_vector[locations.index(location)] = 1
-            
-            # Get target value (next value after sequence)
-            target = df_loc.iloc[i + sequence_length][target_column]
-            
-            # Skip if target value is missing
-            if pd.isna(target):
-                skipped_sequences += 1
-                continue
-            
-            # Combine features with location encoding
-            features = sequence[target_column].values
-            features = np.column_stack([features, np.tile(location_vector, (sequence_length, 1))])
-            
-            # Verify target value is not in the sequence
-            if target in features[:, 0]:
-                print(f"Warning: Target value found in sequence at index {i}")
-                skipped_sequences += 1
-                continue
+            # Create feature matrix with location encoding
+            features = np.column_stack([sequence_features, np.tile(location_vector, (sequence_length, 1))])
             
             X_sequences.append(features)
-            y_sequences.append(target)
+            y_sequences.append(target_value)
             valid_sequences += 1
         
         print(f"Created {valid_sequences} valid sequences for {location}")
