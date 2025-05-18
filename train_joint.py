@@ -11,12 +11,30 @@ from io import StringIO
 import matplotlib
 matplotlib.use('Agg')  # Set non-interactive backend
 import matplotlib.pyplot as plt
+import datetime
 
 # Import Comet.ml first
 from comet_ml import Experiment
 
-# Then import ML libraries
+# Configure TensorFlow to use GPU if available
 import tensorflow as tf
+
+# Check for GPU availability and configure
+physical_devices = tf.config.list_physical_devices('GPU')
+if physical_devices:
+    try:
+        # Enable memory growth to avoid allocating all GPU memory at once
+        for device in physical_devices:
+            tf.config.experimental.set_memory_growth(device, True)
+        print(f"Found {len(physical_devices)} GPU(s):")
+        for device in physical_devices:
+            print(f"  - {device}")
+    except RuntimeError as e:
+        print(f"Error configuring GPU: {e}")
+else:
+    print("No GPU devices found. Running on CPU.")
+
+# Then import ML libraries
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout, Embedding, Concatenate, Input
@@ -123,6 +141,15 @@ def load_all_data(locations):
             print(f"Columns: {df.columns.tolist()}")
             print(f"Memory usage: {df.memory_usage().sum() / 1024 / 1024:.2f} MB")
             
+            # Check for missing values
+            missing_values = df.isnull().sum()
+            print(f"\nMissing values per column:")
+            print(missing_values[missing_values > 0])
+            
+            # Check for zero values in GHI
+            zero_ghi = (df['GHI'] == 0).sum()
+            print(f"\nZero GHI values: {zero_ghi} ({zero_ghi/len(df)*100:.2f}%)")
+            
             all_dfs.append(df)
             print(f"✓ Successfully loaded {len(df)} rows for {city}")
             
@@ -141,6 +168,16 @@ def load_all_data(locations):
     combined_df = pd.concat(all_dfs, ignore_index=True)
     print(f"\n✓ Combined dataset: {len(combined_df)} total rows")
     print(f"Locations: {combined_df['location'].unique().tolist()}")
+    
+    # Print summary statistics for each location
+    print("\nSummary statistics by location:")
+    for location in combined_df['location'].unique():
+        loc_df = combined_df[combined_df['location'] == location]
+        print(f"\n{location}:")
+        print(f"Number of rows: {len(loc_df)}")
+        print(f"Date range: {loc_df['datetime'].min()} to {loc_df['datetime'].max()}")
+        print(f"Zero GHI values: {(loc_df['GHI'] == 0).sum()} ({(loc_df['GHI'] == 0).sum()/len(loc_df)*100:.2f}%)")
+        print(f"Missing values: {loc_df.isnull().sum().sum()}")
     
     return combined_df
 
@@ -292,13 +329,20 @@ def create_joint_model(input_shape):
     # Clear any existing models/layers in memory
     tf.keras.backend.clear_session()
     
+    # Set mixed precision policy for better GPU performance
+    policy = tf.keras.mixed_precision.Policy('mixed_float16')
+    tf.keras.mixed_precision.set_global_policy(policy)
+    
     # Create a more complex model to handle the larger combined dataset
     model = Sequential([
-        LSTM(128, return_sequences=True, input_shape=input_shape),
+        LSTM(128, return_sequences=True, input_shape=input_shape, 
+             kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal'),
         Dropout(CONFIG["model_params"]["dropout_rate"]),
-        LSTM(64, return_sequences=True),
+        LSTM(64, return_sequences=True,
+             kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal'),
         Dropout(CONFIG["model_params"]["dropout_rate"]),
-        LSTM(32, return_sequences=False),
+        LSTM(32, return_sequences=False,
+             kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal'),
         Dropout(CONFIG["model_params"]["dropout_rate"]),
         Dense(32, activation="relu"),
         Dense(16, activation="relu"),
@@ -308,74 +352,93 @@ def create_joint_model(input_shape):
     # Create loss instance with explicit name
     mse_loss = tf.keras.losses.MeanSquaredError(name='mean_squared_error')
     
+    # Use Adam optimizer with learning rate schedule
+    initial_learning_rate = 0.001
+    lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+        initial_learning_rate,
+        decay_steps=1000,
+        decay_rate=0.9,
+        staircase=True)
+    
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
+    
     model.compile(
-        optimizer='adam',
+        optimizer=optimizer,
         loss=mse_loss,
         metrics=['mae', 'mse']
     )
+    
     return model
 
-def evaluate_joint_model(model, X_test, y_test, target_scaler, locations):
+def evaluate_joint_model(model, test_data, locations, sequence_length, target_column):
     """
-    Evaluate the joint model on each location separately.
+    Evaluate the model on each location separately.
     
     Args:
         model: Trained model
-        X_test: Test features
-        y_test: Test targets
-        target_scaler: Scaler for target values
+        test_data: DataFrame with test data
         locations: List of locations
+        sequence_length: Length of input sequences
+        target_column: Name of target column
     
     Returns:
-        dict: Dictionary of metrics per location
+        dict: Dictionary with metrics for each location
     """
+    print("\nEvaluating model on test data...")
+    print(f"Test data shape: {test_data.shape}")
+    print(f"Locations: {locations}")
+    
     results = {}
     
-    # Get the location columns (they are the last len(locations) columns in the input)
-    location_columns = X_test[:, 0, -len(locations):]
-    
-    print("\nEvaluating model for each location:")
-    print(f"Total test samples: {len(X_test)}")
-    print(f"Location columns shape: {location_columns.shape}")
-    print(f"Available locations: {locations}")
-    
-    for i, location in enumerate(locations):
-        # Get test data for this location using the one-hot encoded location columns
-        location_mask = location_columns[:, i] == 1
-        X_loc = X_test[location_mask]
-        y_loc = y_test[location_mask]
+    for location in locations:
+        print(f"\nEvaluating {location}:")
+        df_loc = test_data[test_data["location"] == location].copy()
+        print(f"Number of test samples: {len(df_loc)}")
         
-        print(f"\nLocation: {location}")
-        print(f"Number of test samples: {len(X_loc)}")
-        print(f"Location mask sum: {np.sum(location_mask)}")
-        
-        if len(X_loc) == 0:
+        if len(df_loc) == 0:
             print(f"Warning: No test data for {location}")
-            print(f"Location mask statistics:")
-            print(f"- Total samples: {len(location_mask)}")
-            print(f"- True values: {np.sum(location_mask)}")
-            print(f"- False values: {len(location_mask) - np.sum(location_mask)}")
             continue
         
-        try:
-            # Make predictions
-            y_pred = model.predict(X_loc)
-            y_pred_rescaled = target_scaler.inverse_transform(y_pred.reshape(-1, 1)).ravel()
-            y_test_rescaled = target_scaler.inverse_transform(y_loc.reshape(-1, 1)).ravel()
-            
-            # Calculate metrics
-            metrics = evaluate_model(y_test_rescaled, y_pred_rescaled)
-            results[location] = metrics
-            
-            print(f"Results for {location}:")
-            for metric_name, metric_value in metrics.items():
-                print(f"✅ {metric_name}: {metric_value:.4f}")
-                
-        except Exception as e:
-            print(f"Error evaluating {location}: {str(e)}")
-            print(f"X_loc shape: {X_loc.shape}")
-            print(f"y_loc shape: {y_loc.shape}")
+        # Check for missing values
+        missing_values = df_loc.isnull().sum()
+        if missing_values.any():
+            print(f"Warning: Missing values in {location}:")
+            print(missing_values[missing_values > 0])
+        
+        # Check for zero values in target
+        zero_target = (df_loc[target_column] == 0).sum()
+        print(f"Zero {target_column} values: {zero_target} ({zero_target/len(df_loc)*100:.2f}%)")
+        
+        # Create sequences for evaluation
+        X_test, y_test = create_sequences_joint(df_loc, [location], sequence_length, target_column)
+        
+        if len(X_test) == 0:
+            print(f"Warning: No valid sequences created for {location}")
             continue
+        
+        print(f"Test sequences: {len(X_test)}")
+        
+        # Make predictions
+        y_pred = model.predict(X_test)
+        
+        # Calculate metrics
+        mae = mean_absolute_error(y_test, y_pred)
+        mse = mean_squared_error(y_test, y_pred)
+        rmse = np.sqrt(mse)
+        r2 = r2_score(y_test, y_pred)
+        
+        print(f"Metrics for {location}:")
+        print(f"MAE: {mae:.4f}")
+        print(f"MSE: {mse:.4f}")
+        print(f"RMSE: {rmse:.4f}")
+        print(f"R2: {r2:.4f}")
+        
+        results[location] = {
+            "mae": mae,
+            "mse": mse,
+            "rmse": rmse,
+            "r2": r2
+        }
     
     return results
 
@@ -409,10 +472,28 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
             print(f"Warning: No data for {location}")
             continue
         
+        # Check for missing values
+        missing_values = df_loc.isnull().sum()
+        if missing_values.any():
+            print(f"Warning: Missing values in {location}:")
+            print(missing_values[missing_values > 0])
+        
+        # Check for zero values in target
+        zero_target = (df_loc[target_column] == 0).sum()
+        print(f"Zero {target_column} values: {zero_target} ({zero_target/len(df_loc)*100:.2f}%)")
+        
         # Create sequences for this location
+        valid_sequences = 0
+        skipped_sequences = 0
+        
         for i in range(len(df_loc) - sequence_length):
             # Get sequence of features
             sequence = df_loc.iloc[i:i + sequence_length]
+            
+            # Check if sequence has any missing values
+            if sequence.isnull().any().any():
+                skipped_sequences += 1
+                continue
             
             # Create one-hot encoded location vector
             location_vector = np.zeros(len(locations))
@@ -427,6 +508,11 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
             
             X_sequences.append(features)
             y_sequences.append(target)
+            valid_sequences += 1
+        
+        print(f"Created {valid_sequences} valid sequences for {location}")
+        if skipped_sequences > 0:
+            print(f"Skipped {skipped_sequences} sequences due to missing values")
     
     # Convert to numpy arrays
     X = np.array(X_sequences)
@@ -436,7 +522,70 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
     print(f"X: {X.shape}")
     print(f"y: {y.shape}")
     
+    # Print sequence distribution by location
+    print("\nSequence distribution by location:")
+    for i, location in enumerate(locations):
+        location_mask = X[:, 0, -len(locations):][:, i] == 1
+        print(f"{location}: {np.sum(location_mask)} sequences")
+    
     return X, y
+
+def train_joint_model(model, X_train, y_train, X_val, y_val, batch_size=32, epochs=50):
+    """Train the joint model with early stopping and model checkpointing."""
+    # Create callbacks
+    early_stopping = tf.keras.callbacks.EarlyStopping(
+        monitor='val_loss',
+        patience=10,
+        restore_best_weights=True,
+        verbose=1
+    )
+    
+    # Add learning rate reduction on plateau
+    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
+        monitor='val_loss',
+        factor=0.5,
+        patience=5,
+        min_lr=1e-6,
+        verbose=1
+    )
+    
+    # Add TensorBoard callback for monitoring
+    log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(
+        log_dir=log_dir,
+        histogram_freq=1,
+        write_graph=True
+    )
+    
+    # Create model checkpoint callback
+    checkpoint_path = "models/joint_model_checkpoint.h5"
+    model_checkpoint = tf.keras.callbacks.ModelCheckpoint(
+        checkpoint_path,
+        monitor='val_loss',
+        save_best_only=True,
+        save_weights_only=False,
+        verbose=1
+    )
+    
+    # Calculate steps per epoch
+    steps_per_epoch = len(X_train) // batch_size
+    
+    # Train the model with all callbacks
+    history = model.fit(
+        X_train, y_train,
+        validation_data=(X_val, y_val),
+        epochs=epochs,
+        batch_size=batch_size,
+        callbacks=[
+            early_stopping,
+            reduce_lr,
+            tensorboard_callback,
+            model_checkpoint
+        ],
+        verbose=1
+    )
+    
+    return history, model
 
 def main(skip_training=False, debug_data_loading=False):
     """
@@ -530,13 +679,7 @@ def main(skip_training=False, debug_data_loading=False):
                     continue
             else:
                 print("\nTraining model...")
-                history = model.fit(
-                    X_train, y_train,
-                    epochs=CONFIG["model_params"]["epochs"],
-                    batch_size=CONFIG["model_params"]["batch_size"],
-                    validation_data=(X_val, y_val),
-                    verbose=1
-                )
+                history, model = train_joint_model(model, X_train, y_train, X_val, y_val)
                 
                 # Save model
                 model.save(model_path)
@@ -544,7 +687,7 @@ def main(skip_training=False, debug_data_loading=False):
             
             # Evaluate model
             print("\nEvaluating model...")
-            results = evaluate_joint_model(model, X_test, y_test, target_scaler, locations)
+            results = evaluate_joint_model(model, X_test, locations, 24, "GHI")
             
             # Store results
             all_results['metrics'][feature_combo] = results
