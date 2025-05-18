@@ -348,25 +348,55 @@ def create_joint_model(input_shape):
     # Clear any existing models/layers in memory
     tf.keras.backend.clear_session()
     
-    # Set mixed precision policy for better GPU performance
-    policy = tf.keras.mixed_precision.Policy('mixed_float16')
-    tf.keras.mixed_precision.set_global_policy(policy)
+    try:
+        # Try to set mixed precision policy
+        policy = tf.keras.mixed_precision.Policy('mixed_float16')
+        tf.keras.mixed_precision.set_global_policy(policy)
+    except Exception as e:
+        print(f"Warning: Could not set mixed precision policy: {e}")
+        print("Falling back to float32 precision")
     
-    # Create a more complex model to handle the larger combined dataset
-    model = Sequential([
-        LSTM(128, return_sequences=True, input_shape=input_shape, 
-             kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal'),
-        Dropout(CONFIG["model_params"]["dropout_rate"]),
-        LSTM(64, return_sequences=True,
-             kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal'),
-        Dropout(CONFIG["model_params"]["dropout_rate"]),
-        LSTM(32, return_sequences=False,
-             kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal'),
-        Dropout(CONFIG["model_params"]["dropout_rate"]),
-        Dense(32, activation="relu"),
-        Dense(16, activation="relu"),
-        Dense(1, activation="linear")
-    ])
+    try:
+        # Create model with CuDNN LSTM layers
+        model = Sequential([
+            LSTM(128, return_sequences=True, input_shape=input_shape, 
+                 kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
+                 unroll=True),  # Unroll for better performance
+            Dropout(CONFIG["model_params"]["dropout_rate"]),
+            LSTM(64, return_sequences=True,
+                 kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
+                 unroll=True),
+            Dropout(CONFIG["model_params"]["dropout_rate"]),
+            LSTM(32, return_sequences=False,
+                 kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
+                 unroll=True),
+            Dropout(CONFIG["model_params"]["dropout_rate"]),
+            Dense(32, activation="relu"),
+            Dense(16, activation="relu"),
+            Dense(1, activation="linear")
+        ])
+    except Exception as e:
+        print(f"Warning: Could not create model with CuDNN LSTM: {e}")
+        print("Falling back to standard LSTM implementation")
+        
+        # Create model with standard LSTM layers
+        model = Sequential([
+            LSTM(128, return_sequences=True, input_shape=input_shape, 
+                 kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
+                 implementation=2),  # Use implementation 2 for better compatibility
+            Dropout(CONFIG["model_params"]["dropout_rate"]),
+            LSTM(64, return_sequences=True,
+                 kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
+                 implementation=2),
+            Dropout(CONFIG["model_params"]["dropout_rate"]),
+            LSTM(32, return_sequences=False,
+                 kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
+                 implementation=2),
+            Dropout(CONFIG["model_params"]["dropout_rate"]),
+            Dense(32, activation="relu"),
+            Dense(16, activation="relu"),
+            Dense(1, activation="linear")
+        ])
     
     # Create loss instance with explicit name
     mse_loss = tf.keras.losses.MeanSquaredError(name='mean_squared_error')
@@ -381,11 +411,21 @@ def create_joint_model(input_shape):
     
     optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
     
-    model.compile(
-        optimizer=optimizer,
-        loss=mse_loss,
-        metrics=['mae', 'mse']
-    )
+    # Compile model with fallback options
+    try:
+        model.compile(
+            optimizer=optimizer,
+            loss=mse_loss,
+            metrics=['mae', 'mse']
+        )
+    except Exception as e:
+        print(f"Warning: Could not compile model with default settings: {e}")
+        print("Falling back to basic compilation")
+        model.compile(
+            optimizer='adam',
+            loss='mse',
+            metrics=['mae']
+        )
     
     return model
 
