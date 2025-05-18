@@ -41,7 +41,10 @@ export TF_DISABLE_SEGMENT_REDUCTION_OP_DETERMINISM_EXCEPTIONS=1
 
 # Activate conda env
 source ~/.bashrc
-source activate ghifo_py38  # Changed to new environment
+source activate ghifo_py38
+
+# Install requirements
+# pip install -r requirements.txt
 
 # Print environment information
 echo "CUDA_HOME: $CUDA_HOME"
