@@ -35,6 +35,18 @@ export TF_USE_CUDNN=1
 export TF_CUDNN_USE_AUTOTUNE=0  # Disable autotune for better compatibility
 export TF_CUDNN_DETERMINISTIC=1
 
+# Set CUDA paths
+export CUDA_HOME=/apps/compilers/cuda/11.6
+export PATH=$CUDA_HOME/bin:$PATH
+export LD_LIBRARY_PATH=$CUDA_HOME/lib64:/apps/cuDNN/9.6.0/lib:$LD_LIBRARY_PATH
+
+# Print library paths for debugging
+echo "Library paths:"
+echo "CUDA_HOME: $CUDA_HOME"
+echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+ls -l $CUDA_HOME/lib64/libcudart*
+ls -l /apps/cuDNN/9.6.0/lib/libcudnn*
+
 # Disable TensorRT warnings
 export TF_ENABLE_AUTO_MIXED_PRECISION=0
 export TF_DISABLE_SEGMENT_REDUCTION_OP_DETERMINISM_EXCEPTIONS=1
@@ -56,9 +68,9 @@ echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
 nvidia-smi
 echo "Python version: $(python --version)"
 echo "TensorFlow version: $(python -c 'import tensorflow as tf; print(tf.__version__)')"
-echo "GPU Available: $(python -c 'import tensorflow as tf; print(tf.config.list_physical_devices(\"GPU\"))')"
-echo "CUDA version: $(python -c 'import tensorflow as tf; print(tf.sysconfig.get_build_info()[\"cuda_version\"])')"
-echo "cuDNN version: $(python -c 'import tensorflow as tf; print(tf.sysconfig.get_build_info()[\"cudnn_version\"])')"
+echo "GPU Available: $(python -c 'import tensorflow as tf; print(tf.config.list_physical_devices("GPU"))')"
+echo "CUDA version: $(python -c 'import tensorflow as tf; print(tf.sysconfig.get_build_info()["cuda_version"])')"
+echo "cuDNN version: $(python -c 'import tensorflow as tf; print(tf.sysconfig.get_build_info()["cudnn_version"])')"
 
 # Run training script with environment variables
 CUDA_VISIBLE_DEVICES=0 python train_joint.py
