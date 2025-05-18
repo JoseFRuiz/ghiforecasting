@@ -348,58 +348,37 @@ def create_joint_model(input_shape):
     # Clear any existing models/layers in memory
     tf.keras.backend.clear_session()
     
-    try:
-        # Try to set mixed precision policy
-        policy = tf.keras.mixed_precision.Policy('mixed_float16')
-        tf.keras.mixed_precision.set_global_policy(policy)
-    except Exception as e:
-        print(f"Warning: Could not set mixed precision policy: {e}")
-        print("Falling back to float32 precision")
+    # Configure GPU memory growth
+    gpus = tf.config.list_physical_devices('GPU')
+    if gpus:
+        try:
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+            print(f"GPU memory growth enabled for {len(gpus)} GPU(s)")
+        except RuntimeError as e:
+            print(f"Error configuring GPU: {e}")
     
-    try:
-        # Create model with CuDNN LSTM layers
-        model = Sequential([
-            LSTM(128, return_sequences=True, input_shape=input_shape, 
-                 kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
-                 unroll=True),  # Unroll for better performance
-            Dropout(CONFIG["model_params"]["dropout_rate"]),
-            LSTM(64, return_sequences=True,
-                 kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
-                 unroll=True),
-            Dropout(CONFIG["model_params"]["dropout_rate"]),
-            LSTM(32, return_sequences=False,
-                 kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
-                 unroll=True),
-            Dropout(CONFIG["model_params"]["dropout_rate"]),
-            Dense(32, activation="relu"),
-            Dense(16, activation="relu"),
-            Dense(1, activation="linear")
-        ])
-    except Exception as e:
-        print(f"Warning: Could not create model with CuDNN LSTM: {e}")
-        print("Falling back to standard LSTM implementation")
-        
-        # Create model with standard LSTM layers
-        model = Sequential([
-            LSTM(128, return_sequences=True, input_shape=input_shape, 
-                 kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
-                 implementation=2),  # Use implementation 2 for better compatibility
-            Dropout(CONFIG["model_params"]["dropout_rate"]),
-            LSTM(64, return_sequences=True,
-                 kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
-                 implementation=2),
-            Dropout(CONFIG["model_params"]["dropout_rate"]),
-            LSTM(32, return_sequences=False,
-                 kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
-                 implementation=2),
-            Dropout(CONFIG["model_params"]["dropout_rate"]),
-            Dense(32, activation="relu"),
-            Dense(16, activation="relu"),
-            Dense(1, activation="linear")
-        ])
-    
-    # Create loss instance with explicit name
-    mse_loss = tf.keras.losses.MeanSquaredError(name='mean_squared_error')
+    # Create model with GPU-optimized LSTM layers
+    model = Sequential([
+        LSTM(128, return_sequences=True, input_shape=input_shape, 
+             kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
+             recurrent_activation='sigmoid',  # Use sigmoid for better CuDNN compatibility
+             time_major=False),  # Ensure time_major=False for better performance
+        Dropout(CONFIG["model_params"]["dropout_rate"]),
+        LSTM(64, return_sequences=True,
+             kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
+             recurrent_activation='sigmoid',
+             time_major=False),
+        Dropout(CONFIG["model_params"]["dropout_rate"]),
+        LSTM(32, return_sequences=False,
+             kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
+             recurrent_activation='sigmoid',
+             time_major=False),
+        Dropout(CONFIG["model_params"]["dropout_rate"]),
+        Dense(32, activation="relu"),
+        Dense(16, activation="relu"),
+        Dense(1, activation="linear")
+    ])
     
     # Use Adam optimizer with learning rate schedule
     initial_learning_rate = 0.001
@@ -411,21 +390,12 @@ def create_joint_model(input_shape):
     
     optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
     
-    # Compile model with fallback options
-    try:
-        model.compile(
-            optimizer=optimizer,
-            loss=mse_loss,
-            metrics=['mae', 'mse']
-        )
-    except Exception as e:
-        print(f"Warning: Could not compile model with default settings: {e}")
-        print("Falling back to basic compilation")
-        model.compile(
-            optimizer='adam',
-            loss='mse',
-            metrics=['mae']
-        )
+    # Compile model
+    model.compile(
+        optimizer=optimizer,
+        loss='mse',
+        metrics=['mae']
+    )
     
     return model
 
@@ -638,9 +608,6 @@ def train_joint_model(model, X_train, y_train, X_val, y_val, batch_size=32, epoc
         save_weights_only=False,
         verbose=1
     )
-    
-    # Calculate steps per epoch
-    steps_per_epoch = len(X_train) // batch_size
     
     # Train the model with all callbacks
     history = model.fit(
