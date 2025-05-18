@@ -34,6 +34,8 @@ if physical_devices:
 else:
     print("No GPU devices found. Running on CPU.")
 
+import pdb; pdb.set_trace()
+
 # Then import ML libraries
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 from tensorflow.keras.models import Sequential
@@ -284,12 +286,31 @@ def split_and_scale_joint_data(df, locations, sequence_length=24, target_column=
     print(f"Total samples: {len(df)}")
     print(f"Locations: {locations}")
     
-    # Split data by year
-    df_train = df[df["Year"].isin([2017, 2018])].copy()
-    df_2019 = df[df["Year"] == 2019].copy()
-    split_index = len(df_2019) // 2
-    df_val = df_2019.iloc[:split_index].copy()
-    df_test = df_2019.iloc[split_index:].copy()
+    # Create a more balanced split that ensures each location has data in all splits
+    train_dfs = []
+    val_dfs = []
+    test_dfs = []
+    
+    for location in locations:
+        df_loc = df[df["location"] == location].copy()
+        
+        # Sort by datetime to ensure chronological order
+        df_loc = df_loc.sort_values("datetime")
+        
+        # Calculate split indices
+        n_samples = len(df_loc)
+        train_end = int(n_samples * 0.7)  # 70% for training
+        val_end = int(n_samples * 0.85)   # 15% for validation
+        
+        # Split the data
+        train_dfs.append(df_loc.iloc[:train_end])
+        val_dfs.append(df_loc.iloc[train_end:val_end])
+        test_dfs.append(df_loc.iloc[val_end:])
+    
+    # Combine splits
+    df_train = pd.concat(train_dfs, ignore_index=True)
+    df_val = pd.concat(val_dfs, ignore_index=True)
+    df_test = pd.concat(test_dfs, ignore_index=True)
     
     print("\nSplit sizes:")
     print(f"Train: {len(df_train)} samples")
@@ -472,6 +493,9 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
             print(f"Warning: No data for {location}")
             continue
         
+        # Sort by datetime to ensure chronological order
+        df_loc = df_loc.sort_values("datetime")
+        
         # Check for missing values
         missing_values = df_loc.isnull().sum()
         if missing_values.any():
@@ -486,9 +510,18 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
         valid_sequences = 0
         skipped_sequences = 0
         
-        for i in range(len(df_loc) - sequence_length):
+        # Calculate the maximum index that allows for a complete sequence
+        max_index = len(df_loc) - sequence_length
+        
+        for i in range(max_index):
             # Get sequence of features
             sequence = df_loc.iloc[i:i + sequence_length]
+            
+            # Verify chronological order
+            if not sequence['datetime'].is_monotonic_increasing:
+                print(f"Warning: Non-chronological sequence found at index {i}")
+                skipped_sequences += 1
+                continue
             
             # Check if sequence has any missing values
             if sequence.isnull().any().any():
@@ -506,13 +539,19 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
             # Get target value
             target = df_loc.iloc[i + sequence_length][target_column]
             
+            # Verify target value is not in the sequence
+            if target in features[:, 0]:
+                print(f"Warning: Target value found in sequence at index {i}")
+                skipped_sequences += 1
+                continue
+            
             X_sequences.append(features)
             y_sequences.append(target)
             valid_sequences += 1
         
         print(f"Created {valid_sequences} valid sequences for {location}")
         if skipped_sequences > 0:
-            print(f"Skipped {skipped_sequences} sequences due to missing values")
+            print(f"Skipped {skipped_sequences} sequences due to validation failures")
     
     # Convert to numpy arrays
     X = np.array(X_sequences)
