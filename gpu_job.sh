@@ -55,8 +55,11 @@ export TF_DISABLE_SEGMENT_REDUCTION_OP_DETERMINISM_EXCEPTIONS=1
 source ~/.bashrc
 source activate ghifo_py38
 
-# Install requirements
-# pip install -r requirements.txt
+# Install TensorFlow with GPU support using conda
+conda install -y -c conda-forge tensorflow-gpu=2.6.0
+
+# Install other requirements
+pip install -r requirements.txt
 
 # Print environment information
 echo "CUDA_HOME: $CUDA_HOME"
