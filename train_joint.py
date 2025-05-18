@@ -34,8 +34,6 @@ if physical_devices:
 else:
     print("No GPU devices found. Running on CPU.")
 
-import pdb; pdb.set_trace()
-
 # Then import ML libraries
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 from tensorflow.keras.models import Sequential
@@ -511,7 +509,7 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
         skipped_sequences = 0
         
         # Calculate the maximum index that allows for a complete sequence
-        max_index = len(df_loc) - sequence_length
+        max_index = len(df_loc) - sequence_length - 1  # -1 to ensure we have a target value
         
         for i in range(max_index):
             # Get sequence of features
@@ -532,12 +530,17 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
             location_vector = np.zeros(len(locations))
             location_vector[locations.index(location)] = 1
             
+            # Get target value (next value after sequence)
+            target = df_loc.iloc[i + sequence_length][target_column]
+            
+            # Skip if target value is missing
+            if pd.isna(target):
+                skipped_sequences += 1
+                continue
+            
             # Combine features with location encoding
             features = sequence[target_column].values
             features = np.column_stack([features, np.tile(location_vector, (sequence_length, 1))])
-            
-            # Get target value
-            target = df_loc.iloc[i + sequence_length][target_column]
             
             # Verify target value is not in the sequence
             if target in features[:, 0]:
