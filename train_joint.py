@@ -34,6 +34,8 @@ if physical_devices:
 else:
     print("No GPU devices found. Running on CPU.")
 
+import pdb; pdb.set_trace()
+
 # Then import ML libraries
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 from tensorflow.keras.models import Sequential
