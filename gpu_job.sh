@@ -21,6 +21,7 @@ echo "Directory = $(pwd)"
 
 # Load modules
 module purge
+module load cuda/11.4.3
 module load cudnn/9.6.0
 
 # Print loaded modules
@@ -35,17 +36,29 @@ export TF_USE_CUDNN=1
 export TF_CUDNN_USE_AUTOTUNE=0  # Disable autotune for better compatibility
 export TF_CUDNN_DETERMINISTIC=1
 
+# Get CUDA and cuDNN paths from module environment
+if [ -z "$HPC_cuDNN_DIR" ]; then
+    echo "Error: cuDNN module not loaded properly"
+    exit 1
+fi
+
 # Set CUDA paths
-export CUDA_HOME=/apps/compilers/cuda/11.6
+export CUDA_HOME=/apps/compilers/cuda/11.4.3
 export PATH=$CUDA_HOME/bin:$PATH
-export LD_LIBRARY_PATH=$CUDA_HOME/lib64:/apps/cuDNN/9.6.0/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$HPC_cuDNN_LIB:$LD_LIBRARY_PATH
 
 # Print library paths for debugging
 echo "Library paths:"
 echo "CUDA_HOME: $CUDA_HOME"
+echo "CUDNN_DIR: $HPC_cuDNN_DIR"
+echo "CUDNN_LIB: $HPC_cuDNN_LIB"
 echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+
+# Verify CUDA and cuDNN installation
+echo "Verifying CUDA installation..."
 ls -l $CUDA_HOME/lib64/libcudart*
-ls -l /apps/cuDNN/9.6.0/lib/libcudnn*
+echo "Verifying cuDNN installation..."
+ls -l $HPC_cuDNN_LIB/libcudnn*
 
 # Disable TensorRT warnings
 export TF_ENABLE_AUTO_MIXED_PRECISION=0
@@ -55,15 +68,10 @@ export TF_DISABLE_SEGMENT_REDUCTION_OP_DETERMINISM_EXCEPTIONS=1
 source ~/.bashrc
 source activate ghifo_py38
 
-# Install TensorFlow with GPU support using conda
-conda install -y -c conda-forge tensorflow-gpu=2.6.0
-
-# Install other requirements
-pip install -r requirements.txt
-
 # Print environment information
 echo "CUDA_HOME: $CUDA_HOME"
-echo "CUDNN_HOME: $CUDNN_HOME"
+echo "CUDNN_DIR: $HPC_cuDNN_DIR"
+echo "CUDNN_LIB: $HPC_cuDNN_LIB"
 echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
 echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
 
