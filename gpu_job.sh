@@ -21,8 +21,7 @@ echo "Directory = $(pwd)"
 
 # Load modules
 module purge
-module load cuda/11.4.3
-module load cudnn/9.6.0
+module load ngc-tensorflow/2.6.0
 
 # Print loaded modules
 echo "Loaded modules:"
@@ -32,58 +31,18 @@ module list
 export CUDA_VISIBLE_DEVICES=0
 export TF_GPU_THREAD_MODE=gpu_private
 export TF_GPU_THREAD_COUNT=1
-export TF_USE_CUDNN=1
-export TF_CUDNN_USE_AUTOTUNE=0  # Disable autotune for better compatibility
-export TF_CUDNN_DETERMINISTIC=1
-
-# Get CUDA and cuDNN paths from module environment
-if [ -z "$HPC_cuDNN_DIR" ]; then
-    echo "Error: cuDNN module not loaded properly"
-    exit 1
-fi
-
-# Set CUDA paths
-export CUDA_HOME=/apps/compilers/cuda/11.4.3
-export PATH=$CUDA_HOME/bin:$PATH
-export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$HPC_cuDNN_LIB:$LD_LIBRARY_PATH
-
-# Print library paths for debugging
-echo "Library paths:"
-echo "CUDA_HOME: $CUDA_HOME"
-echo "CUDNN_DIR: $HPC_cuDNN_DIR"
-echo "CUDNN_LIB: $HPC_cuDNN_LIB"
-echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
-
-# Verify CUDA and cuDNN installation
-echo "Verifying CUDA installation..."
-ls -l $CUDA_HOME/lib64/libcudart*
-echo "Verifying cuDNN installation..."
-ls -l $HPC_cuDNN_LIB/libcudnn*
-
-# Disable TensorRT warnings
-export TF_ENABLE_AUTO_MIXED_PRECISION=0
-export TF_DISABLE_SEGMENT_REDUCTION_OP_DETERMINISM_EXCEPTIONS=1
 
 # Activate conda env
 source ~/.bashrc
 source activate ghifo_py38
-
-# Print environment information
-echo "CUDA_HOME: $CUDA_HOME"
-echo "CUDNN_DIR: $HPC_cuDNN_DIR"
-echo "CUDNN_LIB: $HPC_cuDNN_LIB"
-echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
-echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
 
 # Print GPU information
 nvidia-smi
 echo "Python version: $(python --version)"
 echo "TensorFlow version: $(python -c 'import tensorflow as tf; print(tf.__version__)')"
 echo "GPU Available: $(python -c 'import tensorflow as tf; print(tf.config.list_physical_devices("GPU"))')"
-echo "CUDA version: $(python -c 'import tensorflow as tf; print(tf.sysconfig.get_build_info()["cuda_version"])')"
-echo "cuDNN version: $(python -c 'import tensorflow as tf; print(tf.sysconfig.get_build_info()["cudnn_version"])')"
 
-# Run training script with environment variables
-CUDA_VISIBLE_DEVICES=0 python train_joint.py
+# Run training script
+python train_joint.py
 
 conda deactivate
