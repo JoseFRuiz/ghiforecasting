@@ -283,19 +283,6 @@ def split_and_scale_joint_data(df, locations, sequence_length=24, target_column=
 
 def create_joint_model(input_shape):
     """Create and compile the joint LSTM model."""
-    # Clear any existing models/layers in memory
-    tf.keras.backend.clear_session()
-    
-    # Configure GPU memory growth
-    gpus = tf.config.list_physical_devices('GPU')
-    if gpus:
-        try:
-            for gpu in gpus:
-                tf.config.experimental.set_memory_growth(gpu, True)
-            print(f"GPU memory growth enabled for {len(gpus)} GPU(s)")
-        except RuntimeError as e:
-            print(f"Error configuring GPU: {e}")
-    
     # Create model with GPU-optimized LSTM layers
     model = tf.keras.Sequential([
         tf.keras.layers.LSTM(128, return_sequences=True, input_shape=input_shape, 
