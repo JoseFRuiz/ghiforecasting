@@ -176,8 +176,8 @@ def create_joint_features(df):
     
     # Create location-specific features
     print("\nCreating location features...")
-    # One-hot encode location
-    encoder = OneHotEncoder(sparse_output=False)
+    # One-hot encode location - using sparse=False for older scikit-learn versions
+    encoder = OneHotEncoder(sparse=False)
     location_encoded = encoder.fit_transform(df[['location']])
     location_df = pd.DataFrame(location_encoded, 
                              columns=[f"location_{loc}" for loc in encoder.categories_[0]])
@@ -578,19 +578,9 @@ def main(skip_training=False, debug_data_loading=False):
     
     # Create necessary directories
     os.makedirs("models", exist_ok=True)
-    
-    # Define feature combinations to test
-    feature_combinations = [
-        "ghi_only",
-        "Temperature",
-        "Relative Humidity",
-        "Pressure",
-        "Precipitable Water",
-        "Wind Direction",
-        "Wind Speed",
-        "all",
-        "meteorological_only"
-    ]
+    os.makedirs("results_joint", exist_ok=True)
+    os.makedirs("results_joint/plots", exist_ok=True)
+    os.makedirs("results_joint/tables", exist_ok=True)
     
     # Try to create experiment
     try:
@@ -620,102 +610,56 @@ def main(skip_training=False, debug_data_loading=False):
     locations = sorted(df['location'].unique().tolist())
     print(f"\nLocations: {locations}")
     
-    # Dictionary to store results
-    all_results = {
-        'metrics': {},
-        'histories': {},
-        'predictions': {}
-    }
-    
-    for feature_combo in feature_combinations:
-        print(f"\nTesting feature combination: {feature_combo}")
-        
-        try:
-            # Create features
-            print("\nCreating features...")
-            df_features = create_joint_features(df)
-            
-            # Split and scale data
-            print("\nSplitting and scaling data...")
-            (X_train, y_train, X_val, y_val, X_test, y_test, target_scaler) = split_and_scale_joint_data(df_features, locations)
-            
-            # Create and train model
-            print("\nCreating model...")
-            model = create_joint_model((X_train.shape[1], X_train.shape[2]))
-            model.summary()
-            
-            model_path = os.path.join("models", f"lstm_ghi_forecast_joint_{feature_combo}.h5")
-            
-            if skip_training:
-                if os.path.exists(model_path):
-                    print(f"\nLoading pre-trained model for {feature_combo}...")
-                    model = tf.keras.models.load_model(model_path)
-                    history = None
-                else:
-                    print(f"× No pre-trained model found for {feature_combo}")
-                    continue
-            else:
-                print("\nTraining model...")
-                history, model = train_joint_model(model, X_train, y_train, X_val, y_val)
-                
-                # Save model
-                model.save(model_path)
-                print(f"✓ Model saved to {model_path}")
-            
-            # Evaluate model
-            print("\nEvaluating model...")
-            results = evaluate_joint_model(model, X_test, locations, 24, "GHI")
-            
-            # Store results
-            all_results['metrics'][feature_combo] = results
-            all_results['histories'][feature_combo] = history
-            
-            # Log results if experiment exists
-            if experiment:
-                try:
-                    # Log metrics
-                    for location, metrics in results.items():
-                        for metric_name, metric_value in metrics.items():
-                            experiment.log_metric(f"{location}_{feature_combo}_{metric_name}", metric_value)
-                    
-                    # Log plots
-                    if history:
-                        loss_fig = plot_loss_history(history)
-                        experiment.log_figure(figure_name=f"loss_history_{feature_combo}", figure=loss_fig)
-                        plt.close()
-                    
-                    print("✓ Results logged to Comet.ml")
-                except Exception as e:
-                    print(f"× Warning: Could not log results: {str(e)}")
-            
-        except Exception as e:
-            print(f"× Error processing {feature_combo}: {str(e)}")
-            continue
-    
-    # Create comparative analysis
-    print("\nGenerating comparative analysis...")
     try:
-        # Create directories for results
-        os.makedirs("results_joint", exist_ok=True)
-        os.makedirs("results_joint/plots", exist_ok=True)
-        os.makedirs("results_joint/tables", exist_ok=True)
+        # Create features
+        print("\nCreating features...")
+        df_features = create_joint_features(df)
+        
+        # Split and scale data
+        print("\nSplitting and scaling data...")
+        (X_train, y_train, X_val, y_val, X_test, y_test, target_scaler) = split_and_scale_joint_data(df_features, locations)
+        
+        # Create and train model
+        print("\nCreating model...")
+        model = create_joint_model((X_train.shape[1], X_train.shape[2]))
+        model.summary()
+        
+        model_path = os.path.join("models", "lstm_ghi_forecast_joint.h5")
+        
+        if skip_training:
+            if os.path.exists(model_path):
+                print(f"\nLoading pre-trained model...")
+                model = tf.keras.models.load_model(model_path)
+                history = None
+            else:
+                print("× No pre-trained model found")
+                return
+        else:
+            print("\nTraining model...")
+            history, model = train_joint_model(model, X_train, y_train, X_val, y_val)
+            
+            # Save model
+            model.save(model_path)
+            print(f"✓ Model saved to {model_path}")
+        
+        # Evaluate model
+        print("\nEvaluating model...")
+        results = evaluate_joint_model(model, df_features, locations, 24, "GHI")
         
         # Create metrics table
         records = []
-        for feature_combo, location_metrics in all_results['metrics'].items():
-            for location, metrics in location_metrics.items():
-                for metric_name, value in metrics.items():
-                    records.append({
-                        'Location': location,
-                        'Feature Combination': feature_combo,
-                        'Metric': metric_name,
-                        'Value': value
-                    })
+        for location, metrics in results.items():
+            for metric_name, value in metrics.items():
+                records.append({
+                    'Location': location,
+                    'Metric': metric_name,
+                    'Value': value
+                })
         
         metrics_df = pd.DataFrame(records)
         
         # Save results
-        metrics_df.to_csv("results_joint/tables/joint_metrics.csv", index=False)
+        metrics_df.to_csv("results_joint/tables/metrics.csv", index=False)
         
         # Create plots for each metric
         for metric in metrics_df['Metric'].unique():
@@ -723,16 +667,15 @@ def main(skip_training=False, debug_data_loading=False):
             
             plt.figure(figsize=(15, 8))
             pivot_data = metric_data.pivot(
-                index='Feature Combination',
-                columns='Location',
+                index='Location',
+                columns='Metric',
                 values='Value'
             )
             ax = pivot_data.plot(kind='bar', width=0.8)
-            plt.title(f'{metric} Comparison Across Locations and Feature Combinations')
-            plt.xlabel('Feature Combination')
+            plt.title(f'{metric} Comparison Across Locations')
+            plt.xlabel('Location')
             plt.ylabel(metric)
             plt.xticks(rotation=45, ha='right')
-            plt.legend(title='Location', bbox_to_anchor=(1.05, 1), loc='upper left')
             
             # Add value labels
             for container in ax.containers:
@@ -742,14 +685,35 @@ def main(skip_training=False, debug_data_loading=False):
             plt.tight_layout()
             
             # Save plot
-            plot_path = f"results_joint/plots/joint_comparison_{metric.lower().replace(' ', '_')}.png"
+            plot_path = f"results_joint/plots/comparison_{metric.lower().replace(' ', '_')}.png"
             plt.savefig(plot_path, bbox_inches='tight', dpi=300)
             plt.close()
         
         print("\nResults have been saved in the 'results_joint' directory")
         
+        # Log results if experiment exists
+        if experiment:
+            try:
+                # Log metrics
+                for location, metrics in results.items():
+                    for metric_name, metric_value in metrics.items():
+                        experiment.log_metric(f"{location}_{metric_name}", metric_value)
+                
+                # Log plots
+                if history:
+                    loss_fig = plot_loss_history(history)
+                    experiment.log_figure(figure_name="loss_history", figure=loss_fig)
+                    plt.close()
+                
+                print("✓ Results logged to Comet.ml")
+            except Exception as e:
+                print(f"× Warning: Could not log results: {str(e)}")
+        
     except Exception as e:
-        print(f"× Error in comparative analysis: {str(e)}")
+        print(f"× Error in main execution: {str(e)}")
+        import traceback
+        print("\nFull traceback:")
+        print(traceback.format_exc())
 
 if __name__ == "__main__":
     import argparse

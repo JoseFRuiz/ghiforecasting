@@ -169,8 +169,8 @@ def create_gnn_features(df):
     
     # Create location-specific features
     print("\nCreating location features...")
-    # One-hot encode location
-    encoder = OneHotEncoder(sparse_output=False)
+    # One-hot encode location - using sparse=False for older scikit-learn versions
+    encoder = OneHotEncoder(sparse=False)
     location_encoded = encoder.fit_transform(df[['location']])
     location_df = pd.DataFrame(location_encoded, 
                              columns=[f"location_{loc}" for loc in encoder.categories_[0]])
@@ -545,6 +545,9 @@ def main(skip_training=False, debug_data_loading=False):
     
     # Create necessary directories
     os.makedirs("models", exist_ok=True)
+    os.makedirs("results_gnn", exist_ok=True)
+    os.makedirs("results_gnn/plots", exist_ok=True)
+    os.makedirs("results_gnn/tables", exist_ok=True)
     
     # Try to create experiment
     try:
@@ -609,6 +612,51 @@ def main(skip_training=False, debug_data_loading=False):
         # Evaluate model
         print("\nEvaluating model...")
         results = evaluate_gnn_model(model, df_features, locations, 24, "GHI")
+        
+        # Create metrics table
+        records = []
+        for location, metrics in results.items():
+            for metric_name, value in metrics.items():
+                records.append({
+                    'Location': location,
+                    'Metric': metric_name,
+                    'Value': value
+                })
+        
+        metrics_df = pd.DataFrame(records)
+        
+        # Save results
+        metrics_df.to_csv("results_gnn/tables/metrics.csv", index=False)
+        
+        # Create plots for each metric
+        for metric in metrics_df['Metric'].unique():
+            metric_data = metrics_df[metrics_df['Metric'] == metric]
+            
+            plt.figure(figsize=(15, 8))
+            pivot_data = metric_data.pivot(
+                index='Location',
+                columns='Metric',
+                values='Value'
+            )
+            ax = pivot_data.plot(kind='bar', width=0.8)
+            plt.title(f'{metric} Comparison Across Locations')
+            plt.xlabel('Location')
+            plt.ylabel(metric)
+            plt.xticks(rotation=45, ha='right')
+            
+            # Add value labels
+            for container in ax.containers:
+                ax.bar_label(container, fmt='%.3f', rotation=90, padding=3)
+            
+            plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+            plt.tight_layout()
+            
+            # Save plot
+            plot_path = f"results_gnn/plots/comparison_{metric.lower().replace(' ', '_')}.png"
+            plt.savefig(plot_path, bbox_inches='tight', dpi=300)
+            plt.close()
+        
+        print("\nResults have been saved in the 'results_gnn' directory")
         
         # Log results if experiment exists
         if experiment:
