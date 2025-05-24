@@ -13,9 +13,6 @@ matplotlib.use('Agg')  # Set non-interactive backend
 import matplotlib.pyplot as plt
 import datetime
 
-# Import Comet.ml first
-from comet_ml import Experiment
-
 # Configure TensorFlow to use GPU if available
 import tensorflow as tf
 
@@ -26,7 +23,6 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 # Import shared utilities and configurations
 from utils import (
     CONFIG, 
-    setup_experiment, 
     plot_results, 
     plot_loss_history,
     prepare_lstm_input,
@@ -554,16 +550,6 @@ def main(skip_training=False, debug_data_loading=False):
     os.makedirs("results_joint/plots", exist_ok=True)
     os.makedirs("results_joint/tables", exist_ok=True)
     
-    # Try to create experiment
-    try:
-        experiment = setup_experiment()
-        if experiment:
-            experiment.set_name("GHI_Forecasting_Joint_Training")
-            print("✓ Experiment created successfully")
-    except Exception as e:
-        print(f"× Warning: Could not create experiment: {str(e)}")
-        experiment = None
-    
     # Load and process data
     print("\nLoading and processing data...")
     try:
@@ -662,24 +648,6 @@ def main(skip_training=False, debug_data_loading=False):
             plt.close()
         
         print("\nResults have been saved in the 'results_joint' directory")
-        
-        # Log results if experiment exists
-        if experiment:
-            try:
-                # Log metrics
-                for location, metrics in results.items():
-                    for metric_name, metric_value in metrics.items():
-                        experiment.log_metric(f"{location}_{metric_name}", metric_value)
-                
-                # Log plots
-                if history:
-                    loss_fig = plot_loss_history(history)
-                    experiment.log_figure(figure_name="loss_history", figure=loss_fig)
-                    plt.close()
-                
-                print("✓ Results logged to Comet.ml")
-            except Exception as e:
-                print(f"× Warning: Could not log results: {str(e)}")
         
     except Exception as e:
         print(f"× Error in main execution: {str(e)}")
