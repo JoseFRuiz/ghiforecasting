@@ -585,43 +585,43 @@ def main(skip_training=False, debug_data_loading=False):
         # Split and scale data
         print("\nSplitting and scaling data...")
         (X_train, y_train, X_val, y_val, X_test, y_test, target_scaler) = split_and_scale_gnn_data(df_features, locations)
-        
-        # Create and train model
+            
+            # Create and train model
         print("\nCreating model...")
         model = create_gnn_model((X_train[0].shape[1], X_train[0].shape[2]), len(locations))
-        model.summary()
-        
+            model.summary()
+            
         model_path = os.path.join("models", "multi_input_lstm_ghi_forecast.h5")
-        
-        if skip_training:
-            if os.path.exists(model_path):
+            
+            if skip_training:
+                if os.path.exists(model_path):
                 print(f"\nLoading pre-trained model...")
-                model = tf.keras.models.load_model(model_path)
-                history = None
-            else:
+                    model = tf.keras.models.load_model(model_path)
+                    history = None
+                else:
                 print("× No pre-trained model found")
                 return
-        else:
-            print("\nTraining model...")
+            else:
+                print("\nTraining model...")
             history, model = train_gnn_model(model, X_train, y_train, X_val, y_val)
             
             # Save model
             model.save(model_path)
-            print(f"✓ Model saved to {model_path}")
-        
-        # Evaluate model
-        print("\nEvaluating model...")
+                print(f"✓ Model saved to {model_path}")
+            
+            # Evaluate model
+            print("\nEvaluating model...")
         results = evaluate_gnn_model(model, df_features, locations, 24, "GHI")
         
         # Create metrics table
         records = []
         for location, metrics in results.items():
-            for metric_name, value in metrics.items():
-                records.append({
-                    'Location': location,
-                    'Metric': metric_name,
-                    'Value': value
-                })
+                for metric_name, value in metrics.items():
+                    records.append({
+                        'Location': location,
+                        'Metric': metric_name,
+                        'Value': value
+                    })
         
         metrics_df = pd.DataFrame(records)
         
