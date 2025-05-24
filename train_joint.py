@@ -18,6 +18,8 @@ from comet_ml import Experiment
 
 # Configure TensorFlow to use GPU if available
 import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
 
 # Check for GPU availability and configure
 physical_devices = tf.config.list_physical_devices('GPU')
@@ -36,9 +38,6 @@ else:
 
 # Then import ML libraries
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout, Embedding, Concatenate, Input
-from tensorflow.keras.losses import MeanSquaredError
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 # Import shared utilities and configurations
@@ -299,36 +298,36 @@ def create_joint_model(input_shape):
             print(f"Error configuring GPU: {e}")
     
     # Create model with GPU-optimized LSTM layers
-    model = Sequential([
-        LSTM(128, return_sequences=True, input_shape=input_shape, 
+    model = keras.Sequential([
+        layers.LSTM(128, return_sequences=True, input_shape=input_shape, 
              kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
              recurrent_activation='sigmoid',  # Use sigmoid for better CuDNN compatibility
              time_major=False),  # Ensure time_major=False for better performance
-        Dropout(CONFIG["model_params"]["dropout_rate"]),
-        LSTM(64, return_sequences=True,
+        layers.Dropout(CONFIG["model_params"]["dropout_rate"]),
+        layers.LSTM(64, return_sequences=True,
              kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
              recurrent_activation='sigmoid',
              time_major=False),
-        Dropout(CONFIG["model_params"]["dropout_rate"]),
-        LSTM(32, return_sequences=False,
+        layers.Dropout(CONFIG["model_params"]["dropout_rate"]),
+        layers.LSTM(32, return_sequences=False,
              kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
              recurrent_activation='sigmoid',
              time_major=False),
-        Dropout(CONFIG["model_params"]["dropout_rate"]),
-        Dense(32, activation="relu"),
-        Dense(16, activation="relu"),
-        Dense(1, activation="linear")
+        layers.Dropout(CONFIG["model_params"]["dropout_rate"]),
+        layers.Dense(32, activation="relu"),
+        layers.Dense(16, activation="relu"),
+        layers.Dense(1, activation="linear")
     ])
     
     # Use Adam optimizer with learning rate schedule
     initial_learning_rate = 0.001
-    lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+    lr_schedule = keras.optimizers.schedules.ExponentialDecay(
         initial_learning_rate,
         decay_steps=1000,
         decay_rate=0.9,
         staircase=True)
     
-    optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
+    optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
     
     # Compile model
     model.compile(
@@ -515,7 +514,7 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
 def train_joint_model(model, X_train, y_train, X_val, y_val, batch_size=32, epochs=50):
     """Train the joint model with early stopping and model checkpointing."""
     # Create callbacks
-    early_stopping = tf.keras.callbacks.EarlyStopping(
+    early_stopping = keras.callbacks.EarlyStopping(
         monitor='val_loss',
         patience=10,
         restore_best_weights=True,
@@ -523,7 +522,7 @@ def train_joint_model(model, X_train, y_train, X_val, y_val, batch_size=32, epoc
     )
     
     # Add learning rate reduction on plateau
-    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
+    reduce_lr = keras.callbacks.ReduceLROnPlateau(
         monitor='val_loss',
         factor=0.5,
         patience=5,
@@ -533,7 +532,7 @@ def train_joint_model(model, X_train, y_train, X_val, y_val, batch_size=32, epoc
     
     # Add TensorBoard callback for monitoring
     log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(
+    tensorboard_callback = keras.callbacks.TensorBoard(
         log_dir=log_dir,
         histogram_freq=1,
         write_graph=True
@@ -541,7 +540,7 @@ def train_joint_model(model, X_train, y_train, X_val, y_val, batch_size=32, epoc
     
     # Create model checkpoint callback
     checkpoint_path = "models/joint_model_checkpoint.h5"
-    model_checkpoint = tf.keras.callbacks.ModelCheckpoint(
+    model_checkpoint = keras.callbacks.ModelCheckpoint(
         checkpoint_path,
         monitor='val_loss',
         save_best_only=True,
@@ -651,7 +650,7 @@ def main(skip_training=False, debug_data_loading=False):
             if skip_training:
                 if os.path.exists(model_path):
                     print(f"\nLoading pre-trained model for {feature_combo}...")
-                    model = tf.keras.models.load_model(model_path)
+                    model = keras.models.load_model(model_path)
                     history = None
                 else:
                     print(f"× No pre-trained model found for {feature_combo}")
