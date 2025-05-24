@@ -21,21 +21,21 @@ echo "Directory = $(pwd)"
 
 # Load modules
 module purge
-module load ngc-tensorflow/2.6.0
+module load tensorflow/2.6.0
 
 # Print loaded modules
 echo "Loaded modules:"
 module list
-
-# Activate conda env
-source ~/.bashrc
-source activate ghifo_py38
 
 # Print GPU information
 nvidia-smi
 echo "Python version: $(python --version)"
 echo "TensorFlow version: $(python -c 'import tensorflow as tf; print(tf.__version__)')"
 echo "GPU Available: $(python -c 'import tensorflow as tf; print(tf.config.list_physical_devices("GPU"))')"
+
+# Activate conda env
+source ~/.bashrc
+source activate ghifo_py38
 
 # Run training script
 python train_joint.py
