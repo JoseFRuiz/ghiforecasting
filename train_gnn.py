@@ -1,6 +1,6 @@
 """
-GHI Forecasting using Graph Neural Networks
-This script trains a GNN model to forecast Global Horizontal Irradiance (GHI)
+GHI Forecasting using Multi-Input LSTM
+This script trains a multi-input LSTM model to forecast Global Horizontal Irradiance (GHI)
 using historical weather data and GHI measurements from multiple locations.
 """
 
@@ -46,7 +46,8 @@ from utils import (
     plot_results, 
     plot_loss_history,
     prepare_lstm_input,
-    evaluate_model
+    evaluate_model,
+    load_data
 )
 
 def load_all_data(locations):
@@ -532,7 +533,7 @@ def evaluate_gnn_model(model, test_data, locations, sequence_length, target_colu
 
 def main(skip_training=False, debug_data_loading=False):
     """
-    Main execution function for GNN training.
+    Main execution function for multi-input LSTM training.
     
     Args:
         skip_training (bool): If True, load pre-trained model instead of training new one
@@ -549,7 +550,7 @@ def main(skip_training=False, debug_data_loading=False):
     try:
         experiment = setup_experiment()
         if experiment:
-            experiment.set_name("GHI_Forecasting_GNN")
+            experiment.set_name("GHI_Forecasting_Multi_Input_LSTM")
             print("✓ Experiment created successfully")
     except Exception as e:
         print(f"× Warning: Could not create experiment: {str(e)}")
@@ -587,7 +588,7 @@ def main(skip_training=False, debug_data_loading=False):
         model = create_gnn_model((X_train[0].shape[1], X_train[0].shape[2]), len(locations))
         model.summary()
         
-        model_path = os.path.join("models", "gnn_ghi_forecast.h5")
+        model_path = os.path.join("models", "multi_input_lstm_ghi_forecast.h5")
         
         if skip_training:
             if os.path.exists(model_path):
@@ -635,7 +636,7 @@ def main(skip_training=False, debug_data_loading=False):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description='GHI Forecasting using GNN')
+    parser = argparse.ArgumentParser(description='GHI Forecasting using Multi-Input LSTM')
     parser.add_argument('--skip-training', action='store_true',
                       help='Skip training and load pre-trained models')
     parser.add_argument('--debug-data', action='store_true',

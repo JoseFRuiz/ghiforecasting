@@ -5,10 +5,13 @@ Shared utilities and configurations for GHI forecasting.
 import os
 import numpy as np
 import pandas as pd
+import requests
+from io import StringIO
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from comet_ml import Experiment
 
 # Configuration
 CONFIG = {
@@ -40,7 +43,17 @@ CONFIG = {
             2017: "19Vf7YBXyK2CcFaNoY88PCoy6wl5BlbyN",
             2018: "19TIzqgh0F2bc1NxpYUEJJ_yITViPO01P", 
             2019: "19YPkh-yYam6a_G--8axdiejmKomIjnmz"
-        }        
+        },
+        "Leh": {
+            2017: "1-2-3-4-5",
+            2018: "1-2-3-4-5",
+            2019: "1-2-3-4-5"
+        },
+        "Kargil": {
+            2017: "1-2-3-4-5",
+            2018: "1-2-3-4-5",
+            2019: "1-2-3-4-5"
+        }
     },
     "model_params": {
         "lstm_units": [64, 32],
@@ -58,8 +71,6 @@ CONFIG = {
 def setup_experiment():
     """Initialize and configure Comet.ml experiment."""
     try:
-        from comet_ml import Experiment
-        # Create experiment with minimal logging
         experiment = Experiment(
             api_key=CONFIG["comet_api_key"],
             project_name=CONFIG["project_name"],
@@ -86,6 +97,123 @@ def setup_experiment():
         print(f"× Error setting up Comet.ml experiment: {str(e)}")
         print("Will continue without Comet.ml logging")
         return None
+
+def load_data(locations, city):
+    """
+    Load and preprocess the GHI data from multiple years for a specific city.
+    Downloads data from Google Drive if local files don't exist.
+    """
+    try:
+        print(f"\n{'='*60}")
+        print(f"Loading data for {city}")
+        print(f"{'='*60}")
+        dfs = []
+        
+        for year in [2017, 2018, 2019]:
+            try:
+                local_file = f"data_{city}_{year}.csv"
+                print(f"\nProcessing {year} data...")
+                
+                # Check if file exists and is not empty
+                if os.path.exists(local_file) and os.path.getsize(local_file) > 0:
+                    print(f"✓ Found local file: {local_file} ({os.path.getsize(local_file)/1024:.2f} KB)")
+                else:
+                    print(f"× File not found or empty: {local_file}")
+                    file_id = locations[city][year]
+                    url = f'https://drive.google.com/uc?export=download&id={file_id}'
+                    
+                    print(f"Downloading from Google Drive...")
+                    try:
+                        # First request to get the confirmation token if needed
+                        session = requests.Session()
+                        response = session.get(url, stream=True)
+                        
+                        # Check if there's a download warning (large file)
+                        for key, value in response.cookies.items():
+                            if key.startswith('download_warning'):
+                                token = value
+                                url = f"{url}&confirm={token}"
+                                response = session.get(url, stream=True)
+                                break
+                        
+                        # Save the file
+                        if response.status_code == 200:
+                            with open(local_file, 'wb') as f:
+                                for chunk in response.iter_content(chunk_size=1024):
+                                    if chunk:
+                                        f.write(chunk)
+                            print(f"✓ Downloaded and saved file ({os.path.getsize(local_file)/1024:.2f} KB)")
+                        else:
+                            raise ValueError(f"Download failed with status {response.status_code}")
+                    except Exception as e:
+                        print(f"× Download error: {str(e)}")
+                        raise
+                
+                # Try reading the file
+                print("Reading data file...")
+                try:
+                    # First check the file content
+                    with open(local_file, 'r', encoding='utf-8') as f:
+                        first_lines = [next(f) for _ in range(5)]
+                    print("First few lines of the file:")
+                    for i, line in enumerate(first_lines):
+                        print(f"Line {i+1}: {line.strip()}")
+                    
+                    # Now try reading with pandas
+                    df = pd.read_csv(local_file, skiprows=2)
+                    
+                    if len(df) == 0:
+                        raise ValueError("File is empty after reading")
+                    
+                    # Validate required columns
+                    expected_cols = ['Year', 'Month', 'Day', 'Hour', 'Minute', 'GHI', 'Temperature']
+                    missing_cols = [col for col in expected_cols if col not in df.columns]
+                    if missing_cols:
+                        raise ValueError(f"Missing required columns: {missing_cols}")
+                    
+                    print(f"✓ Successfully loaded {len(df)} rows")
+                    print(f"Columns: {df.columns.tolist()}")
+                    dfs.append(df)
+                    
+                except Exception as e:
+                    print(f"× Error reading file: {str(e)}")
+                    if os.path.exists(local_file):
+                        os.remove(local_file)
+                    raise
+                    
+            except Exception as e:
+                print(f"× Error processing {year}: {str(e)}")
+                continue
+        
+        if not dfs:
+            raise ValueError(f"No data was loaded successfully for {city}")
+        
+        # Combine all years
+        print("\nCombining data from all years...")
+        df = pd.concat(dfs, ignore_index=True)
+        print(f"✓ Combined dataset: {len(df)} total rows")
+        
+        # Process datetime
+        print("\nProcessing datetime...")
+        df["datetime"] = pd.to_datetime(df[['Year', 'Month', 'Day', 'Hour', 'Minute']])
+        df = df.sort_values("datetime").reset_index(drop=True)
+        print("✓ Datetime processing complete")
+        
+        # Validate final dataset
+        print("\nValidating final dataset:")
+        print(f"Shape: {df.shape}")
+        print(f"Date range: {df['datetime'].min()} to {df['datetime'].max()}")
+        print(f"Memory usage: {df.memory_usage().sum() / 1024 / 1024:.2f} MB")
+        
+        return df
+        
+    except Exception as e:
+        print(f"\n× Error loading data for {city}:")
+        print(str(e))
+        import traceback
+        print("\nFull traceback:")
+        print(traceback.format_exc())
+        raise
 
 def plot_results(y_true, y_pred, title="LSTM Model: Predicted vs. True GHI"):
     """Plot comparison of predicted vs true values."""

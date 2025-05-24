@@ -45,7 +45,8 @@ from utils import (
     plot_results, 
     plot_loss_history,
     prepare_lstm_input,
-    evaluate_model
+    evaluate_model,
+    load_data
 )
 
 def load_all_data(locations):
