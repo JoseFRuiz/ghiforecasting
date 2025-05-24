@@ -18,6 +18,10 @@ from comet_ml import Experiment
 
 # Configure TensorFlow to use GPU if available
 import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Dropout
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau, TensorBoard
 
 # Check for GPU availability and configure
 physical_devices = tf.config.list_physical_devices('GPU')
@@ -284,25 +288,25 @@ def split_and_scale_joint_data(df, locations, sequence_length=24, target_column=
 def create_joint_model(input_shape):
     """Create and compile the joint LSTM model."""
     # Create model with GPU-optimized LSTM layers
-    model = tf.keras.Sequential([
-        tf.keras.layers.LSTM(128, return_sequences=True, input_shape=input_shape, 
+    model = Sequential([
+        LSTM(128, return_sequences=True, input_shape=input_shape, 
              kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
              recurrent_activation='sigmoid',  # Use sigmoid for better CuDNN compatibility
              time_major=False),  # Ensure time_major=False for better performance
-        tf.keras.layers.Dropout(CONFIG["model_params"]["dropout_rate"]),
-        tf.keras.layers.LSTM(64, return_sequences=True,
+        Dropout(CONFIG["model_params"]["dropout_rate"]),
+        LSTM(64, return_sequences=True,
              kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
              recurrent_activation='sigmoid',
              time_major=False),
-        tf.keras.layers.Dropout(CONFIG["model_params"]["dropout_rate"]),
-        tf.keras.layers.LSTM(32, return_sequences=False,
+        Dropout(CONFIG["model_params"]["dropout_rate"]),
+        LSTM(32, return_sequences=False,
              kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
              recurrent_activation='sigmoid',
              time_major=False),
-        tf.keras.layers.Dropout(CONFIG["model_params"]["dropout_rate"]),
-        tf.keras.layers.Dense(32, activation="relu"),
-        tf.keras.layers.Dense(16, activation="relu"),
-        tf.keras.layers.Dense(1, activation="linear")
+        Dropout(CONFIG["model_params"]["dropout_rate"]),
+        Dense(32, activation="relu"),
+        Dense(16, activation="relu"),
+        Dense(1, activation="linear")
     ])
     
     # Use Adam optimizer with learning rate schedule
@@ -313,7 +317,7 @@ def create_joint_model(input_shape):
         decay_rate=0.9,
         staircase=True)
     
-    optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
+    optimizer = Adam(learning_rate=lr_schedule)
     
     # Compile model
     model.compile(
