@@ -12,379 +12,534 @@ from io import StringIO
 import matplotlib
 matplotlib.use('Agg')  # Set non-interactive backend
 import matplotlib.pyplot as plt
-import networkx as nx
-from sklearn.metrics.pairwise import cosine_similarity
+import datetime
 
 # Import Comet.ml first
 from comet_ml import Experiment
 
-# Then import ML libraries
+# Configure TensorFlow to use GPU if available
 import tensorflow as tf
-from tensorflow.keras import layers, Model
-from sklearn.preprocessing import MinMaxScaler
-from tensorflow.keras.layers import LSTM, Dense, Dropout, Layer
+
+# Check for GPU availability and configure
+physical_devices = tf.config.list_physical_devices('GPU')
+if physical_devices:
+    try:
+        # Enable memory growth to avoid allocating all GPU memory at once
+        for device in physical_devices:
+            tf.config.experimental.set_memory_growth(device, True)
+        print(f"Found {len(physical_devices)} GPU(s):")
+        for device in physical_devices:
+            print(f"  - {device}")
+    except RuntimeError as e:
+        print(f"Error configuring GPU: {e}")
+else:
+    print("No GPU devices found. Running on CPU.")
+
+# Then import ML libraries
+from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Dense, Dropout, LSTM, Concatenate, Embedding
 from tensorflow.keras.losses import MeanSquaredError
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-# Configure GPU
-print("\nChecking GPU availability...")
-
-# Set environment variables explicitly
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # Use first GPU
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Reduce TensorFlow logging
-
-# Verify CUDA is available
-print("CUDA available:", tf.test.is_built_with_cuda())
-print("GPU available:", tf.test.is_gpu_available())
-
-gpus = tf.config.list_physical_devices('GPU')
-if gpus:
-    try:
-        # Currently, memory growth needs to be the same across GPUs
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
-        logical_gpus = tf.config.list_logical_devices('GPU')
-        print(f"Found {len(gpus)} Physical GPUs:")
-        for i, gpu in enumerate(gpus):
-            print(f"GPU {i}: {gpu}")
-        print(f"Found {len(logical_gpus)} Logical GPUs")
-        print("\nGPU details:")
-        print(tf.test.gpu_device_name())
-        print("\nUsing GPU for training")
-    except RuntimeError as e:
-        # Memory growth must be set before GPUs have been initialized
-        print(f"Error configuring GPU: {e}")
-else:
-    print("No GPU available, using CPU for training")
-    print("Available devices:")
-    print(tf.config.list_physical_devices())
-    
-# Import configuration and functions from train.py
-from train import (
+# Import shared utilities and configurations
+from utils import (
     CONFIG, 
     setup_experiment, 
-    evaluate_model, 
     plot_results, 
     plot_loss_history,
-    load_data
+    prepare_lstm_input,
+    evaluate_model
 )
 
-def evaluate_model(y_true, y_pred):
+def load_all_data(locations):
     """
-    Calculate various metrics for model evaluation, excluding zero GHI values.
+    Load and combine data from all locations.
     
     Args:
-        y_true: True values
-        y_pred: Predicted values
+        locations: Dictionary of location data from CONFIG
     
     Returns:
-        dict: Dictionary containing evaluation metrics
+        pd.DataFrame: Combined dataset with location identifier
     """
-    # Create mask for non-zero true GHI values
-    non_zero_mask = y_true > 0
+    all_dfs = []
     
-    # Filter out zero values
-    y_true_nonzero = y_true[non_zero_mask]
-    y_pred_nonzero = y_pred[non_zero_mask]
+    for city in locations.keys():
+        print(f"\n{'='*60}")
+        print(f"Loading data for {city}")
+        print(f"{'='*60}")
+        try:
+            # Use existing load_data function
+            df = load_data(locations, city)
+            
+            # Add location identifier
+            df['location'] = city
+            
+            # Print detailed information about the loaded data
+            print(f"\nData loaded for {city}:")
+            print(f"Number of rows: {len(df)}")
+            print(f"Date range: {df['datetime'].min()} to {df['datetime'].max()}")
+            print(f"Columns: {df.columns.tolist()}")
+            print(f"Memory usage: {df.memory_usage().sum() / 1024 / 1024:.2f} MB")
+            
+            # Check for missing values
+            missing_values = df.isnull().sum()
+            print(f"\nMissing values per column:")
+            print(missing_values[missing_values > 0])
+            
+            # Check for zero values in GHI
+            zero_ghi = (df['GHI'] == 0).sum()
+            print(f"\nZero GHI values: {zero_ghi} ({zero_ghi/len(df)*100:.2f}%)")
+            
+            all_dfs.append(df)
+            print(f"✓ Successfully loaded {len(df)} rows for {city}")
+            
+        except Exception as e:
+            print(f"× Error loading data for {city}:")
+            print(str(e))
+            import traceback
+            print("\nFull traceback:")
+            print(traceback.format_exc())
+            continue
     
-    # Add small epsilon to avoid division by zero
-    epsilon = 1e-10
+    if not all_dfs:
+        raise ValueError("No data was loaded successfully for any city")
     
-    # Initialize metrics dictionary
-    metrics = {}
+    # Combine all data
+    combined_df = pd.concat(all_dfs, ignore_index=True)
+    print(f"\n✓ Combined dataset: {len(combined_df)} total rows")
+    print(f"Locations: {combined_df['location'].unique().tolist()}")
     
-    # Calculate metrics for all values
-    metrics.update({
-        "Mean Absolute Error (All)": float(mean_absolute_error(y_true, y_pred)),
-        "Mean Squared Error (All)": float(mean_squared_error(y_true, y_pred)),
-        "Root Mean Squared Error (All)": float(np.sqrt(mean_squared_error(y_true, y_pred))),
-        "R² Score (All)": float(r2_score(y_true, y_pred)),
-        "Mean Absolute Percentage Error (All)": float(np.mean(np.abs((y_true - y_pred) / (y_true + epsilon))) * 100),
-        "Mean Squared Percentage Error (All)": float(np.mean(np.square((y_true - y_pred) / (y_true + epsilon))) * 100)
-    })
+    # Print summary statistics for each location
+    print("\nSummary statistics by location:")
+    for location in combined_df['location'].unique():
+        loc_df = combined_df[combined_df['location'] == location]
+        print(f"\n{location}:")
+        print(f"Number of rows: {len(loc_df)}")
+        print(f"Date range: {loc_df['datetime'].min()} to {loc_df['datetime'].max()}")
+        print(f"Zero GHI values: {(loc_df['GHI'] == 0).sum()} ({(loc_df['GHI'] == 0).sum()/len(loc_df)*100:.2f}%)")
+        print(f"Missing values: {loc_df.isnull().sum().sum()}")
     
-    # Calculate percentage of non-zero values
-    metrics["Non-zero Values Percentage"] = float(100 * len(y_true_nonzero) / len(y_true))
-    
-    # Only calculate non-zero metrics if there are non-zero values
-    if len(y_true_nonzero) > 0:
-        metrics.update({
-            "Mean Absolute Error (Non-zero)": float(mean_absolute_error(y_true_nonzero, y_pred_nonzero)),
-            "Mean Squared Error (Non-zero)": float(mean_squared_error(y_true_nonzero, y_pred_nonzero)),
-            "Root Mean Squared Error (Non-zero)": float(np.sqrt(mean_squared_error(y_true_nonzero, y_pred_nonzero))),
-            "R² Score (Non-zero)": float(r2_score(y_true_nonzero, y_pred_nonzero)),
-            "Mean Absolute Percentage Error (Non-zero)": float(np.mean(np.abs((y_true_nonzero - y_pred_nonzero) / (y_true_nonzero + epsilon))) * 100),
-            "Mean Squared Percentage Error (Non-zero)": float(np.mean(np.square((y_true_nonzero - y_pred_nonzero) / (y_true_nonzero + epsilon))) * 100)
-        })
-    else:
-        # If no non-zero values, set these metrics to NaN
-        metrics.update({
-            "Mean Absolute Error (Non-zero)": float('nan'),
-            "Mean Squared Error (Non-zero)": float('nan'),
-            "Root Mean Squared Error (Non-zero)": float('nan'),
-            "R² Score (Non-zero)": float('nan'),
-            "Mean Absolute Percentage Error (Non-zero)": float('nan'),
-            "Mean Squared Percentage Error (Non-zero)": float('nan')
-        })
-    
-    return metrics
+    return combined_df
 
-class GraphAttentionLayer(Layer):
-    """Graph Attention Layer for processing node features."""
-    def __init__(self, units, dropout_rate=0.2):
-        super().__init__()
-        self.units = units
-        self.dropout_rate = dropout_rate
-        
-        # Attention weights
-        self.attention_weights = Dense(units)
-        self.attention_scores = Dense(1)
-        
-        # Feature transformation
-        self.feature_transform = Dense(units)
-        self.dropout = Dropout(dropout_rate)
-        
-    def call(self, inputs):
-        # inputs: [node_features, adjacency_matrix]
-        node_features, adj_matrix = inputs
-        
-        # Transform features
-        transformed_features = self.feature_transform(node_features)
-        
-        # Calculate attention scores
-        # Expand dimensions for broadcasting
-        features_i = tf.expand_dims(transformed_features, 1)  # [batch, 1, nodes, units]
-        features_j = tf.expand_dims(transformed_features, 2)  # [batch, nodes, 1, units]
-        
-        # Tile features to match dimensions
-        features_i = tf.tile(features_i, [1, tf.shape(transformed_features)[1], 1, 1])  # [batch, nodes, nodes, units]
-        features_j = tf.tile(features_j, [1, 1, tf.shape(transformed_features)[1], 1])  # [batch, nodes, nodes, units]
-        
-        # Concatenate features
-        attention_input = tf.concat([features_i, features_j], axis=-1)  # [batch, nodes, nodes, 2*units]
-        
-        # Calculate attention scores
-        attention_scores = self.attention_scores(attention_input)  # [batch, nodes, nodes, 1]
-        attention_scores = tf.squeeze(attention_scores, axis=-1)  # [batch, nodes, nodes]
-        
-        # Apply adjacency matrix and softmax
-        attention_scores = tf.where(adj_matrix > 0, attention_scores, -1e9)
-        attention_weights = tf.nn.softmax(attention_scores, axis=-1)
-        
-        # Apply attention
-        attended_features = tf.matmul(attention_weights, transformed_features)
-        
-        # Apply dropout and return
-        return self.dropout(attended_features)
+def create_gnn_features(df):
+    """
+    Create features for GNN training, including location-specific features.
+    
+    Args:
+        df: Combined DataFrame with data from all locations
+    
+    Returns:
+        pd.DataFrame: DataFrame with additional features
+    """
+    print("\nCreating GNN features...")
+    print(f"Initial shape: {df.shape}")
+    print(f"Initial locations: {df['location'].unique()}")
+    print(f"Initial date range: {df['datetime'].min()} to {df['datetime'].max()}")
+    print(f"Initial rows per location:\n{df['location'].value_counts()}")
+    print(f"Initial memory usage: {df.memory_usage().sum() / 1024 / 1024:.2f} MB")
+    
+    # Create time-based features
+    print("\nCreating time-based features...")
+    df["hour_sin"] = np.sin(2 * np.pi * df["Hour"] / 24)
+    df["hour_cos"] = np.cos(2 * np.pi * df["Hour"] / 24)
+    df["month_sin"] = np.sin(2 * np.pi * df["Month"] / 12)
+    df["month_cos"] = np.cos(2 * np.pi * df["Month"] / 12)
+    print("✓ Time-based features created")
+    
+    # Create target: GHI for next day at the same hour
+    print("\nCreating target variable...")
+    df["target_GHI"] = df["GHI"].shift(-24)
+    print("✓ Target variable created")
+    
+    # Create lag features for previous 24 hours of GHI
+    print("\nCreating GHI lag features...")
+    for lag in range(1, 25):
+        df[f"GHI_lag_{lag}"] = df["GHI"].shift(lag)
+    print("✓ GHI lag features created")
+    
+    # Create lag features for meteorological variables
+    print("\nCreating meteorological lag features...")
+    meteorological_features = [
+        "Temperature", "Relative Humidity", "Pressure",
+        "Precipitable Water", "Wind Direction", "Wind Speed"
+    ]
+    
+    for feature in meteorological_features:
+        df[f"{feature}_lag_24"] = df[feature].shift(24)
+    print("✓ Meteorological lag features created")
+    
+    # Create location-specific features
+    print("\nCreating location features...")
+    # One-hot encode location
+    encoder = OneHotEncoder(sparse_output=False)
+    location_encoded = encoder.fit_transform(df[['location']])
+    location_df = pd.DataFrame(location_encoded, 
+                             columns=[f"location_{loc}" for loc in encoder.categories_[0]])
+    
+    # Combine with original data
+    df = pd.concat([df, location_df], axis=1)
+    print("✓ Location features created")
+    
+    # Drop rows with missing values
+    print("\nCleaning data...")
+    df_clean = df.dropna().reset_index(drop=True)
+    
+    print(f"\nFinal shape: {df_clean.shape}")
+    print(f"Features created: {df_clean.columns.tolist()}")
+    return df_clean
 
-class GNNGHIForecaster(Model):
-    """GNN model for GHI forecasting."""
-    def __init__(self, num_locations, hidden_dim=64):
-        super().__init__()
-        self.num_locations = num_locations
-        self.hidden_dim = hidden_dim
+def create_gnn_model(input_shape, num_locations):
+    """Create and compile the GNN model with GPU optimizations."""
+    # Clear any existing models/layers in memory
+    tf.keras.backend.clear_session()
+    
+    # Configure GPU memory growth
+    gpus = tf.config.list_physical_devices('GPU')
+    if gpus:
+        try:
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+            print(f"GPU memory growth enabled for {len(gpus)} GPU(s)")
+        except RuntimeError as e:
+            print(f"Error configuring GPU: {e}")
+    
+    # Input layers
+    ghi_input = Input(shape=input_shape, name='ghi_input')
+    met_input = Input(shape=input_shape, name='met_input')
+    location_input = Input(shape=(num_locations,), name='location_input')
+    
+    # GHI processing branch
+    ghi_lstm = LSTM(128, return_sequences=True, 
+                    kernel_initializer='glorot_uniform',
+                    recurrent_initializer='orthogonal',
+                    recurrent_activation='sigmoid',
+                    time_major=False)(ghi_input)
+    ghi_dropout = Dropout(CONFIG["model_params"]["dropout_rate"])(ghi_lstm)
+    ghi_lstm2 = LSTM(64, return_sequences=False,
+                     kernel_initializer='glorot_uniform',
+                     recurrent_initializer='orthogonal',
+                     recurrent_activation='sigmoid',
+                     time_major=False)(ghi_dropout)
+    
+    # Meteorological processing branch
+    met_lstm = LSTM(64, return_sequences=True,
+                    kernel_initializer='glorot_uniform',
+                    recurrent_initializer='orthogonal',
+                    recurrent_activation='sigmoid',
+                    time_major=False)(met_input)
+    met_dropout = Dropout(CONFIG["model_params"]["dropout_rate"])(met_lstm)
+    met_lstm2 = LSTM(32, return_sequences=False,
+                     kernel_initializer='glorot_uniform',
+                     recurrent_initializer='orthogonal',
+                     recurrent_activation='sigmoid',
+                     time_major=False)(met_dropout)
+    
+    # Location processing branch
+    location_dense = Dense(32, activation='relu')(location_input)
+    
+    # Combine all branches
+    combined = Concatenate()([ghi_lstm2, met_lstm2, location_dense])
+    dense1 = Dense(64, activation='relu')(combined)
+    dropout1 = Dropout(CONFIG["model_params"]["dropout_rate"])(dense1)
+    dense2 = Dense(32, activation='relu')(dropout1)
+    output = Dense(1, activation='linear')(dense2)
+    
+    # Create model
+    model = Model(inputs=[ghi_input, met_input, location_input], outputs=output)
+    
+    # Use Adam optimizer with learning rate schedule
+    initial_learning_rate = 0.001
+    lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+        initial_learning_rate,
+        decay_steps=1000,
+        decay_rate=0.9,
+        staircase=True)
+    
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
+    
+    # Compile model
+    model.compile(
+        optimizer=optimizer,
+        loss='mse',
+        metrics=['mae']
+    )
+    
+    return model
+
+def split_and_scale_gnn_data(df, locations, sequence_length=24, target_column="GHI"):
+    """
+    Split and scale the data for GNN model training.
+    
+    Args:
+        df: DataFrame with all data
+        locations: List of locations
+        sequence_length: Length of input sequences
+        target_column: Name of target column
+    
+    Returns:
+        tuple: (X_train, y_train, X_val, y_val, X_test, y_test, target_scaler)
+    """
+    print("\nSplitting and scaling data:")
+    print(f"Total samples: {len(df)}")
+    print(f"Locations: {locations}")
+    
+    # Create a more balanced split that ensures each location has data in all splits
+    train_dfs = []
+    val_dfs = []
+    test_dfs = []
+    
+    for location in locations:
+        df_loc = df[df["location"] == location].copy()
         
-        # Node feature processing
-        self.node_encoder = tf.keras.Sequential([
-            LSTM(hidden_dim, return_sequences=True),
-            Dropout(0.2),
-            LSTM(hidden_dim),
-            Dropout(0.2),
-            Dense(hidden_dim)
-        ])
+        # Sort by datetime to ensure chronological order
+        df_loc = df_loc.sort_values("datetime")
         
-        # Graph attention layers
-        self.graph_layers = [
-            GraphAttentionLayer(hidden_dim) for _ in range(2)
-        ]
+        # Calculate split indices
+        n_samples = len(df_loc)
+        train_end = int(n_samples * 0.7)  # 70% for training
+        val_end = int(n_samples * 0.85)   # 15% for validation
         
-        # Prediction head
-        self.prediction_head = Dense(1)
+        # Split the data
+        train_dfs.append(df_loc.iloc[:train_end])
+        val_dfs.append(df_loc.iloc[train_end:val_end])
+        test_dfs.append(df_loc.iloc[val_end:])
+    
+    # Combine splits
+    df_train = pd.concat(train_dfs, ignore_index=True)
+    df_val = pd.concat(val_dfs, ignore_index=True)
+    df_test = pd.concat(test_dfs, ignore_index=True)
+    
+    print("\nSplit sizes:")
+    print(f"Train: {len(df_train)} samples")
+    print(f"Validation: {len(df_val)} samples")
+    print(f"Test: {len(df_test)} samples")
+    
+    # Scale target values
+    target_scaler = MinMaxScaler()
+    df_train[target_column] = target_scaler.fit_transform(df_train[[target_column]])
+    df_val[target_column] = target_scaler.transform(df_val[[target_column]])
+    df_test[target_column] = target_scaler.transform(df_test[[target_column]])
+    
+    # Create sequences for each location
+    X_train, y_train = create_gnn_sequences(df_train, locations, sequence_length, target_column)
+    X_val, y_val = create_gnn_sequences(df_val, locations, sequence_length, target_column)
+    X_test, y_test = create_gnn_sequences(df_test, locations, sequence_length, target_column)
+    
+    print("\nFinal sequence shapes:")
+    print(f"X_train: {[x.shape for x in X_train]}")
+    print(f"y_train: {y_train.shape}")
+    print(f"X_val: {[x.shape for x in X_val]}")
+    print(f"y_val: {y_val.shape}")
+    print(f"X_test: {[x.shape for x in X_test]}")
+    print(f"y_test: {y_test.shape}")
+    
+    return X_train, y_train, X_val, y_val, X_test, y_test, target_scaler
+
+def create_gnn_sequences(df, locations, sequence_length, target_column):
+    """
+    Create sequences for GNN model training.
+    
+    Args:
+        df: DataFrame with data
+        locations: List of locations
+        sequence_length: Length of input sequences
+        target_column: Name of target column
+    
+    Returns:
+        tuple: (X, y) where X is a list of input sequences and y is the target values
+    """
+    print(f"\nCreating sequences for {len(df)} samples")
+    print(f"Locations: {locations}")
+    
+    # Initialize lists to store sequences
+    ghi_sequences = []
+    met_sequences = []
+    location_sequences = []
+    y_sequences = []
+    
+    # Group data by location
+    for location in locations:
+        df_loc = df[df["location"] == location].copy()
+        print(f"\nProcessing {location}:")
+        print(f"Number of samples: {len(df_loc)}")
         
-    def call(self, inputs):
-        # inputs: (node_features, adjacency_matrix)
-        node_features, adj_matrix = inputs
+        if len(df_loc) == 0:
+            print(f"Warning: No data for {location}")
+            continue
         
-        # Reshape node features for LSTM
-        batch_size = tf.shape(node_features)[0]
-        num_locations = tf.shape(node_features)[1]
-        num_timesteps = tf.shape(node_features)[2]
-        num_features = tf.shape(node_features)[3]
+        # Sort by datetime to ensure chronological order
+        df_loc = df_loc.sort_values("datetime")
         
-        # Reshape to (batch_size * num_locations, timesteps, features)
-        reshaped_features = tf.reshape(node_features, 
-                                     [batch_size * num_locations, num_timesteps, num_features])
+        # Create one-hot encoded location vector
+        location_vector = np.zeros(len(locations))
+        location_vector[locations.index(location)] = 1
         
-        # Process node features
-        node_embeddings = self.node_encoder(reshaped_features)
+        # Calculate the maximum index that allows for a complete sequence
+        max_index = len(df_loc) - sequence_length - 1  # -1 to ensure we have a target value
         
-        # Reshape back to (batch_size, num_locations, hidden_dim)
-        node_embeddings = tf.reshape(node_embeddings, 
-                                   [batch_size, num_locations, self.hidden_dim])
+        # Create sequences using rolling window approach
+        for i in range(max_index):
+            # Get sequence window
+            sequence_window = df_loc.iloc[i:i + sequence_length]
+            target_window = df_loc.iloc[i + sequence_length:i + sequence_length + 1]
+            
+            # Skip if any data is missing
+            if sequence_window.isnull().any().any() or target_window.isnull().any().any():
+                continue
+            
+            # Get GHI sequence features
+            ghi_features = sequence_window[target_column].values
+            
+            # Get meteorological features
+            met_features = sequence_window[[
+                "Temperature_lag_24", "Relative Humidity_lag_24",
+                "Pressure_lag_24", "Precipitable Water_lag_24",
+                "Wind Direction_lag_24", "Wind Speed_lag_24"
+            ]].values
+            
+            # Get target value
+            target_value = target_window[target_column].values[0]
+            
+            # Skip if target value is zero (night time)
+            if target_value == 0:
+                continue
+            
+            # Store sequences
+            ghi_sequences.append(ghi_features)
+            met_sequences.append(met_features)
+            location_sequences.append(location_vector)
+            y_sequences.append(target_value)
+    
+    # Convert to numpy arrays
+    X = [
+        np.array(ghi_sequences),
+        np.array(met_sequences),
+        np.array(location_sequences)
+    ]
+    y = np.array(y_sequences)
+    
+    print(f"\nFinal sequence shapes:")
+    print(f"GHI sequences: {X[0].shape}")
+    print(f"Meteorological sequences: {X[1].shape}")
+    print(f"Location sequences: {X[2].shape}")
+    print(f"Target values: {y.shape}")
+    
+    return X, y
+
+def train_gnn_model(model, X_train, y_train, X_val, y_val, batch_size=32, epochs=50):
+    """Train the GNN model with early stopping and model checkpointing."""
+    # Create callbacks
+    early_stopping = tf.keras.callbacks.EarlyStopping(
+        monitor='val_loss',
+        patience=10,
+        restore_best_weights=True,
+        verbose=1
+    )
+    
+    # Add learning rate reduction on plateau
+    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
+        monitor='val_loss',
+        factor=0.5,
+        patience=5,
+        min_lr=1e-6,
+        verbose=1
+    )
+    
+    # Add TensorBoard callback for monitoring
+    log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(
+        log_dir=log_dir,
+        histogram_freq=1,
+        write_graph=True
+    )
+    
+    # Create model checkpoint callback
+    checkpoint_path = "models/gnn_model_checkpoint.h5"
+    model_checkpoint = tf.keras.callbacks.ModelCheckpoint(
+        checkpoint_path,
+        monitor='val_loss',
+        save_best_only=True,
+        save_weights_only=False,
+        verbose=1
+    )
+    
+    # Train the model with all callbacks
+    history = model.fit(
+        X_train, y_train,
+        validation_data=(X_val, y_val),
+        epochs=epochs,
+        batch_size=batch_size,
+        callbacks=[
+            early_stopping,
+            reduce_lr,
+            tensorboard_callback,
+            model_checkpoint
+        ],
+        verbose=1
+    )
+    
+    return history, model
+
+def evaluate_gnn_model(model, test_data, locations, sequence_length, target_column):
+    """
+    Evaluate the GNN model on each location separately.
+    
+    Args:
+        model: Trained model
+        test_data: DataFrame with test data
+        locations: List of locations
+        sequence_length: Length of input sequences
+        target_column: Name of target column
+    
+    Returns:
+        dict: Dictionary with metrics for each location
+    """
+    print("\nEvaluating model on test data...")
+    print(f"Test data shape: {test_data.shape}")
+    print(f"Locations: {locations}")
+    
+    results = {}
+    
+    for location in locations:
+        print(f"\nEvaluating {location}:")
+        df_loc = test_data[test_data["location"] == location].copy()
+        print(f"Number of test samples: {len(df_loc)}")
         
-        # Apply graph attention
-        for layer in self.graph_layers:
-            node_embeddings = layer([node_embeddings, adj_matrix])
+        if len(df_loc) == 0:
+            print(f"Warning: No test data for {location}")
+            continue
+        
+        # Create sequences for evaluation
+        X_test, y_test = create_gnn_sequences(df_loc, [location], sequence_length, target_column)
+        
+        if len(X_test[0]) == 0:
+            print(f"Warning: No valid sequences created for {location}")
+            continue
+        
+        print(f"Test sequences: {len(X_test[0])}")
         
         # Make predictions
-        predictions = self.prediction_head(node_embeddings)
-        return predictions
-
-def create_graph_structure(df):
-    """
-    Create graph structure based on location similarities.
-    
-    Args:
-        df: DataFrame containing data from all locations
-    
-    Returns:
-        tuple: (adjacency_matrix, locations)
-    """
-    # Get unique locations
-    locations = sorted(df['location'].unique())
-    num_locations = len(locations)
-    
-    # Calculate location similarities based on GHI patterns
-    location_features = []
-    for location in locations:
-        location_data = df[df['location'] == location]
-        # Use mean GHI values as features
-        features = location_data.groupby(['Month', 'Hour'])['GHI'].mean().values
-        location_features.append(features)
-    
-    # Calculate cosine similarity between locations
-    similarity_matrix = cosine_similarity(location_features)
-    
-    # Create adjacency matrix (threshold similarity)
-    threshold = np.percentile(similarity_matrix, 70)  # Keep top 30% of connections
-    adjacency_matrix = (similarity_matrix > threshold).astype(float)
-    
-    # Ensure self-connections
-    np.fill_diagonal(adjacency_matrix, 1)
-    
-    return adjacency_matrix, locations
-
-def prepare_gnn_data(df, adjacency_matrix, locations, feature_combination="all"):
-    """
-    Prepare data for GNN training.
-    
-    Args:
-        df: DataFrame containing all data
-        adjacency_matrix: Graph adjacency matrix
-        locations: List of locations
-        feature_combination: String specifying which features to use
-    
-    Returns:
-        tuple: (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler, feature_columns
-    """
-    print("1. Splitting data by year...")
-    # Split data by year
-    df_train = df[df["Year"].isin([2017, 2018])].copy()
-    df_2019 = df[df["Year"] == 2019].copy()
-    split_index = len(df_2019) // 2
-    df_val = df_2019.iloc[:split_index].copy()
-    df_test = df_2019.iloc[split_index:].copy()
-    
-    print("2. Creating time-based features...")
-    # Create time-based features
-    for df_split in [df_train, df_val, df_test]:
-        df_split["hour_sin"] = np.sin(2 * np.pi * df_split["Hour"] / 24)
-        df_split["hour_cos"] = np.cos(2 * np.pi * df_split["Hour"] / 24)
-        df_split["month_sin"] = np.sin(2 * np.pi * df_split["Month"] / 12)
-        df_split["month_cos"] = np.cos(2 * np.pi * df_split["Month"] / 12)
-    
-    print("3. Defining feature columns...")
-    # Define feature groups
-    ghi_features = ["GHI"] + [f"GHI_lag_{lag}" for lag in range(1, 25)]
-    meteorological_features = {
-        "Temperature": ["Temperature_lag_24"],
-        "Relative Humidity": ["Relative Humidity_lag_24"],
-        "Pressure": ["Pressure_lag_24"],
-        "Precipitable Water": ["Precipitable Water_lag_24"],
-        "Wind Direction": ["Wind Direction_lag_24"],
-        "Wind Speed": ["Wind Speed_lag_24"]
-    }
-    
-    # Select features based on combination
-    if feature_combination == "ghi_only":
-        feature_columns = ghi_features
-    elif feature_combination == "meteorological_only":
-        feature_columns = [f for features in meteorological_features.values() for f in features]
-    elif feature_combination in meteorological_features:
-        feature_columns = ghi_features + meteorological_features[feature_combination]
-    elif feature_combination == "all":
-        feature_columns = (ghi_features + 
-                         [f for features in meteorological_features.values() for f in features])
-    else:
-        raise ValueError(f"Invalid feature combination: {feature_combination}")
-    
-    print(f"Selected features: {feature_columns}")
-    
-    print("4. Adding lag features...")
-    # Add lag features
-    for lag in range(1, 25):
-        print(f"   Adding lag {lag}/24...")
-        df_train[f'GHI_lag_{lag}'] = df_train.groupby('location')['GHI'].shift(lag)
-        df_val[f'GHI_lag_{lag}'] = df_val.groupby('location')['GHI'].shift(lag)
-        df_test[f'GHI_lag_{lag}'] = df_test.groupby('location')['GHI'].shift(lag)
-    
-    print("5. Creating target variable...")
-    # Create target
-    df_train['target_GHI'] = df_train.groupby('location')['GHI'].shift(-24)
-    df_val['target_GHI'] = df_val.groupby('location')['GHI'].shift(-24)
-    df_test['target_GHI'] = df_test.groupby('location')['GHI'].shift(-24)
-    
-    print("6. Dropping rows with missing values...")
-    # Drop rows with missing values
-    df_train = df_train.dropna()
-    df_val = df_val.dropna()
-    df_test = df_test.dropna()
-    
-    print("7. Scaling features...")
-    # Scale features
-    scaler = MinMaxScaler()
-    target_scaler = MinMaxScaler()
-    
-    # Scale features
-    for df_split in [df_train, df_val, df_test]:
-        df_split[feature_columns] = scaler.fit_transform(df_split[feature_columns])
-        df_split['target_GHI'] = target_scaler.fit_transform(df_split[['target_GHI']])
-    
-    print("8. Preparing GNN input format...")
-    # Prepare GNN input format
-    def prepare_gnn_input(df_split, num_locations):
-        num_timesteps = 24  # Use last 24 hours
-        num_features = len(feature_columns)
+        y_pred = model.predict(X_test)
         
-        X = np.zeros((len(df_split), num_locations, num_timesteps, num_features))
-        y = np.zeros((len(df_split), num_locations))
+        # Calculate metrics
+        metrics = evaluate_model(y_test, y_pred.ravel())
         
-        for i, location in enumerate(locations):
-            print(f"   Processing location {i+1}/{len(locations)}: {location}")
-            loc_data = df_split[df_split['location'] == location]
-            for j in range(len(loc_data)):
-                if j >= num_timesteps:
-                    X[j, i] = loc_data.iloc[j-num_timesteps:j][feature_columns].values
-                    y[j, i] = loc_data.iloc[j]['target_GHI']
+        print(f"Metrics for {location}:")
+        for metric_name, metric_value in metrics.items():
+            print(f"{metric_name}: {metric_value:.4f}")
         
-        return X, y
+        results[location] = metrics
     
-    num_locations = len(locations)
-    print("9. Preparing training data...")
-    X_train, y_train = prepare_gnn_input(df_train, num_locations)
-    print("10. Preparing validation data...")
-    X_val, y_val = prepare_gnn_input(df_val, num_locations)
-    print("11. Preparing test data...")
-    X_test, y_test = prepare_gnn_input(df_test, num_locations)
-    
-    return (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler, feature_columns
+    return results
 
-def main(skip_training=False):
+def main(skip_training=False, debug_data_loading=False):
     """
     Main execution function for GNN training.
     
     Args:
         skip_training (bool): If True, load pre-trained model instead of training new one
+        debug_data_loading (bool): If True, stop after data loading for debugging
     """
     # Set random seeds for reproducibility
     np.random.seed(CONFIG["random_seed"])
@@ -392,19 +547,6 @@ def main(skip_training=False):
     
     # Create necessary directories
     os.makedirs("models", exist_ok=True)
-    
-    # Define feature combinations to test
-    feature_combinations = [
-        "ghi_only",
-        "Temperature",
-        "Relative Humidity",
-        "Pressure",
-        "Precipitable Water",
-        "Wind Direction",
-        "Wind Speed",
-        "all",
-        "meteorological_only"
-    ]
     
     # Try to create experiment
     try:
@@ -419,196 +561,88 @@ def main(skip_training=False):
     # Load and process data
     print("\nLoading and processing data...")
     try:
-        # Load data for all locations
-        all_dfs = []
-        for city in CONFIG["data_locations"].keys():
-            print(f"\nLoading data for {city}...")
-            df = load_data(CONFIG["data_locations"], city)
-            df['location'] = city
-            all_dfs.append(df)
-        
-        df = pd.concat(all_dfs, ignore_index=True)
+        df = load_all_data(CONFIG["data_locations"])
         print("✓ Data loaded successfully")
+        
+        if debug_data_loading:
+            print("\nDebug mode: Stopping after data loading")
+            return
+            
     except Exception as e:
         print(f"× Error loading data: {str(e)}")
         return
     
-    # Create graph structure
-    print("\nCreating graph structure...")
-    adjacency_matrix, locations = create_graph_structure(df)
-    num_locations = len(locations)
+    # Get unique locations
+    locations = sorted(df['location'].unique().tolist())
+    print(f"\nLocations: {locations}")
     
-    # Dictionary to store results
-    all_results = {
-        'metrics': {},
-        'histories': {},
-        'predictions': {}
-    }
-    
-    for feature_combo in feature_combinations:
-        print(f"\nTesting feature combination: {feature_combo}")
-        
-        try:
-            # Prepare data for GNN
-            print("\nPreparing data for GNN...")
-            (X_train, y_train, X_val, y_val, X_test, y_test), target_scaler, feature_columns = prepare_gnn_data(
-                df, adjacency_matrix, locations, feature_combo
-            )
-            
-            # Create and train model
-            print("\nCreating GNN model...")
-            model = GNNGHIForecaster(num_locations)
-            
-            # Build model with a sample batch
-            sample_batch_size = 32
-            sample_features = np.zeros((sample_batch_size, num_locations, 24, len(feature_columns)))
-            sample_adj = np.tile(adjacency_matrix, (sample_batch_size, 1, 1))
-            model([sample_features, sample_adj])  # This builds the model
-            
-            model.compile(
-                optimizer='adam',
-                loss=MeanSquaredError(),
-                metrics=['mae', 'mse']
-            )
-            model.summary()
-            
-            model_path = os.path.join("models", f"gnn_ghi_forecast_{feature_combo}")
-            
-            if skip_training:
-                if os.path.exists(model_path):
-                    print(f"\nLoading pre-trained model for {feature_combo}...")
-                    model = tf.keras.models.load_model(model_path)
-                    history = None
-                else:
-                    print(f"× No pre-trained model found for {feature_combo}")
-                    continue
-            else:
-                print("\nTraining model...")
-                history = model.fit(
-                    [X_train, np.tile(adjacency_matrix, (X_train.shape[0], 1, 1))], y_train,
-                    epochs=CONFIG["model_params"]["epochs"],
-                    batch_size=CONFIG["model_params"]["batch_size"],
-                    validation_data=([X_val, np.tile(adjacency_matrix, (X_val.shape[0], 1, 1))], y_val),
-                    verbose=0
-                )
-                
-                # Save model using SavedModel format
-                model.save(model_path, save_format="tf")
-                print(f"✓ Model saved to {model_path}")
-            
-            # Evaluate model
-            print("\nEvaluating model...")
-            results = {}
-            
-            for location in locations:
-                # Get test data for this location
-                location_idx = locations.index(location)
-                y_pred = model.predict([X_test, np.tile(adjacency_matrix, (X_test.shape[0], 1, 1))])
-                y_pred_loc = y_pred[:, location_idx]
-                y_test_loc = y_test[:, location_idx]
-                
-                # Rescale predictions
-                y_pred_rescaled = target_scaler.inverse_transform(y_pred_loc.reshape(-1, 1)).ravel()
-                y_test_rescaled = target_scaler.inverse_transform(y_test_loc.reshape(-1, 1)).ravel()
-                
-                # Calculate metrics
-                metrics = evaluate_model(y_test_rescaled, y_pred_rescaled)
-                results[location] = metrics
-                
-                print(f"\nResults for {location}:")
-                for metric_name, metric_value in metrics.items():
-                    print(f"✅ {metric_name}: {metric_value:.4f}")
-            
-            # Store results
-            all_results['metrics'][feature_combo] = results
-            all_results['histories'][feature_combo] = history
-            
-            # Log results if experiment exists
-            if experiment:
-                try:
-                    # Log metrics
-                    for location, metrics in results.items():
-                        for metric_name, metric_value in metrics.items():
-                            experiment.log_metric(f"{location}_{feature_combo}_{metric_name}", metric_value)
-                    
-                    # Log plots
-                    if history:
-                        loss_fig = plot_loss_history(history)
-                        experiment.log_figure(figure_name=f"loss_history_{feature_combo}", figure=loss_fig)
-                        plt.close()
-                    
-                    print("✓ Results logged to Comet.ml")
-                except Exception as e:
-                    print(f"× Warning: Could not log results: {str(e)}")
-            
-        except Exception as e:
-            print(f"× Error processing {feature_combo}: {str(e)}")
-            continue
-    
-    # Create comparative analysis
-    print("\nGenerating comparative analysis...")
     try:
-        # Create directories for results
-        os.makedirs("results_gnn", exist_ok=True)
-        os.makedirs("results_gnn/plots", exist_ok=True)
-        os.makedirs("results_gnn/tables", exist_ok=True)
+        # Create features
+        print("\nCreating features...")
+        df_features = create_gnn_features(df)
         
-        # Create metrics table
-        records = []
-        for feature_combo, location_metrics in all_results['metrics'].items():
-            for location, metrics in location_metrics.items():
-                for metric_name, value in metrics.items():
-                    records.append({
-                        'Location': location,
-                        'Feature Combination': feature_combo,
-                        'Metric': metric_name,
-                        'Value': value
-                    })
+        # Split and scale data
+        print("\nSplitting and scaling data...")
+        (X_train, y_train, X_val, y_val, X_test, y_test, target_scaler) = split_and_scale_gnn_data(df_features, locations)
         
-        metrics_df = pd.DataFrame(records)
+        # Create and train model
+        print("\nCreating model...")
+        model = create_gnn_model((X_train[0].shape[1], X_train[0].shape[2]), len(locations))
+        model.summary()
         
-        # Save results
-        metrics_df.to_csv("results_gnn/tables/gnn_metrics.csv", index=False)
+        model_path = os.path.join("models", "gnn_ghi_forecast.h5")
         
-        # Create plots for each metric
-        for metric in metrics_df['Metric'].unique():
-            metric_data = metrics_df[metrics_df['Metric'] == metric]
+        if skip_training:
+            if os.path.exists(model_path):
+                print(f"\nLoading pre-trained model...")
+                model = tf.keras.models.load_model(model_path)
+                history = None
+            else:
+                print("× No pre-trained model found")
+                return
+        else:
+            print("\nTraining model...")
+            history, model = train_gnn_model(model, X_train, y_train, X_val, y_val)
             
-            plt.figure(figsize=(15, 8))
-            pivot_data = metric_data.pivot(
-                index='Feature Combination',
-                columns='Location',
-                values='Value'
-            )
-            ax = pivot_data.plot(kind='bar', width=0.8)
-            plt.title(f'{metric} Comparison Across Locations and Feature Combinations')
-            plt.xlabel('Feature Combination')
-            plt.ylabel(metric)
-            plt.xticks(rotation=45, ha='right')
-            plt.legend(title='Location', bbox_to_anchor=(1.05, 1), loc='upper left')
-            
-            # Add value labels
-            for container in ax.containers:
-                ax.bar_label(container, fmt='%.3f', rotation=90, padding=3)
-            
-            plt.grid(True, axis='y', linestyle='--', alpha=0.7)
-            plt.tight_layout()
-            
-            # Save plot
-            plot_path = f"results_gnn/plots/gnn_comparison_{metric.lower().replace(' ', '_')}.png"
-            plt.savefig(plot_path, bbox_inches='tight', dpi=300)
-            plt.close()
+            # Save model
+            model.save(model_path)
+            print(f"✓ Model saved to {model_path}")
         
-        print("\nResults have been saved in the 'results_gnn' directory")
+        # Evaluate model
+        print("\nEvaluating model...")
+        results = evaluate_gnn_model(model, df_features, locations, 24, "GHI")
+        
+        # Log results if experiment exists
+        if experiment:
+            try:
+                # Log metrics
+                for location, metrics in results.items():
+                    for metric_name, metric_value in metrics.items():
+                        experiment.log_metric(f"{location}_{metric_name}", metric_value)
+                
+                # Log plots
+                if history:
+                    loss_fig = plot_loss_history(history)
+                    experiment.log_figure(figure_name="loss_history", figure=loss_fig)
+                    plt.close()
+                
+                print("✓ Results logged to Comet.ml")
+            except Exception as e:
+                print(f"× Warning: Could not log results: {str(e)}")
         
     except Exception as e:
-        print(f"× Error in comparative analysis: {str(e)}")
+        print(f"× Error in main execution: {str(e)}")
+        import traceback
+        print("\nFull traceback:")
+        print(traceback.format_exc())
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='GHI Forecasting using GNN')
     parser.add_argument('--skip-training', action='store_true',
-                      help='Skip training and load pre-trained model')
+                      help='Skip training and load pre-trained models')
+    parser.add_argument('--debug-data', action='store_true',
+                      help='Stop after data loading for debugging')
     args = parser.parse_args()
     
-    main(skip_training=args.skip_training) 
+    main(skip_training=args.skip_training, debug_data_loading=args.debug_data) 
