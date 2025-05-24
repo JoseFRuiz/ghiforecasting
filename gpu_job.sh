@@ -27,11 +27,6 @@ module load ngc-tensorflow/2.6.0
 echo "Loaded modules:"
 module list
 
-# Set environment variables for GPU
-export CUDA_VISIBLE_DEVICES=0
-export TF_GPU_THREAD_MODE=gpu_private
-export TF_GPU_THREAD_COUNT=1
-
 # Activate conda env
 source ~/.bashrc
 source activate ghifo_py38
