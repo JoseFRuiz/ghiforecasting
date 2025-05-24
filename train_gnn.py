@@ -19,8 +19,6 @@ from comet_ml import Experiment
 
 # Configure TensorFlow to use GPU if available
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 
 # Check for GPU availability and configure
 physical_devices = tf.config.list_physical_devices('GPU')
@@ -191,7 +189,7 @@ def create_gnn_features(df):
 def create_gnn_model(input_shape, num_locations):
     """Create and compile the GNN model with GPU optimizations."""
     # Clear any existing models/layers in memory
-    keras.backend.clear_session()
+    tf.keras.backend.clear_session()
     
     # Configure GPU memory growth
     gpus = tf.config.list_physical_devices('GPU')
@@ -204,58 +202,58 @@ def create_gnn_model(input_shape, num_locations):
             print(f"Error configuring GPU: {e}")
     
     # Input layers
-    ghi_input = layers.Input(shape=input_shape, name='ghi_input')
-    met_input = layers.Input(shape=input_shape, name='met_input')
-    location_input = layers.Input(shape=(num_locations,), name='location_input')
+    ghi_input = tf.keras.layers.Input(shape=input_shape, name='ghi_input')
+    met_input = tf.keras.layers.Input(shape=input_shape, name='met_input')
+    location_input = tf.keras.layers.Input(shape=(num_locations,), name='location_input')
     
     # GHI processing branch
-    ghi_lstm = layers.LSTM(128, return_sequences=True, 
+    ghi_lstm = tf.keras.layers.LSTM(128, return_sequences=True, 
                     kernel_initializer='glorot_uniform',
                     recurrent_initializer='orthogonal',
                     recurrent_activation='sigmoid',
                     time_major=False)(ghi_input)
-    ghi_dropout = layers.Dropout(CONFIG["model_params"]["dropout_rate"])(ghi_lstm)
-    ghi_lstm2 = layers.LSTM(64, return_sequences=False,
+    ghi_dropout = tf.keras.layers.Dropout(CONFIG["model_params"]["dropout_rate"])(ghi_lstm)
+    ghi_lstm2 = tf.keras.layers.LSTM(64, return_sequences=False,
                      kernel_initializer='glorot_uniform',
                      recurrent_initializer='orthogonal',
                      recurrent_activation='sigmoid',
                      time_major=False)(ghi_dropout)
     
     # Meteorological processing branch
-    met_lstm = layers.LSTM(64, return_sequences=True,
+    met_lstm = tf.keras.layers.LSTM(64, return_sequences=True,
                     kernel_initializer='glorot_uniform',
                     recurrent_initializer='orthogonal',
                     recurrent_activation='sigmoid',
                     time_major=False)(met_input)
-    met_dropout = layers.Dropout(CONFIG["model_params"]["dropout_rate"])(met_lstm)
-    met_lstm2 = layers.LSTM(32, return_sequences=False,
+    met_dropout = tf.keras.layers.Dropout(CONFIG["model_params"]["dropout_rate"])(met_lstm)
+    met_lstm2 = tf.keras.layers.LSTM(32, return_sequences=False,
                      kernel_initializer='glorot_uniform',
                      recurrent_initializer='orthogonal',
                      recurrent_activation='sigmoid',
                      time_major=False)(met_dropout)
     
     # Location processing branch
-    location_dense = layers.Dense(32, activation='relu')(location_input)
+    location_dense = tf.keras.layers.Dense(32, activation='relu')(location_input)
     
     # Combine all branches
-    combined = layers.Concatenate()([ghi_lstm2, met_lstm2, location_dense])
-    dense1 = layers.Dense(64, activation='relu')(combined)
-    dropout1 = layers.Dropout(CONFIG["model_params"]["dropout_rate"])(dense1)
-    dense2 = layers.Dense(32, activation='relu')(dropout1)
-    output = layers.Dense(1, activation='linear')(dense2)
+    combined = tf.keras.layers.Concatenate()([ghi_lstm2, met_lstm2, location_dense])
+    dense1 = tf.keras.layers.Dense(64, activation='relu')(combined)
+    dropout1 = tf.keras.layers.Dropout(CONFIG["model_params"]["dropout_rate"])(dense1)
+    dense2 = tf.keras.layers.Dense(32, activation='relu')(dropout1)
+    output = tf.keras.layers.Dense(1, activation='linear')(dense2)
     
     # Create model
-    model = keras.Model(inputs=[ghi_input, met_input, location_input], outputs=output)
+    model = tf.keras.Model(inputs=[ghi_input, met_input, location_input], outputs=output)
     
     # Use Adam optimizer with learning rate schedule
     initial_learning_rate = 0.001
-    lr_schedule = keras.optimizers.schedules.ExponentialDecay(
+    lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
         initial_learning_rate,
         decay_steps=1000,
         decay_rate=0.9,
         staircase=True)
     
-    optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
     
     # Compile model
     model.compile(
