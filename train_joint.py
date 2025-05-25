@@ -405,10 +405,6 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
         valid_sequences = 0
         skipped_sequences = 0
         
-        # Create one-hot encoded location vector
-        location_vector = np.zeros(len(locations))
-        location_vector[locations.index(location)] = 1
-        
         # Calculate the maximum index that allows for a complete sequence
         max_index = len(df_loc) - sequence_length - 1
         
@@ -442,6 +438,9 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
                 "month_sin", "month_cos"
             ]].values
             
+            # Get location encoding features
+            location_features = sequence_window[[f"location_{loc}" for loc in locations]].values
+            
             target_value = target_window[target_column].values[0]
             
             # Skip if target value is zero (night time)
@@ -449,13 +448,13 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
                 skipped_sequences += 1
                 continue
             
-            # Create feature matrix with location encoding
+            # Create feature matrix with all features
             features = np.column_stack([
                 ghi_lag_features,  # 24 features
                 current_ghi,       # 1 feature
                 met_features,      # 6 features
                 time_features,     # 4 features
-                np.tile(location_vector, (sequence_length, 1))  # 1 feature
+                location_features  # 5 features (one for each location)
             ])
             
             X_sequences.append(features)
