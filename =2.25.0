@@ -1,0 +1,15 @@
+Collecting charset-normalizer==2.0.12
+  Using cached charset_normalizer-2.0.12-py3-none-any.whl.metadata (11 kB)
+Collecting requests
+  Using cached requests-2.32.3-py3-none-any.whl.metadata (4.6 kB)
+Requirement already satisfied: idna<4,>=2.5 in /home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages (from requests) (3.10)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages (from requests) (2.2.3)
+Requirement already satisfied: certifi>=2017.4.17 in /home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages (from requests) (2022.9.24)
+Using cached charset_normalizer-2.0.12-py3-none-any.whl (39 kB)
+Using cached requests-2.32.3-py3-none-any.whl (64 kB)
+Installing collected packages: charset-normalizer, requests
+  Attempting uninstall: charset-normalizer
+    Found existing installation: charset-normalizer 3.4.2
+    Uninstalling charset-normalizer-3.4.2:
+      Successfully uninstalled charset-normalizer-3.4.2
+Successfully installed charset-normalizer-2.0.12 requests-2.32.3

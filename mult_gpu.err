@@ -1,18 +1,37 @@
-GPU Driver '550' detected
-2025-05-18 09:14:41.780061: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
-To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2025-05-18 09:14:42.401329: E tensorflow/stream_executor/cuda/cuda_blas.cc:2981] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
-2025-05-18 09:14:44.964562: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.4.3/lib64:/opt/slurm/lib64::
-2025-05-18 09:14:44.965792: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.4.3/lib64:/opt/slurm/lib64::
-2025-05-18 09:14:44.965831: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
-2025-05-18 09:14:49.813673: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudnn.so.8'; dlerror: libcudnn.so.8: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/apps/compilers/cuda/11.4.3/lib64:/opt/slurm/lib64::
-2025-05-18 09:14:49.813876: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
-Skipping registering GPU devices...
-COMET INFO: Experiment is live on comet.com https://www.comet.com/josefruiz/ghi-forecasting/716c2c3ef3a740c3beacae4222971eb3
 
-WARNING:tensorflow:Mixed precision compatibility check (mixed_float16): WARNING
-The dtype policy mixed_float16 may run slowly because this machine does not have a GPU. Only Nvidia GPUs with compute capability of at least 7.0 run quickly with mixed_float16.
-If you will use compatible GPU(s) not attached to this host, e.g. by running a multi-worker model, you can ignore this warning. This message will only be logged once
-2025-05-18 09:15:52.025794: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+Currently Loaded Modules:
+  1) tensorflow/2.6.0
+
+ 
+
+2025-05-24 20:16:01.333737: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
 To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-slurmstepd: error: *** JOB 2539172 ON c0909a-s17 CANCELLED AT 2025-05-18T09:49:57 ***
+2025-05-24 20:16:02.419146: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1510] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 79048 MB memory:  -> device: 0, name: NVIDIA A100-SXM4-80GB, pci bus id: 0000:0f:00.0, compute capability: 8.0
+2025-05-24 20:16:03.460199: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-05-24 20:16:03.460444: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-05-24 20:16:03.461611: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1614] Profiler found 1 GPUs
+2025-05-24 20:16:03.463110: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcupti.so.11.2'; dlerror: libcupti.so.11.2: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/opt/slurm/lib64:
+2025-05-24 20:16:03.555568: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-05-24 20:16:03.555930: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
+2025-05-24 20:16:03.656882: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:185] None of the MLIR Optimization Passes are enabled (registered 2)
+2025-05-24 20:16:06.224658: I tensorflow/stream_executor/cuda/cuda_dnn.cc:369] Loaded cuDNN version 8201
+2025-05-24 20:16:07.951904: I tensorflow/stream_executor/cuda/cuda_blas.cc:1760] TensorFloat-32 will be used for the matrix multiplication. This will only be logged once.
+2025-05-24 20:16:08.275503: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-05-24 20:16:08.275650: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-05-24 20:16:08.600887: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
+2025-05-24 20:16:08.601135: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
+2025-05-24 20:16:08.626847: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 391 callback api events and 390 activity events. 
+2025-05-24 20:16:08.637000: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-05-24 20:16:08.652956: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250524-201603/train/plugins/profile/2025_05_24_20_16_08
+
+2025-05-24 20:16:08.658806: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/20250524-201603/train/plugins/profile/2025_05_24_20_16_08/c0804a-s11.ufhpc.trace.json.gz
+2025-05-24 20:16:08.673254: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250524-201603/train/plugins/profile/2025_05_24_20_16_08
+
+2025-05-24 20:16:08.675449: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/20250524-201603/train/plugins/profile/2025_05_24_20_16_08/c0804a-s11.ufhpc.memory_profile.json.gz
+2025-05-24 20:16:08.678047: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/20250524-201603/train/plugins/profile/2025_05_24_20_16_08
+Dumped tool data for xplane.pb to logs/fit/20250524-201603/train/plugins/profile/2025_05_24_20_16_08/c0804a-s11.ufhpc.xplane.pb
+Dumped tool data for overview_page.pb to logs/fit/20250524-201603/train/plugins/profile/2025_05_24_20_16_08/c0804a-s11.ufhpc.overview_page.pb
+Dumped tool data for input_pipeline.pb to logs/fit/20250524-201603/train/plugins/profile/2025_05_24_20_16_08/c0804a-s11.ufhpc.input_pipeline.pb
+Dumped tool data for tensorflow_stats.pb to logs/fit/20250524-201603/train/plugins/profile/2025_05_24_20_16_08/c0804a-s11.ufhpc.tensorflow_stats.pb
+Dumped tool data for kernel_stats.pb to logs/fit/20250524-201603/train/plugins/profile/2025_05_24_20_16_08/c0804a-s11.ufhpc.kernel_stats.pb
+
