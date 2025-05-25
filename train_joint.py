@@ -325,8 +325,8 @@ def evaluate_joint_model(model, test_data, locations, sequence_length, target_co
         zero_target = (df_loc[target_column] == 0).sum()
         print(f"Zero {target_column} values: {zero_target} ({zero_target/len(df_loc)*100:.2f}%)")
         
-        # Create sequences for evaluation
-        X_test, y_test = create_sequences_joint(df_loc, [location], sequence_length, target_column)
+        # Create sequences for evaluation - pass all locations to ensure we get all location features
+        X_test, y_test = create_sequences_joint(df_loc, locations, sequence_length, target_column)
         
         if len(X_test) == 0:
             print(f"Warning: No valid sequences created for {location}")
