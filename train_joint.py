@@ -410,7 +410,7 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
         location_vector[locations.index(location)] = 1
         
         # Calculate the maximum index that allows for a complete sequence
-        max_index = len(df_loc) - sequence_length - 1  # -1 to ensure we have a target value
+        max_index = len(df_loc) - sequence_length - 1
         
         # Create sequences using rolling window approach
         for i in range(max_index):
@@ -425,6 +425,14 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
             
             # Get sequence features and target
             sequence_features = sequence_window[target_column].values
+            
+            # Get meteorological features
+            met_features = sequence_window[[
+                "Temperature_lag_24", "Relative Humidity_lag_24",
+                "Pressure_lag_24", "Precipitable Water_lag_24",
+                "Wind Direction_lag_24", "Wind Speed_lag_24"
+            ]].values
+            
             target_value = target_window[target_column].values[0]
             
             # Skip if target value is zero (night time)
@@ -433,7 +441,7 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
                 continue
             
             # Create feature matrix with location encoding
-            features = np.column_stack([sequence_features, np.tile(location_vector, (sequence_length, 1))])
+            features = np.column_stack([sequence_features, met_features, np.tile(location_vector, (sequence_length, 1))])
             
             X_sequences.append(features)
             y_sequences.append(target_value)
