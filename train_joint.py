@@ -426,6 +426,9 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
             # Get GHI lag features
             ghi_lag_features = sequence_window[[f"GHI_lag_{lag}" for lag in range(1, 25)]].values
             
+            # Get current GHI value
+            current_ghi = sequence_window[target_column].values.reshape(-1, 1)
+            
             # Get meteorological features
             met_features = sequence_window[[
                 "Temperature_lag_24", "Relative Humidity_lag_24",
@@ -449,6 +452,7 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
             # Create feature matrix with location encoding
             features = np.column_stack([
                 ghi_lag_features,  # 24 features
+                current_ghi,       # 1 feature
                 met_features,      # 6 features
                 time_features,     # 4 features
                 np.tile(location_vector, (sequence_length, 1))  # 1 feature
