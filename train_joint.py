@@ -433,6 +433,12 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
                 "Wind Direction_lag_24", "Wind Speed_lag_24"
             ]].values
             
+            # Get time-based features
+            time_features = sequence_window[[
+                "hour_sin", "hour_cos",
+                "month_sin", "month_cos"
+            ]].values
+            
             target_value = target_window[target_column].values[0]
             
             # Skip if target value is zero (night time)
@@ -441,7 +447,12 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
                 continue
             
             # Create feature matrix with location encoding
-            features = np.column_stack([sequence_features, met_features, np.tile(location_vector, (sequence_length, 1))])
+            features = np.column_stack([
+                sequence_features,  # 1 feature
+                met_features,      # 6 features
+                time_features,     # 4 features
+                np.tile(location_vector, (sequence_length, 1))  # 1 feature
+            ])
             
             X_sequences.append(features)
             y_sequences.append(target_value)
