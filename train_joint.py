@@ -270,7 +270,7 @@ def create_joint_model(input_shape):
         tf.keras.layers.Dropout(0.2),
         tf.keras.layers.LSTM(32, return_sequences=False),
         tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(16, activation="relu"),
+        tf.keras.layers.Dense(12, activation="relu"),
         tf.keras.layers.Dense(1, activation="linear")
     ])
     
