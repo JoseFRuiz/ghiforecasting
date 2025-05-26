@@ -375,94 +375,99 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
     print(f"Locations: {locations}")
     
     # Initialize lists to store sequences
-    X_sequences = []
-    y_sequences = []
+    all_X_sequences = []
+    all_y_sequences = []
     
-    # Get the current location from the data
-    current_location = df['location'].iloc[0]
-    print(f"Current location: {current_location}")
-    
-    # Create one-hot encoded location vector for the current location
-    location_vector = np.zeros(len(locations))
-    location_vector[locations.index(current_location)] = 1
-    
-    # Sort by datetime to ensure chronological order
-    df = df.sort_values("datetime")
-    
-    # Check for missing values
-    missing_values = df.isnull().sum()
-    if missing_values.any():
-        print(f"Warning: Missing values in {current_location}:")
-        print(missing_values[missing_values > 0])
-    
-    # Check for zero values in target
-    zero_target = (df[target_column] == 0).sum()
-    print(f"Zero {target_column} values: {zero_target} ({zero_target/len(df)*100:.2f}%)")
-    
-    # Create sequences
-    valid_sequences = 0
-    skipped_sequences = 0
-    
-    # Calculate the maximum index that allows for a complete sequence
-    max_index = len(df) - sequence_length - 1
-    
-    # Create sequences using rolling window approach
-    for i in range(max_index):
-        # Get sequence window
-        sequence_window = df.iloc[i:i + sequence_length]
-        target_window = df.iloc[i + sequence_length:i + sequence_length + 1]
+    # Process each location separately
+    for location in locations:
+        print(f"\nProcessing {location}...")
+        df_loc = df[df['location'] == location].copy()
         
-        # Skip if any data is missing
-        if sequence_window.isnull().any().any() or target_window.isnull().any().any():
-            skipped_sequences += 1
+        if len(df_loc) == 0:
+            print(f"No data found for {location}")
             continue
+            
+        # Create one-hot encoded location vector for the current location
+        location_vector = np.zeros(len(locations))
+        location_vector[locations.index(location)] = 1
         
-        # Get GHI lag features
-        ghi_lag_features = sequence_window[[f"GHI_lag_{lag}" for lag in range(1, 25)]].values
+        # Sort by datetime to ensure chronological order
+        df_loc = df_loc.sort_values("datetime")
         
-        # Get current GHI value
-        current_ghi = sequence_window[target_column].values.reshape(-1, 1)
+        # Check for missing values
+        missing_values = df_loc.isnull().sum()
+        if missing_values.any():
+            print(f"Warning: Missing values in {location}:")
+            print(missing_values[missing_values > 0])
         
-        # Get meteorological features
-        met_features = sequence_window[[
-            "Temperature_lag_24", "Relative Humidity_lag_24",
-            "Pressure_lag_24", "Precipitable Water_lag_24",
-            "Wind Direction_lag_24", "Wind Speed_lag_24"
-        ]].values
+        # Check for zero values in target
+        zero_target = (df_loc[target_column] == 0).sum()
+        print(f"Zero {target_column} values: {zero_target} ({zero_target/len(df_loc)*100:.2f}%)")
         
-        # Get time-based features
-        time_features = sequence_window[[
-            "hour_sin", "hour_cos",
-            "month_sin", "month_cos"
-        ]].values
+        # Create sequences
+        valid_sequences = 0
+        skipped_sequences = 0
         
-        target_value = target_window[target_column].values[0]
+        # Calculate the maximum index that allows for a complete sequence
+        max_index = len(df_loc) - sequence_length - 1
         
-        # Skip if target value is zero (night time)
-        if target_value == 0:
-            skipped_sequences += 1
-            continue
+        # Create sequences using rolling window approach
+        for i in range(max_index):
+            # Get sequence window
+            sequence_window = df_loc.iloc[i:i + sequence_length]
+            target_window = df_loc.iloc[i + sequence_length:i + sequence_length + 1]
+            
+            # Skip if any data is missing
+            if sequence_window.isnull().any().any() or target_window.isnull().any().any():
+                skipped_sequences += 1
+                continue
+            
+            # Get GHI lag features
+            ghi_lag_features = sequence_window[[f"GHI_lag_{lag}" for lag in range(1, 25)]].values
+            
+            # Get current GHI value
+            current_ghi = sequence_window[target_column].values.reshape(-1, 1)
+            
+            # Get meteorological features
+            met_features = sequence_window[[
+                "Temperature_lag_24", "Relative Humidity_lag_24",
+                "Pressure_lag_24", "Precipitable Water_lag_24",
+                "Wind Direction_lag_24", "Wind Speed_lag_24"
+            ]].values
+            
+            # Get time-based features
+            time_features = sequence_window[[
+                "hour_sin", "hour_cos",
+                "month_sin", "month_cos"
+            ]].values
+            
+            target_value = target_window[target_column].values[0]
+            
+            # Skip if target value is zero (night time)
+            if target_value == 0:
+                skipped_sequences += 1
+                continue
+            
+            # Create feature matrix with all features
+            features = np.column_stack([
+                ghi_lag_features,  # 24 features
+                current_ghi,       # 1 feature
+                met_features,      # 6 features
+                time_features,     # 4 features
+                np.tile(location_vector, (sequence_length, 1))  # 5 features (one for each location)
+            ])
+            
+            all_X_sequences.append(features)
+            all_y_sequences.append(target_value)
+            valid_sequences += 1
         
-        # Create feature matrix with all features
-        features = np.column_stack([
-            ghi_lag_features,  # 24 features
-            current_ghi,       # 1 feature
-            met_features,      # 6 features
-            time_features,     # 4 features
-            np.tile(location_vector, (sequence_length, 1))  # 5 features (one for each location)
-        ])
-        
-        X_sequences.append(features)
-        y_sequences.append(target_value)
-        valid_sequences += 1
-    
-    print(f"Created {valid_sequences} valid sequences for {current_location}")
-    if skipped_sequences > 0:
-        print(f"Skipped {skipped_sequences} sequences due to validation failures")
+        print(f"Created {valid_sequences} valid sequences for {location}")
+        if skipped_sequences > 0:
+            print(f"Skipped {skipped_sequences} sequences due to validation failures")
     
     # Convert to numpy arrays
-    X = np.array(X_sequences)
-    y = np.array(y_sequences)
+    X = np.array(all_X_sequences)
+    y = np.array(all_y_sequences)
     
     print(f"\nFinal sequence shapes:")
     print(f"X: {X.shape}")
