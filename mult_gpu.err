@@ -4,34 +4,34 @@ Currently Loaded Modules:
 
  
 
-2025-05-26 17:06:09.046147: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+2025-05-26 17:33:37.493376: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
 To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2025-05-26 17:06:10.208287: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1510] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 79048 MB memory:  -> device: 0, name: NVIDIA A100-SXM4-80GB, pci bus id: 0000:90:00.0, compute capability: 8.0
-2025-05-26 17:06:11.313614: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
-2025-05-26 17:06:11.313845: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
-2025-05-26 17:06:11.314768: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1614] Profiler found 1 GPUs
-2025-05-26 17:06:11.316221: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcupti.so.11.2'; dlerror: libcupti.so.11.2: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/opt/slurm/lib64:
-2025-05-26 17:06:11.416095: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
-2025-05-26 17:06:11.416446: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
-2025-05-26 17:06:11.648571: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:185] None of the MLIR Optimization Passes are enabled (registered 2)
-2025-05-26 17:06:14.396936: I tensorflow/stream_executor/cuda/cuda_dnn.cc:369] Loaded cuDNN version 8201
-2025-05-26 17:06:16.446726: I tensorflow/stream_executor/cuda/cuda_blas.cc:1760] TensorFloat-32 will be used for the matrix multiplication. This will only be logged once.
-2025-05-26 17:06:16.802746: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
-2025-05-26 17:06:16.802894: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
-2025-05-26 17:06:17.152099: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
-2025-05-26 17:06:17.152351: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
-2025-05-26 17:06:17.161696: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 392 callback api events and 391 activity events. 
-2025-05-26 17:06:17.169515: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
-2025-05-26 17:06:17.184466: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250526-170611/train/plugins/profile/2025_05_26_17_06_17
+2025-05-26 17:33:38.659683: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1510] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 79048 MB memory:  -> device: 0, name: NVIDIA A100-SXM4-80GB, pci bus id: 0000:90:00.0, compute capability: 8.0
+2025-05-26 17:33:39.751151: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-05-26 17:33:39.751360: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-05-26 17:33:39.752561: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1614] Profiler found 1 GPUs
+2025-05-26 17:33:39.753956: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcupti.so.11.2'; dlerror: libcupti.so.11.2: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/opt/slurm/lib64:
+2025-05-26 17:33:39.836910: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-05-26 17:33:39.837233: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
+2025-05-26 17:33:40.048304: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:185] None of the MLIR Optimization Passes are enabled (registered 2)
+2025-05-26 17:33:42.556426: I tensorflow/stream_executor/cuda/cuda_dnn.cc:369] Loaded cuDNN version 8201
+2025-05-26 17:33:44.337257: I tensorflow/stream_executor/cuda/cuda_blas.cc:1760] TensorFloat-32 will be used for the matrix multiplication. This will only be logged once.
+2025-05-26 17:33:44.695137: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-05-26 17:33:44.695269: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-05-26 17:33:45.023639: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
+2025-05-26 17:33:45.023919: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
+2025-05-26 17:33:45.049652: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 392 callback api events and 391 activity events. 
+2025-05-26 17:33:45.060004: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-05-26 17:33:45.076157: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45
 
-2025-05-26 17:06:17.190159: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/20250526-170611/train/plugins/profile/2025_05_26_17_06_17/c0800a-s11.ufhpc.trace.json.gz
-2025-05-26 17:06:17.204385: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250526-170611/train/plugins/profile/2025_05_26_17_06_17
+2025-05-26 17:33:45.081998: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45/c0800a-s11.ufhpc.trace.json.gz
+2025-05-26 17:33:45.096091: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45
 
-2025-05-26 17:06:17.206577: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/20250526-170611/train/plugins/profile/2025_05_26_17_06_17/c0800a-s11.ufhpc.memory_profile.json.gz
-2025-05-26 17:06:17.209687: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/20250526-170611/train/plugins/profile/2025_05_26_17_06_17
-Dumped tool data for xplane.pb to logs/fit/20250526-170611/train/plugins/profile/2025_05_26_17_06_17/c0800a-s11.ufhpc.xplane.pb
-Dumped tool data for overview_page.pb to logs/fit/20250526-170611/train/plugins/profile/2025_05_26_17_06_17/c0800a-s11.ufhpc.overview_page.pb
-Dumped tool data for input_pipeline.pb to logs/fit/20250526-170611/train/plugins/profile/2025_05_26_17_06_17/c0800a-s11.ufhpc.input_pipeline.pb
-Dumped tool data for tensorflow_stats.pb to logs/fit/20250526-170611/train/plugins/profile/2025_05_26_17_06_17/c0800a-s11.ufhpc.tensorflow_stats.pb
-Dumped tool data for kernel_stats.pb to logs/fit/20250526-170611/train/plugins/profile/2025_05_26_17_06_17/c0800a-s11.ufhpc.kernel_stats.pb
+2025-05-26 17:33:45.098217: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45/c0800a-s11.ufhpc.memory_profile.json.gz
+2025-05-26 17:33:45.101210: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45
+Dumped tool data for xplane.pb to logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45/c0800a-s11.ufhpc.xplane.pb
+Dumped tool data for overview_page.pb to logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45/c0800a-s11.ufhpc.overview_page.pb
+Dumped tool data for input_pipeline.pb to logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45/c0800a-s11.ufhpc.input_pipeline.pb
+Dumped tool data for tensorflow_stats.pb to logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45/c0800a-s11.ufhpc.tensorflow_stats.pb
+Dumped tool data for kernel_stats.pb to logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45/c0800a-s11.ufhpc.kernel_stats.pb
 
