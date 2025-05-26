@@ -263,24 +263,62 @@ def split_and_scale_joint_data(df, locations, sequence_length=24, target_column=
     return X_train, y_train, X_val, y_val, X_test, y_test, target_scaler
 
 def create_joint_model(input_shape):
-    """Create and compile the joint LSTM model."""
-    # Create model with simpler architecture
-    model = tf.keras.Sequential([
-        tf.keras.layers.LSTM(64, return_sequences=True, input_shape=input_shape),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.LSTM(32, return_sequences=False),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(12, activation="relu"),
-        tf.keras.layers.Dense(1, activation="linear")
-    ])
+    """Create and compile a more complex joint LSTM model with attention mechanism."""
+    # Input layer
+    inputs = tf.keras.layers.Input(shape=input_shape)
     
-    # Use simple Adam optimizer
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+    # First LSTM block with residual connection
+    x = tf.keras.layers.LSTM(128, return_sequences=True)(inputs)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Dropout(0.3)(x)
     
-    # Compile model
+    # Second LSTM block with residual connection
+    lstm2 = tf.keras.layers.LSTM(128, return_sequences=True)(x)
+    lstm2 = tf.keras.layers.BatchNormalization()(lstm2)
+    lstm2 = tf.keras.layers.Dropout(0.3)(lstm2)
+    x = tf.keras.layers.Add()([x, lstm2])  # Residual connection
+    
+    # Third LSTM block
+    x = tf.keras.layers.LSTM(64, return_sequences=True)(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Dropout(0.3)(x)
+    
+    # Attention mechanism
+    attention = tf.keras.layers.Dense(1, activation='tanh')(x)
+    attention = tf.keras.layers.Flatten()(attention)
+    attention_weights = tf.keras.layers.Activation('softmax')(attention)
+    attention_weights = tf.keras.layers.RepeatVector(64)(attention_weights)
+    attention_weights = tf.keras.layers.Permute([2, 1])(attention_weights)
+    
+    # Apply attention weights
+    x = tf.keras.layers.Multiply()([x, attention_weights])
+    x = tf.keras.layers.Lambda(lambda x: tf.keras.backend.sum(x, axis=1))(x)
+    
+    # Dense layers with residual connection
+    dense1 = tf.keras.layers.Dense(32, activation='relu')(x)
+    dense1 = tf.keras.layers.BatchNormalization()(dense1)
+    dense1 = tf.keras.layers.Dropout(0.3)(dense1)
+    
+    dense2 = tf.keras.layers.Dense(32, activation='relu')(dense1)
+    dense2 = tf.keras.layers.BatchNormalization()(dense2)
+    dense2 = tf.keras.layers.Dropout(0.3)(dense2)
+    
+    # Final residual connection
+    x = tf.keras.layers.Add()([dense1, dense2])
+    
+    # Output layer
+    outputs = tf.keras.layers.Dense(1, activation='linear')(x)
+    
+    # Create model
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    
+    # Use Adam optimizer with a lower learning rate
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
+    
+    # Compile model with Huber loss for robustness
     model.compile(
         optimizer=optimizer,
-        loss='mse',
+        loss=tf.keras.losses.Huber(),
         metrics=['mae']
     )
     
