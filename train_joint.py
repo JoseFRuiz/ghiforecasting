@@ -465,6 +465,9 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
         if skipped_sequences > 0:
             print(f"Skipped {skipped_sequences} sequences due to validation failures")
     
+    if not all_X_sequences:
+        raise ValueError("No valid sequences were created for any location")
+    
     # Convert to numpy arrays
     X = np.array(all_X_sequences)
     y = np.array(all_y_sequences)
