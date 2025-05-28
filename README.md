@@ -4,8 +4,13 @@ A machine learning project for Global Horizontal Irradiance (GHI) forecasting wi
 
 ## Setup
 
-1. Install the required dependencies:
+1. Create and activate a conda environment:
 ```bash
+# Create environment with Python 3.8.13
+conda create -n ghifo_py38 python=3.8.13
+conda activate ghifo_py38
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
@@ -18,6 +23,12 @@ pip install -r requirements.txt
 ```bash
 python train.py
 ```
+
+## Environment Details
+
+- Python version: 3.8.13
+- TensorFlow version: 2.6.0
+- Keras version: 2.6.0
 
 ## Features
 

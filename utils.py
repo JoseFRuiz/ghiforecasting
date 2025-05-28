@@ -11,7 +11,14 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from comet_ml import Experiment
+
+# Try importing Comet.ml, but don't fail if it's not available
+try:
+    from comet_ml import Experiment
+    COMET_AVAILABLE = True
+except ImportError:
+    COMET_AVAILABLE = False
+    print("Comet.ml not available. Running without experiment tracking.")
 
 # Configuration
 CONFIG = {
@@ -69,7 +76,11 @@ CONFIG = {
 }
 
 def setup_experiment():
-    """Initialize and configure Comet.ml experiment."""
+    """Initialize and configure Comet.ml experiment if available."""
+    if not COMET_AVAILABLE:
+        print("Comet.ml not available. Running without experiment tracking.")
+        return None
+        
     try:
         experiment = Experiment(
             api_key=CONFIG["comet_api_key"],
@@ -197,6 +208,8 @@ def load_data(locations, city):
         print("\nProcessing datetime...")
         df["datetime"] = pd.to_datetime(df[['Year', 'Month', 'Day', 'Hour', 'Minute']])
         df = df.sort_values("datetime").reset_index(drop=True)
+        # Add city name to the DataFrame
+        df["City"] = city
         print("✓ Datetime processing complete")
         
         # Validate final dataset
