@@ -343,6 +343,7 @@ def evaluate_joint_model(model, test_data, locations, sequence_length, target_co
     print(f"Locations: {locations}")
     
     results = {}
+    daily_metrics = {}
     
     for location in locations:
         print(f"\nEvaluating {location}:")
@@ -375,26 +376,205 @@ def evaluate_joint_model(model, test_data, locations, sequence_length, target_co
         # Make predictions
         y_pred = model.predict(X_test)
         
-        # Calculate metrics
-        mae = mean_absolute_error(y_test, y_pred)
-        mse = mean_squared_error(y_test, y_pred)
-        rmse = np.sqrt(mse)
-        r2 = r2_score(y_test, y_pred)
-        
-        print(f"Metrics for {location}:")
-        print(f"MAE: {mae:.4f}")
-        print(f"MSE: {mse:.4f}")
-        print(f"RMSE: {rmse:.4f}")
-        print(f"R2: {r2:.4f}")
-        
+        # Store results for this location
         results[location] = {
-            "mae": mae,
-            "mse": mse,
-            "rmse": rmse,
-            "r2": r2
+            'dates': df_loc['datetime'].values[-len(y_test):],  # Use the last len(y_test) dates
+            'actual': y_test,
+            'predicted': y_pred.flatten()
         }
+        
+        # Calculate daily metrics
+        dates = pd.to_datetime(results[location]['dates'])
+        df = pd.DataFrame({
+            'date': dates,
+            'actual': results[location]['actual'],
+            'predicted': results[location]['predicted']
+        })
+        
+        # Group by date and calculate daily metrics
+        daily_stats = []
+        for date, group in df.groupby(df['date'].dt.date):
+            # Filter out zero values
+            non_zero_mask = group['actual'] > 0
+            if non_zero_mask.sum() > 0:  # Only include days with non-zero values
+                actual_nonzero = group.loc[non_zero_mask, 'actual']
+                predicted_nonzero = group.loc[non_zero_mask, 'predicted']
+                
+                # Calculate correlation using pandas corr() method
+                correlation = actual_nonzero.corr(predicted_nonzero)
+                
+                # Add error checking for correlation
+                if pd.isna(correlation) or not (-1 <= correlation <= 1):
+                    print(f"Warning: Invalid correlation value {correlation} for {location} on {date}")
+                    correlation = 0  # Set to 0 if invalid
+                
+                # Calculate other metrics
+                mae = mean_absolute_error(actual_nonzero, predicted_nonzero)
+                rmse = np.sqrt(mean_squared_error(actual_nonzero, predicted_nonzero))
+                r2 = r2_score(actual_nonzero, predicted_nonzero)
+                
+                # Add error checking for R²
+                if not (0 <= r2 <= 1):
+                    print(f"Warning: Invalid R² value {r2} for {location} on {date}")
+                    r2 = max(0, min(1, r2))  # Clamp to [0, 1] range
+                
+                daily_stats.append({
+                    'date': date,
+                    'correlation': correlation,
+                    'mae': mae,
+                    'rmse': rmse,
+                    'r2': r2,
+                    'num_points': len(actual_nonzero),
+                    'actual_max': actual_nonzero.max(),
+                    'actual_mean': actual_nonzero.mean(),
+                    'actual_std': actual_nonzero.std(),
+                    'predicted_max': predicted_nonzero.max(),
+                    'predicted_mean': predicted_nonzero.mean(),
+                    'predicted_std': predicted_nonzero.std()
+                })
+        
+        # Convert to DataFrame and sort by date
+        daily_metrics[location] = pd.DataFrame(daily_stats).sort_values('date')
+        
+        # Print summary of correlation values and GHI statistics
+        print(f"\nSummary for {location}:")
+        print("-" * 40)
+        print("Correlation Statistics:")
+        print(f"Min: {daily_metrics[location]['correlation'].min():.4f}")
+        print(f"Max: {daily_metrics[location]['correlation'].max():.4f}")
+        print(f"Mean: {daily_metrics[location]['correlation'].mean():.4f}")
+        print(f"Median: {daily_metrics[location]['correlation'].median():.4f}")
+        
+        print("\nActual GHI Statistics:")
+        print(f"Max: {daily_metrics[location]['actual_max'].max():.2f} W/m²")
+        print(f"Mean: {daily_metrics[location]['actual_mean'].mean():.2f} W/m²")
+        print(f"Std: {daily_metrics[location]['actual_std'].mean():.2f} W/m²")
+        
+        print("\nPredicted GHI Statistics:")
+        print(f"Max: {daily_metrics[location]['predicted_max'].max():.2f} W/m²")
+        print(f"Mean: {daily_metrics[location]['predicted_mean'].mean():.2f} W/m²")
+        print(f"Std: {daily_metrics[location]['predicted_std'].mean():.2f} W/m²")
     
-    return results
+    # Create plots for daily correlations
+    plot_daily_correlations(daily_metrics)
+    
+    # Create correlation analysis plots
+    plot_correlation_vs_r2(daily_metrics, results)
+    
+    return results, daily_metrics
+
+def plot_daily_correlations(daily_metrics, save_dir="results_joint/correlations"):
+    """
+    Create plots showing daily correlation metrics for each location.
+    
+    Args:
+        daily_metrics: Dictionary with daily correlation metrics for each location
+        save_dir: Directory to save plots
+    """
+    os.makedirs(save_dir, exist_ok=True)
+    
+    for city, metrics_df in daily_metrics.items():
+        # Create figure with 3 subplots
+        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(15, 15))
+        
+        # Plot correlation and R²
+        ax1.plot(metrics_df['date'], metrics_df['correlation'], 'b-', label='Correlation')
+        ax1.plot(metrics_df['date'], metrics_df['r2'], 'r-', label='R²')
+        ax1.set_title(f'Daily Correlation and R² - {city}')
+        ax1.set_xlabel('Date')
+        ax1.set_ylabel('Value')
+        ax1.legend()
+        ax1.grid(True, alpha=0.3)
+        
+        # Plot MAE and RMSE
+        ax2.plot(metrics_df['date'], metrics_df['mae'], 'g-', label='MAE')
+        ax2.plot(metrics_df['date'], metrics_df['rmse'], 'm-', label='RMSE')
+        ax2.set_title(f'Daily MAE and RMSE - {city}')
+        ax2.set_xlabel('Date')
+        ax2.set_ylabel('Error (W/m²)')
+        ax2.legend()
+        ax2.grid(True, alpha=0.3)
+        
+        # Plot GHI statistics
+        ax3.plot(metrics_df['date'], metrics_df['actual_max'], 'b-', label='Actual Max')
+        ax3.plot(metrics_df['date'], metrics_df['predicted_max'], 'r--', label='Predicted Max')
+        ax3.plot(metrics_df['date'], metrics_df['actual_mean'], 'g-', label='Actual Mean')
+        ax3.plot(metrics_df['date'], metrics_df['predicted_mean'], 'm--', label='Predicted Mean')
+        ax3.set_title(f'Daily GHI Statistics - {city}')
+        ax3.set_xlabel('Date')
+        ax3.set_ylabel('GHI (W/m²)')
+        ax3.legend()
+        ax3.grid(True, alpha=0.3)
+        
+        # Rotate x-axis labels
+        for ax in [ax1, ax2, ax3]:
+            plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+        
+        plt.tight_layout()
+        plt.savefig(os.path.join(save_dir, f'daily_correlations_{city}.png'), dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        # Save daily metrics to CSV
+        metrics_df.to_csv(os.path.join(save_dir, f'daily_correlations_{city}.csv'), index=False)
+
+def plot_correlation_vs_r2(daily_metrics, results, save_dir="results_joint/correlations"):
+    """
+    Create scatter plots comparing actual vs predicted values with correlation and R² annotations.
+    
+    Args:
+        daily_metrics: Dictionary with daily correlation metrics for each location
+        results: Dictionary with predictions and actual values for each location
+        save_dir: Directory to save plots
+    """
+    os.makedirs(save_dir, exist_ok=True)
+    
+    for city, metrics_df in daily_metrics.items():
+        # Create a figure with two subplots
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+        
+        # Convert dates to pandas Series for proper date handling
+        dates = pd.Series(results[city]['dates'])
+        
+        # Plot 1: Day with highest correlation
+        best_day_idx = metrics_df['correlation'].idxmax()
+        best_day = metrics_df.loc[best_day_idx]
+        
+        # Get the actual data for this day
+        mask = dates.dt.date == best_day['date']
+        actual_data = np.array(results[city]['actual'])[mask]
+        predicted_data = np.array(results[city]['predicted'])[mask]
+        
+        if len(actual_data) > 0:  # Only plot if we have data
+            ax1.scatter(actual_data, predicted_data, alpha=0.5)
+            max_val = max(actual_data.max(), predicted_data.max())
+            ax1.plot([0, max_val], [0, max_val], 'r--', label='Perfect prediction')
+            ax1.set_title(f'Best Day (Correlation = {best_day["correlation"]:.3f})')
+            ax1.set_xlabel('Actual GHI')
+            ax1.set_ylabel('Predicted GHI')
+            ax1.legend()
+        
+        # Plot 2: Day with lowest correlation
+        worst_day_idx = metrics_df['correlation'].idxmin()
+        worst_day = metrics_df.loc[worst_day_idx]
+        
+        # Get the actual data for this day
+        mask = dates.dt.date == worst_day['date']
+        actual_data = np.array(results[city]['actual'])[mask]
+        predicted_data = np.array(results[city]['predicted'])[mask]
+        
+        if len(actual_data) > 0:  # Only plot if we have data
+            ax2.scatter(actual_data, predicted_data, alpha=0.5)
+            max_val = max(actual_data.max(), predicted_data.max())
+            ax2.plot([0, max_val], [0, max_val], 'r--', label='Perfect prediction')
+            ax2.set_title(f'Worst Day (Correlation = {worst_day["correlation"]:.3f})')
+            ax2.set_xlabel('Actual GHI')
+            ax2.set_ylabel('Predicted GHI')
+            ax2.legend()
+        
+        plt.suptitle(f'Correlation Analysis for {city}\nR² = {metrics_df["r2"].mean():.3f}')
+        plt.tight_layout()
+        plt.savefig(os.path.join(save_dir, f'correlation_analysis_{city}.png'), dpi=300, bbox_inches='tight')
+        plt.close()
 
 def create_sequences_joint(df, locations, sequence_length, target_column):
     """
@@ -576,6 +756,187 @@ def train_joint_model(model, X_train, y_train, X_val, y_val, batch_size=32, epoc
     
     return history, model
 
+def create_sequences_joint_with_config(df, locations, sequence_length, target_column, input_config='all'):
+    """
+    Create sequences for joint model training with different input configurations.
+    
+    Args:
+        df: DataFrame with data
+        locations: List of locations
+        sequence_length: Length of input sequences
+        target_column: Name of target column
+        input_config: One of ['ghi_only', 'ghi_met', 'met_only', 'all']
+    
+    Returns:
+        tuple: (X, y) where X is the input sequences and y is the target values
+    """
+    print(f"\nCreating sequences for {len(df)} samples with config: {input_config}")
+    print(f"Locations: {locations}")
+    
+    # Initialize lists to store sequences
+    all_X_sequences = []
+    all_y_sequences = []
+    
+    # Process each location separately
+    for location in locations:
+        print(f"\nProcessing {location}...")
+        df_loc = df[df['location'] == location].copy()
+        
+        if len(df_loc) == 0:
+            print(f"No data found for {location}")
+            continue
+            
+        # Create one-hot encoded location vector for the current location
+        location_vector = np.zeros(len(locations))
+        location_vector[locations.index(location)] = 1
+        
+        # Sort by datetime to ensure chronological order
+        df_loc = df_loc.sort_values("datetime")
+        
+        # Create sequences
+        valid_sequences = 0
+        skipped_sequences = 0
+        
+        # Calculate the maximum index that allows for a complete sequence
+        max_index = len(df_loc) - sequence_length - 1
+        
+        # Create sequences using rolling window approach
+        for i in range(max_index):
+            # Get sequence window
+            sequence_window = df_loc.iloc[i:i + sequence_length]
+            target_window = df_loc.iloc[i + sequence_length:i + sequence_length + 1]
+            
+            # Skip if any data is missing
+            if sequence_window.isnull().any().any() or target_window.isnull().any().any():
+                skipped_sequences += 1
+                continue
+            
+            # Initialize features list
+            features = []
+            
+            # Add features based on configuration
+            if input_config in ['ghi_only', 'ghi_met', 'all']:
+                # Add GHI lag features (24 features)
+                for lag in range(1, 25):
+                    features.append(sequence_window[f"GHI_lag_{lag}"].values)
+                
+                # Add current GHI (1 feature)
+                features.append(sequence_window[target_column].values)
+            
+            if input_config in ['met_only', 'ghi_met', 'all']:
+                # Add meteorological features (6 features)
+                met_features = [
+                    "Temperature_lag_24", "Relative Humidity_lag_24",
+                    "Pressure_lag_24", "Precipitable Water_lag_24",
+                    "Wind Direction_lag_24", "Wind Speed_lag_24"
+                ]
+                for feature in met_features:
+                    features.append(sequence_window[feature].values)
+            
+            if input_config == 'all':
+                # Add time features (4 features)
+                time_features = ["hour_sin", "hour_cos", "month_sin", "month_cos"]
+                for feature in time_features:
+                    features.append(sequence_window[feature].values)
+                
+                # Add location features (5 features - one-hot encoded)
+                location_features = np.zeros((sequence_length, 5))  # 5 locations
+                city_idx = locations.index(location)
+                location_features[:, city_idx] = 1
+                features.append(location_features)
+            
+            target_value = target_window[target_column].values[0]
+            
+            # Skip if target value is zero (night time)
+            if target_value == 0:
+                skipped_sequences += 1
+                continue
+            
+            # Stack features to create input sequence
+            X = np.column_stack(features)
+            all_X_sequences.append(X)
+            all_y_sequences.append(target_value)
+            valid_sequences += 1
+        
+        print(f"Created {valid_sequences} valid sequences for {location}")
+        if skipped_sequences > 0:
+            print(f"Skipped {skipped_sequences} sequences due to validation failures")
+    
+    if not all_X_sequences:
+        raise ValueError("No valid sequences were created for any location")
+    
+    # Convert to numpy arrays
+    X = np.array(all_X_sequences)
+    y = np.array(all_y_sequences)
+    
+    print(f"\nFinal sequence shapes:")
+    print(f"X: {X.shape}")
+    print(f"y: {y.shape}")
+    
+    return X, y
+
+def create_joint_model_with_config(input_shape, input_config='all'):
+    """Create and compile a joint LSTM model with different input configurations."""
+    # Input layer
+    inputs = tf.keras.layers.Input(shape=input_shape)
+    
+    # First LSTM block with residual connection
+    x = tf.keras.layers.LSTM(128, return_sequences=True)(inputs)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Dropout(0.3)(x)
+    
+    # Second LSTM block with residual connection
+    lstm2 = tf.keras.layers.LSTM(128, return_sequences=True)(x)
+    lstm2 = tf.keras.layers.BatchNormalization()(lstm2)
+    lstm2 = tf.keras.layers.Dropout(0.3)(lstm2)
+    x = tf.keras.layers.Add()([x, lstm2])  # Residual connection
+    
+    # Third LSTM block
+    x = tf.keras.layers.LSTM(64, return_sequences=True)(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Dropout(0.3)(x)
+    
+    # Attention mechanism
+    attention = tf.keras.layers.Dense(1, activation='tanh')(x)
+    attention = tf.keras.layers.Flatten()(attention)
+    attention_weights = tf.keras.layers.Activation('softmax')(attention)
+    attention_weights = tf.keras.layers.RepeatVector(64)(attention_weights)
+    attention_weights = tf.keras.layers.Permute([2, 1])(attention_weights)
+    
+    # Apply attention weights
+    x = tf.keras.layers.Multiply()([x, attention_weights])
+    x = tf.keras.layers.Lambda(lambda x: tf.keras.backend.sum(x, axis=1))(x)
+    
+    # Dense layers with residual connection
+    dense1 = tf.keras.layers.Dense(32, activation='relu')(x)
+    dense1 = tf.keras.layers.BatchNormalization()(dense1)
+    dense1 = tf.keras.layers.Dropout(0.3)(dense1)
+    
+    dense2 = tf.keras.layers.Dense(32, activation='relu')(dense1)
+    dense2 = tf.keras.layers.BatchNormalization()(dense2)
+    dense2 = tf.keras.layers.Dropout(0.3)(dense2)
+    
+    # Final residual connection
+    x = tf.keras.layers.Add()([dense1, dense2])
+    
+    # Output layer
+    outputs = tf.keras.layers.Dense(1, activation='linear')(x)
+    
+    # Create model
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    
+    # Use Adam optimizer with a lower learning rate
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
+    
+    # Compile model with Huber loss for robustness
+    model.compile(
+        optimizer=optimizer,
+        loss=tf.keras.losses.Huber(),
+        metrics=['mae']
+    )
+    
+    return model
+
 def main(skip_training=False, debug_data_loading=False):
     """
     Main execution function for joint training.
@@ -612,92 +973,95 @@ def main(skip_training=False, debug_data_loading=False):
     locations = sorted(df['location'].unique().tolist())
     print(f"\nLocations: {locations}")
     
-    try:
-        # Create features
-        print("\nCreating features...")
-        df_features = create_joint_features(df)
+    # Define input configurations to test
+    input_configs = ['ghi_only', 'ghi_met', 'met_only']
+    
+    for config in input_configs:
+        print(f"\n{'='*80}")
+        print(f"Training model with {config} configuration")
+        print(f"{'='*80}")
         
-        # Split and scale data
-        print("\nSplitting and scaling data...")
-        (X_train, y_train, X_val, y_val, X_test, y_test, target_scaler) = split_and_scale_joint_data(df_features, locations)
-        
-        # Create and train model
-        print("\nCreating model...")
-        model = create_joint_model((X_train.shape[1], X_train.shape[2]))
-        model.summary()
-        
-        model_path = os.path.join("models", "lstm_ghi_forecast_joint.h5")
-        
-        if skip_training:
-            if os.path.exists(model_path):
-                print(f"\nLoading pre-trained model...")
-                model = tf.keras.models.load_model(model_path)
-                history = None
-            else:
-                print("× No pre-trained model found")
-                return
-        else:
-            print("\nTraining model...")
-            history, model = train_joint_model(model, X_train, y_train, X_val, y_val)
+        try:
+            # Create features
+            print("\nCreating features...")
+            df_features = create_joint_features(df)
             
-            # Save model
-            model.save(model_path)
-            print(f"✓ Model saved to {model_path}")
-        
-        # Evaluate model
-        print("\nEvaluating model...")
-        results = evaluate_joint_model(model, df_features, locations, 24, "GHI")
-        
-        # Create metrics table
-        records = []
-        for location, metrics in results.items():
-            for metric_name, value in metrics.items():
-                records.append({
-                    'Location': location,
-                    'Metric': metric_name,
-                    'Value': value
-                })
-        
-        metrics_df = pd.DataFrame(records)
-        
-        # Save results
-        metrics_df.to_csv("results_joint/tables/metrics.csv", index=False)
-        
-        # Create plots for each metric
-        for metric in metrics_df['Metric'].unique():
-            metric_data = metrics_df[metrics_df['Metric'] == metric]
-            
-            plt.figure(figsize=(15, 8))
-            pivot_data = metric_data.pivot(
-                index='Location',
-                columns='Metric',
-                values='Value'
+            # Split and scale data
+            print("\nSplitting and scaling data...")
+            (X_train, y_train, X_val, y_val, X_test, y_test, target_scaler) = split_and_scale_joint_data(
+                df_features, locations, sequence_length=24, target_column="GHI"
             )
-            ax = pivot_data.plot(kind='bar', width=0.8)
-            plt.title(f'{metric} Comparison Across Locations')
-            plt.xlabel('Location')
-            plt.ylabel(metric)
-            plt.xticks(rotation=45, ha='right')
             
-            # Add value labels
-            for container in ax.containers:
-                ax.bar_label(container, fmt='%.3f', rotation=90, padding=3)
+            # Create sequences with specific configuration
+            X_train, y_train = create_sequences_joint_with_config(
+                df_features[df_features['location'].isin(locations)], 
+                locations, 24, "GHI", input_config=config
+            )
+            X_val, y_val = create_sequences_joint_with_config(
+                df_features[df_features['location'].isin(locations)], 
+                locations, 24, "GHI", input_config=config
+            )
+            X_test, y_test = create_sequences_joint_with_config(
+                df_features[df_features['location'].isin(locations)], 
+                locations, 24, "GHI", input_config=config
+            )
             
-            plt.grid(True, axis='y', linestyle='--', alpha=0.7)
-            plt.tight_layout()
+            # Create and train model
+            print("\nCreating model...")
+            model = create_joint_model_with_config((X_train.shape[1], X_train.shape[2]), input_config=config)
+            model.summary()
             
-            # Save plot
-            plot_path = f"results_joint/plots/comparison_{metric.lower().replace(' ', '_')}.png"
-            plt.savefig(plot_path, bbox_inches='tight', dpi=300)
-            plt.close()
-        
-        print("\nResults have been saved in the 'results_joint' directory")
-        
-    except Exception as e:
-        print(f"× Error in main execution: {str(e)}")
-        import traceback
-        print("\nFull traceback:")
-        print(traceback.format_exc())
+            model_path = os.path.join("models", f"lstm_ghi_forecast_joint_{config}.h5")
+            
+            if skip_training:
+                if os.path.exists(model_path):
+                    print(f"\nLoading pre-trained model...")
+                    model = tf.keras.models.load_model(model_path)
+                    history = None
+                else:
+                    print("× No pre-trained model found")
+                    continue
+            else:
+                print("\nTraining model...")
+                history, model = train_joint_model(model, X_train, y_train, X_val, y_val)
+                
+                # Save model
+                model.save(model_path)
+                print(f"✓ Model saved to {model_path}")
+            
+            # Evaluate model
+            print("\nEvaluating model...")
+            results, daily_metrics = evaluate_joint_model(model, df_features, locations, 24, "GHI")
+            
+            # Create metrics table
+            records = []
+            for location, metrics in daily_metrics.items():
+                for metric_name in ['correlation', 'mae', 'rmse', 'r2']:
+                    records.append({
+                        'Location': location,
+                        'Config': config,
+                        'Metric': metric_name,
+                        'Mean': metrics[metric_name].mean(),
+                        'Median': metrics[metric_name].median(),
+                        'Min': metrics[metric_name].min(),
+                        'Max': metrics[metric_name].max()
+                    })
+            
+            metrics_df = pd.DataFrame(records)
+            
+            # Save results
+            metrics_df.to_csv(f"results_joint/tables/metrics_{config}.csv", index=False)
+            
+            print(f"\nResults for {config} configuration have been saved in the 'results_joint' directory")
+            
+        except Exception as e:
+            print(f"× Error in {config} configuration: {str(e)}")
+            import traceback
+            print("\nFull traceback:")
+            print(traceback.format_exc())
+            continue
+    
+    print("\nAll configurations have been processed")
 
 if __name__ == "__main__":
     import argparse
