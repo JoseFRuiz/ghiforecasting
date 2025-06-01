@@ -324,7 +324,7 @@ def create_joint_model(input_shape):
     
     return model
 
-def evaluate_joint_model(model, test_data, locations, sequence_length, target_column):
+def evaluate_joint_model(model, test_data, locations, sequence_length, target_column, input_config='all'):
     """
     Evaluate the model on each location separately.
     
@@ -334,6 +334,7 @@ def evaluate_joint_model(model, test_data, locations, sequence_length, target_co
         locations: List of locations
         sequence_length: Length of input sequences
         target_column: Name of target column
+        input_config: Input configuration used for training
     
     Returns:
         dict: Dictionary with metrics for each location
@@ -341,6 +342,7 @@ def evaluate_joint_model(model, test_data, locations, sequence_length, target_co
     print("\nEvaluating model on test data...")
     print(f"Test data shape: {test_data.shape}")
     print(f"Locations: {locations}")
+    print(f"Input configuration: {input_config}")
     
     results = {}
     daily_metrics = {}
@@ -364,14 +366,15 @@ def evaluate_joint_model(model, test_data, locations, sequence_length, target_co
         zero_target = (df_loc[target_column] == 0).sum()
         print(f"Zero {target_column} values: {zero_target} ({zero_target/len(df_loc)*100:.2f}%)")
         
-        # Create sequences for evaluation - pass all locations to ensure we get all location features
-        X_test, y_test = create_sequences_joint(df_loc, locations, sequence_length, target_column)
+        # Create sequences for evaluation with the correct configuration
+        X_test, y_test = create_sequences_joint_with_config(df_loc, locations, sequence_length, target_column, input_config)
         
         if len(X_test) == 0:
             print(f"Warning: No valid sequences created for {location}")
             continue
         
         print(f"Test sequences: {len(X_test)}")
+        print(f"Input shape: {X_test.shape}")
         
         # Make predictions
         y_pred = model.predict(X_test)
@@ -1031,7 +1034,7 @@ def main(skip_training=False, debug_data_loading=False):
             
             # Evaluate model
             print("\nEvaluating model...")
-            results, daily_metrics = evaluate_joint_model(model, df_features, locations, 24, "GHI")
+            results, daily_metrics = evaluate_joint_model(model, df_features, locations, 24, "GHI", input_config=config)
             
             # Create metrics table
             records = []
