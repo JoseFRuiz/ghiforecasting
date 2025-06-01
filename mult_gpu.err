@@ -4,34 +4,86 @@ Currently Loaded Modules:
 
  
 
-2025-05-26 17:33:37.493376: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+2025-06-01 14:39:05.197651: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
 To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2025-05-26 17:33:38.659683: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1510] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 79048 MB memory:  -> device: 0, name: NVIDIA A100-SXM4-80GB, pci bus id: 0000:90:00.0, compute capability: 8.0
-2025-05-26 17:33:39.751151: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
-2025-05-26 17:33:39.751360: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
-2025-05-26 17:33:39.752561: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1614] Profiler found 1 GPUs
-2025-05-26 17:33:39.753956: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcupti.so.11.2'; dlerror: libcupti.so.11.2: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/opt/slurm/lib64:
-2025-05-26 17:33:39.836910: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
-2025-05-26 17:33:39.837233: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
-2025-05-26 17:33:40.048304: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:185] None of the MLIR Optimization Passes are enabled (registered 2)
-2025-05-26 17:33:42.556426: I tensorflow/stream_executor/cuda/cuda_dnn.cc:369] Loaded cuDNN version 8201
-2025-05-26 17:33:44.337257: I tensorflow/stream_executor/cuda/cuda_blas.cc:1760] TensorFloat-32 will be used for the matrix multiplication. This will only be logged once.
-2025-05-26 17:33:44.695137: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
-2025-05-26 17:33:44.695269: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
-2025-05-26 17:33:45.023639: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
-2025-05-26 17:33:45.023919: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
-2025-05-26 17:33:45.049652: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 392 callback api events and 391 activity events. 
-2025-05-26 17:33:45.060004: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
-2025-05-26 17:33:45.076157: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45
+2025-06-01 14:39:06.208247: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1510] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 79164 MB memory:  -> device: 0, name: NVIDIA A100-SXM4-80GB, pci bus id: 0000:bd:00.0, compute capability: 8.0
+2025-06-01 14:39:07.562145: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-01 14:39:07.562378: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-01 14:39:07.563576: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1614] Profiler found 1 GPUs
+2025-06-01 14:39:07.564797: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcupti.so.11.2'; dlerror: libcupti.so.11.2: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/opt/slurm/lib64:
+2025-06-01 14:39:07.647473: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-01 14:39:07.647836: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
+2025-06-01 14:39:07.855396: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:185] None of the MLIR Optimization Passes are enabled (registered 2)
+2025-06-01 14:39:11.969481: I tensorflow/stream_executor/cuda/cuda_dnn.cc:369] Loaded cuDNN version 8201
+2025-06-01 14:39:13.896766: I tensorflow/stream_executor/cuda/cuda_blas.cc:1760] TensorFloat-32 will be used for the matrix multiplication. This will only be logged once.
+2025-06-01 14:39:14.350625: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-01 14:39:14.350780: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-01 14:39:14.692648: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
+2025-06-01 14:39:14.692944: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
+2025-06-01 14:39:14.705542: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 904 callback api events and 906 activity events. 
+2025-06-01 14:39:14.722120: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-01 14:39:14.749037: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250601-143907/train/plugins/profile/2025_06_01_14_39_14
 
-2025-05-26 17:33:45.081998: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45/c0800a-s11.ufhpc.trace.json.gz
-2025-05-26 17:33:45.096091: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45
+2025-06-01 14:39:14.763053: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/20250601-143907/train/plugins/profile/2025_06_01_14_39_14/c1006a-s23.ufhpc.trace.json.gz
+2025-06-01 14:39:14.792944: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250601-143907/train/plugins/profile/2025_06_01_14_39_14
 
-2025-05-26 17:33:45.098217: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45/c0800a-s11.ufhpc.memory_profile.json.gz
-2025-05-26 17:33:45.101210: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45
-Dumped tool data for xplane.pb to logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45/c0800a-s11.ufhpc.xplane.pb
-Dumped tool data for overview_page.pb to logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45/c0800a-s11.ufhpc.overview_page.pb
-Dumped tool data for input_pipeline.pb to logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45/c0800a-s11.ufhpc.input_pipeline.pb
-Dumped tool data for tensorflow_stats.pb to logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45/c0800a-s11.ufhpc.tensorflow_stats.pb
-Dumped tool data for kernel_stats.pb to logs/fit/20250526-173339/train/plugins/profile/2025_05_26_17_33_45/c0800a-s11.ufhpc.kernel_stats.pb
+2025-06-01 14:39:14.797319: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/20250601-143907/train/plugins/profile/2025_06_01_14_39_14/c1006a-s23.ufhpc.memory_profile.json.gz
+2025-06-01 14:39:14.801231: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/20250601-143907/train/plugins/profile/2025_06_01_14_39_14
+Dumped tool data for xplane.pb to logs/fit/20250601-143907/train/plugins/profile/2025_06_01_14_39_14/c1006a-s23.ufhpc.xplane.pb
+Dumped tool data for overview_page.pb to logs/fit/20250601-143907/train/plugins/profile/2025_06_01_14_39_14/c1006a-s23.ufhpc.overview_page.pb
+Dumped tool data for input_pipeline.pb to logs/fit/20250601-143907/train/plugins/profile/2025_06_01_14_39_14/c1006a-s23.ufhpc.input_pipeline.pb
+Dumped tool data for tensorflow_stats.pb to logs/fit/20250601-143907/train/plugins/profile/2025_06_01_14_39_14/c1006a-s23.ufhpc.tensorflow_stats.pb
+Dumped tool data for kernel_stats.pb to logs/fit/20250601-143907/train/plugins/profile/2025_06_01_14_39_14/c1006a-s23.ufhpc.kernel_stats.pb
 
+2025-06-01 15:15:05.696663: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-01 15:15:05.696898: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-01 15:15:06.068976: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-01 15:15:06.069329: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
+2025-06-01 15:15:09.494159: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-01 15:15:09.494331: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-01 15:15:09.938395: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
+2025-06-01 15:15:09.938736: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
+2025-06-01 15:15:09.949417: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 904 callback api events and 905 activity events. 
+2025-06-01 15:15:09.964818: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-01 15:15:09.986040: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250601-151505/train/plugins/profile/2025_06_01_15_15_09
+
+2025-06-01 15:15:09.999481: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/20250601-151505/train/plugins/profile/2025_06_01_15_15_09/c1006a-s23.ufhpc.trace.json.gz
+2025-06-01 15:15:10.025734: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250601-151505/train/plugins/profile/2025_06_01_15_15_09
+
+2025-06-01 15:15:10.030186: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/20250601-151505/train/plugins/profile/2025_06_01_15_15_09/c1006a-s23.ufhpc.memory_profile.json.gz
+2025-06-01 15:15:10.035419: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/20250601-151505/train/plugins/profile/2025_06_01_15_15_09
+Dumped tool data for xplane.pb to logs/fit/20250601-151505/train/plugins/profile/2025_06_01_15_15_09/c1006a-s23.ufhpc.xplane.pb
+Dumped tool data for overview_page.pb to logs/fit/20250601-151505/train/plugins/profile/2025_06_01_15_15_09/c1006a-s23.ufhpc.overview_page.pb
+Dumped tool data for input_pipeline.pb to logs/fit/20250601-151505/train/plugins/profile/2025_06_01_15_15_09/c1006a-s23.ufhpc.input_pipeline.pb
+Dumped tool data for tensorflow_stats.pb to logs/fit/20250601-151505/train/plugins/profile/2025_06_01_15_15_09/c1006a-s23.ufhpc.tensorflow_stats.pb
+Dumped tool data for kernel_stats.pb to logs/fit/20250601-151505/train/plugins/profile/2025_06_01_15_15_09/c1006a-s23.ufhpc.kernel_stats.pb
+
+2025-06-01 15:47:34.348505: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-01 15:47:34.349516: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-01 15:47:34.652275: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-01 15:47:34.652663: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
+2025-06-01 15:47:38.062041: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-01 15:47:38.062242: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-01 15:47:38.442487: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
+2025-06-01 15:47:38.442842: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
+2025-06-01 15:47:38.457277: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 904 callback api events and 905 activity events. 
+2025-06-01 15:47:38.474724: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-01 15:47:38.495838: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250601-154734/train/plugins/profile/2025_06_01_15_47_38
+
+2025-06-01 15:47:38.509243: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/20250601-154734/train/plugins/profile/2025_06_01_15_47_38/c1006a-s23.ufhpc.trace.json.gz
+2025-06-01 15:47:38.534699: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250601-154734/train/plugins/profile/2025_06_01_15_47_38
+
+2025-06-01 15:47:38.539041: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/20250601-154734/train/plugins/profile/2025_06_01_15_47_38/c1006a-s23.ufhpc.memory_profile.json.gz
+2025-06-01 15:47:38.543369: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/20250601-154734/train/plugins/profile/2025_06_01_15_47_38
+Dumped tool data for xplane.pb to logs/fit/20250601-154734/train/plugins/profile/2025_06_01_15_47_38/c1006a-s23.ufhpc.xplane.pb
+Dumped tool data for overview_page.pb to logs/fit/20250601-154734/train/plugins/profile/2025_06_01_15_47_38/c1006a-s23.ufhpc.overview_page.pb
+Dumped tool data for input_pipeline.pb to logs/fit/20250601-154734/train/plugins/profile/2025_06_01_15_47_38/c1006a-s23.ufhpc.input_pipeline.pb
+Dumped tool data for tensorflow_stats.pb to logs/fit/20250601-154734/train/plugins/profile/2025_06_01_15_47_38/c1006a-s23.ufhpc.tensorflow_stats.pb
+Dumped tool data for kernel_stats.pb to logs/fit/20250601-154734/train/plugins/profile/2025_06_01_15_47_38/c1006a-s23.ufhpc.kernel_stats.pb
+
+/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/utils/generic_utils.py:494: CustomMaskWarning: Custom mask layers require a config and must override get_config. When loading, the custom mask layer must be passed to the custom_objects argument.
+  warnings.warn('Custom mask layers require a config and must override '
+/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/utils/generic_utils.py:494: CustomMaskWarning: Custom mask layers require a config and must override get_config. When loading, the custom mask layer must be passed to the custom_objects argument.
+  warnings.warn('Custom mask layers require a config and must override '
+/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/utils/generic_utils.py:494: CustomMaskWarning: Custom mask layers require a config and must override get_config. When loading, the custom mask layer must be passed to the custom_objects argument.
+  warnings.warn('Custom mask layers require a config and must override '
