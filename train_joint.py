@@ -622,83 +622,57 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
         # Sort by datetime to ensure chronological order
         df_loc = df_loc.sort_values("datetime")
         
-        # Check for missing values
-        missing_values = df_loc.isnull().sum()
-        if missing_values.any():
-            print(f"Warning: Missing values in {location}:")
-            print(missing_values[missing_values > 0])
-        
-        # Check for zero values in target
-        zero_target = (df_loc[target_column] == 0).sum()
-        print(f"Zero {target_column} values: {zero_target} ({zero_target/len(df_loc)*100:.2f}%)")
-        
-        # Create sequences
-        valid_sequences = 0
-        skipped_sequences = 0
-        
-        # Calculate the maximum index that allows for a complete sequence
-        max_index = len(df_loc) - sequence_length - 1
-        
-        # Create sequences using rolling window approach
-        for i in range(max_index):
-            # Get sequence window
-            sequence_window = df_loc.iloc[i:i + sequence_length]
-            target_window = df_loc.iloc[i + sequence_length:i + sequence_length + 1]
-            
-            # Skip if any data is missing
-            if sequence_window.isnull().any().any() or target_window.isnull().any().any():
-                skipped_sequences += 1
-                continue
-            
-            # Get GHI lag features
-            ghi_lag_features = sequence_window[[f"GHI_lag_{lag}" for lag in range(1, 25)]].values
-            
-            # Get current GHI value
-            current_ghi = sequence_window[target_column].values.reshape(-1, 1)
-            
-            # Get meteorological features
-            met_features = sequence_window[[
+        # Get all required features at once
+        feature_columns = (
+            [f"GHI_lag_{lag}" for lag in range(1, 25)] +  # GHI lag features
+            [target_column] +  # Current GHI
+            [  # Meteorological features
                 "Temperature_lag_24", "Relative Humidity_lag_24",
                 "Pressure_lag_24", "Precipitable Water_lag_24",
                 "Wind Direction_lag_24", "Wind Speed_lag_24"
-            ]].values
-            
-            # Get time-based features
-            time_features = sequence_window[[
+            ] +
+            [  # Time features
                 "hour_sin", "hour_cos",
                 "month_sin", "month_cos"
-            ]].values
-            
-            target_value = target_window[target_column].values[0]
-            
-            # Skip if target value is zero (night time)
-            if target_value == 0:
-                skipped_sequences += 1
-                continue
-            
-            # Create feature matrix with all features
-            features = np.column_stack([
-                ghi_lag_features,  # 24 features
-                current_ghi,       # 1 feature
-                met_features,      # 6 features
-                time_features,     # 4 features
-                np.tile(location_vector, (sequence_length, 1))  # 5 features (one for each location)
-            ])
-            
-            all_X_sequences.append(features)
-            all_y_sequences.append(target_value)
-            valid_sequences += 1
+            ]
+        )
         
-        print(f"Created {valid_sequences} valid sequences for {location}")
-        if skipped_sequences > 0:
-            print(f"Skipped {skipped_sequences} sequences due to validation failures")
+        # Get all data at once
+        data = df_loc[feature_columns].values
+        target = df_loc[target_column].values
+        
+        # Calculate number of sequences
+        n_sequences = len(df_loc) - sequence_length
+        
+        # Pre-allocate arrays
+        X = np.zeros((n_sequences, sequence_length, len(feature_columns)))
+        y = np.zeros(n_sequences)
+        
+        # Create sequences using vectorized operations
+        for i in range(n_sequences):
+            X[i] = data[i:i + sequence_length]
+            y[i] = target[i + sequence_length]
+        
+        # Filter out sequences where target is zero (night time)
+        mask = y > 0
+        X = X[mask]
+        y = y[mask]
+        
+        # Add location features
+        location_features = np.tile(location_vector, (len(X), sequence_length, 1))
+        X = np.concatenate([X, location_features], axis=2)
+        
+        all_X_sequences.append(X)
+        all_y_sequences.append(y)
+        
+        print(f"Created {len(X)} valid sequences for {location}")
     
     if not all_X_sequences:
         raise ValueError("No valid sequences were created for any location")
     
-    # Convert to numpy arrays
-    X = np.array(all_X_sequences)
-    y = np.array(all_y_sequences)
+    # Combine sequences from all locations
+    X = np.concatenate(all_X_sequences, axis=0)
+    y = np.concatenate(all_y_sequences, axis=0)
     
     print(f"\nFinal sequence shapes:")
     print(f"X: {X.shape}")
@@ -823,19 +797,28 @@ def create_sequences_joint_with_config(df, locations, sequence_length, target_co
     print(f"\nCreating sequences for {len(df)} samples with config: {input_config}")
     print(f"Locations: {locations}")
     
-    # Print feature statistics before sequence creation
-    print("\nFeature statistics before sequence creation:")
-    for feature in df.columns:
-        if feature not in ['datetime', 'location']:
-            print(f"{feature}:")
-            if pd.api.types.is_numeric_dtype(df[feature]):
-                print(f"  Min: {df[feature].min():.4f}")
-                print(f"  Max: {df[feature].max():.4f}")
-                print(f"  Mean: {df[feature].mean():.4f}")
-                print(f"  Std: {df[feature].std():.4f}")
-            else:
-                print(f"  Type: {df[feature].dtype}")
-                print(f"  Unique values: {df[feature].nunique()}")
+    # Initialize feature lists based on configuration
+    feature_columns = []
+    
+    if input_config in ['ghi_only', 'ghi_met', 'all']:
+        # Add GHI lag features (24 features)
+        feature_columns.extend([f"GHI_lag_{lag}" for lag in range(1, 25)])
+        # Add current GHI
+        feature_columns.append(target_column)
+    
+    if input_config in ['met_only', 'ghi_met', 'all']:
+        # Add meteorological features
+        met_features = [
+            "Temperature_lag_24", "Relative Humidity_lag_24",
+            "Pressure_lag_24", "Precipitable Water_lag_24",
+            "Wind Direction_lag_24", "Wind Speed_lag_24"
+        ]
+        feature_columns.extend(met_features)
+    
+    if input_config == 'all':
+        # Add time features
+        time_features = ["hour_sin", "hour_cos", "month_sin", "month_cos"]
+        feature_columns.extend(time_features)
     
     # Initialize lists to store sequences
     all_X_sequences = []
@@ -857,94 +840,43 @@ def create_sequences_joint_with_config(df, locations, sequence_length, target_co
         # Sort by datetime to ensure chronological order
         df_loc = df_loc.sort_values("datetime")
         
-        # Create sequences
-        valid_sequences = 0
-        skipped_sequences = 0
+        # Get all required data at once
+        data = df_loc[feature_columns].values
+        target = df_loc[target_column].values
         
-        # Calculate the maximum index that allows for a complete sequence
-        max_index = len(df_loc) - sequence_length - 1
+        # Calculate number of sequences
+        n_sequences = len(df_loc) - sequence_length
         
-        # Create sequences using rolling window approach
-        for i in range(max_index):
-            # Get sequence window
-            sequence_window = df_loc.iloc[i:i + sequence_length]
-            target_window = df_loc.iloc[i + sequence_length:i + sequence_length + 1]
-            
-            # Skip if any data is missing
-            if sequence_window.isnull().any().any() or target_window.isnull().any().any():
-                skipped_sequences += 1
-                continue
-            
-            # Initialize features list
-            features = []
-            
-            # Add features based on configuration
-            if input_config in ['ghi_only', 'ghi_met', 'all']:
-                # Add GHI lag features (24 features)
-                for lag in range(1, 25):
-                    features.append(sequence_window[f"GHI_lag_{lag}"].values)
-                
-                # Add current GHI (1 feature)
-                features.append(sequence_window[target_column].values)
-            
-            if input_config in ['met_only', 'ghi_met', 'all']:
-                # Add meteorological features (6 features)
-                met_features = [
-                    "Temperature_lag_24", "Relative Humidity_lag_24",
-                    "Pressure_lag_24", "Precipitable Water_lag_24",
-                    "Wind Direction_lag_24", "Wind Speed_lag_24"
-                ]
-                for feature in met_features:
-                    features.append(sequence_window[feature].values)
-            
-            if input_config == 'all':
-                # Add time features (4 features)
-                time_features = ["hour_sin", "hour_cos", "month_sin", "month_cos"]
-                for feature in time_features:
-                    features.append(sequence_window[feature].values)
-                
-                # Add location features (5 features - one-hot encoded)
-                location_features = np.zeros((sequence_length, 5))  # 5 locations
-                city_idx = locations.index(location)
-                location_features[:, city_idx] = 1
-                features.append(location_features)
-            
-            target_value = target_window[target_column].values[0]
-            
-            # Skip if target value is zero (night time)
-            if target_value == 0:
-                skipped_sequences += 1
-                continue
-            
-            # Stack features to create input sequence
-            X = np.column_stack(features)
-            
-            # Print sequence statistics for first few sequences
-            if i < 3:
-                print(f"\nSequence {i} statistics:")
-                print(f"Shape: {X.shape}")
-                print("Feature ranges:")
-                for j, feature_values in enumerate(X.T):
-                    print(f"Feature {j}:")
-                    print(f"  Min: {np.min(feature_values):.4f}")
-                    print(f"  Max: {np.max(feature_values):.4f}")
-                    print(f"  Mean: {np.mean(feature_values):.4f}")
-                    print(f"  Std: {np.std(feature_values):.4f}")
-            
-            all_X_sequences.append(X)
-            all_y_sequences.append(target_value)
-            valid_sequences += 1
+        # Pre-allocate arrays
+        X = np.zeros((n_sequences, sequence_length, len(feature_columns)))
+        y = np.zeros(n_sequences)
         
-        print(f"Created {valid_sequences} valid sequences for {location}")
-        if skipped_sequences > 0:
-            print(f"Skipped {skipped_sequences} sequences due to validation failures")
+        # Create sequences using vectorized operations
+        for i in range(n_sequences):
+            X[i] = data[i:i + sequence_length]
+            y[i] = target[i + sequence_length]
+        
+        # Filter out sequences where target is zero (night time)
+        mask = y > 0
+        X = X[mask]
+        y = y[mask]
+        
+        # Add location features if using 'all' configuration
+        if input_config == 'all':
+            location_features = np.tile(location_vector, (len(X), sequence_length, 1))
+            X = np.concatenate([X, location_features], axis=2)
+        
+        all_X_sequences.append(X)
+        all_y_sequences.append(y)
+        
+        print(f"Created {len(X)} valid sequences for {location}")
     
     if not all_X_sequences:
         raise ValueError("No valid sequences were created for any location")
     
-    # Convert to numpy arrays
-    X = np.array(all_X_sequences)
-    y = np.array(all_y_sequences)
+    # Combine sequences from all locations
+    X = np.concatenate(all_X_sequences, axis=0)
+    y = np.concatenate(all_y_sequences, axis=0)
     
     print(f"\nFinal sequence shapes:")
     print(f"X: {X.shape}")

@@ -38,6 +38,40 @@ class CustomLambda(tf.keras.layers.Lambda):
                 output_shape = lambda x: x.shape
         super().__init__(function, output_shape=output_shape, **kwargs)
 
+def create_features(df):
+    """
+    Create features for prediction.
+    
+    Args:
+        df: DataFrame with raw data
+    
+    Returns:
+        pd.DataFrame: DataFrame with additional features
+    """
+    # Create time-based features
+    df["hour_sin"] = np.sin(2 * np.pi * df["Hour"] / 24)
+    df["hour_cos"] = np.cos(2 * np.pi * df["Hour"] / 24)
+    df["month_sin"] = np.sin(2 * np.pi * df["Month"] / 12)
+    df["month_cos"] = np.cos(2 * np.pi * df["Month"] / 12)
+    
+    # Create target: GHI for next day at the same hour
+    df["target_GHI"] = df["GHI"].shift(-24)
+    
+    # Create lag features for previous 24 hours of GHI
+    for lag in range(1, 25):
+        df[f"GHI_lag_{lag}"] = df["GHI"].shift(lag)
+    
+    # Create lag features for meteorological variables
+    meteorological_features = [
+        "Temperature", "Relative Humidity", "Pressure",
+        "Precipitable Water", "Wind Direction", "Wind Speed"
+    ]
+    
+    for feature in meteorological_features:
+        df[f"{feature}_lag_24"] = df[feature].shift(24)
+    
+    return df
+
 def load_and_prepare_test_data(locations):
     """
     Load and prepare test data for prediction.
@@ -53,7 +87,7 @@ def load_and_prepare_test_data(locations):
     # Load the target scaler
     scaler_path = os.path.join("models", "target_scaler.pkl")
     if not os.path.exists(scaler_path):
-        raise FileNotFoundError(f"Target scaler not found at {scaler_path}")
+        raise FileNotFoundError(f"Target scaler not found at {scaler_path}. Please run train_joint.py first.")
     
     with open(scaler_path, 'rb') as f:
         target_scaler = pickle.load(f)
@@ -61,25 +95,20 @@ def load_and_prepare_test_data(locations):
     # Load and process data for each location
     test_data_dict = {}
     
-    for location, data in locations.items():
-        print(f"\nProcessing {location}...")
+    # List of cities to process (excluding Leh and Kargil which have invalid data)
+    valid_cities = ["Jaisalmer", "Jodhpur", "New Delhi", "Shimla", "Srinagar"]
+    
+    for city in valid_cities:
+        print(f"\nProcessing {city}...")
         
         try:
-            # Load data
-            df = pd.read_csv(data['path'])
-            print(f"Loaded {len(df)} samples")
-            
-            # Convert datetime column
-            df['datetime'] = pd.to_datetime(df['datetime'])
-            
-            # Sort by datetime
-            df = df.sort_values('datetime')
+            # Use the load_data function from utils
+            df = load_data(locations, city)
             
             # Create features
             df = create_features(df)
             
             # Validate features
-            print("\nValidating features...")
             required_features = [
                 'GHI', 'Temperature', 'Relative Humidity', 'Pressure',
                 'Precipitable Water', 'Wind Direction', 'Wind Speed'
@@ -87,24 +116,25 @@ def load_and_prepare_test_data(locations):
             
             missing_features = [f for f in required_features if f not in df.columns]
             if missing_features:
-                raise ValueError(f"Missing required features: {missing_features}")
+                print(f"Error: Missing required features: {missing_features}")
+                continue
             
             # Check for missing values
             missing_values = df[required_features].isnull().sum()
             if missing_values.any():
-                print("WARNING: Missing values found:")
+                print("Warning: Missing values found:")
                 print(missing_values[missing_values > 0])
                 # Fill missing values with forward fill and then backward fill
                 df[required_features] = df[required_features].fillna(method='ffill').fillna(method='bfill')
             
             # Create lag features
-            print("\nCreating lag features...")
+            print("Creating lag features...")
             for feature in required_features:
                 for lag in range(1, 25):
                     df[f"{feature}_lag_{lag}"] = df[feature].shift(lag)
             
             # Create time features
-            print("\nCreating time features...")
+            print("Creating time features...")
             df['hour'] = df['datetime'].dt.hour
             df['month'] = df['datetime'].dt.month
             df['hour_sin'] = np.sin(2 * np.pi * df['hour'] / 24)
@@ -119,16 +149,18 @@ def load_and_prepare_test_data(locations):
             df['GHI'] = target_scaler.transform(df[['GHI']])
             
             # Store processed data
-            test_data_dict[location] = df
+            test_data_dict[city] = df
             
-            print(f"Processed {len(df)} samples for {location}")
+            print(f"Successfully processed {len(df)} samples for {city}")
             
         except Exception as e:
-            print(f"Error processing {location}: {str(e)}")
+            print(f"Error processing {city}: {str(e)}")
+            import traceback
+            print(traceback.format_exc())
             continue
     
     if not test_data_dict:
-        raise ValueError("No valid test data was processed")
+        raise ValueError("No valid test data was processed. Please check your data paths and run train_joint.py first.")
     
     return test_data_dict, target_scaler
 
@@ -147,78 +179,59 @@ def create_prediction_sequences(df, sequence_length, input_config='all'):
     """
     print(f"\nCreating prediction sequences with {input_config} configuration...")
     
-    # Initialize lists to store sequences
-    X_sequences = []
-    y_values = []
-    dates = []
+    # Initialize feature lists based on configuration
+    feature_columns = []
     
-    # Calculate the maximum index that allows for a complete sequence
-    max_index = len(df) - sequence_length
+    if input_config in ['ghi_only', 'ghi_met', 'all']:
+        # Add GHI lag features (24 features)
+        feature_columns.extend([f"GHI_lag_{lag}" for lag in range(1, 25)])
+        # Add current GHI
+        feature_columns.append("GHI")
     
-    # Create sequences using rolling window approach
-    for i in range(max_index):
-        # Get sequence window
-        sequence_window = df.iloc[i:i + sequence_length]
-        target_window = df.iloc[i + sequence_length:i + sequence_length + 1]
-        
-        # Skip if any data is missing
-        if sequence_window.isnull().any().any() or target_window.isnull().any().any():
-            continue
-        
-        # Initialize features list
-        features = []
-        
-        # Add features based on configuration
-        if input_config in ['ghi_only', 'ghi_met', 'all']:
-            # Add GHI lag features (24 features)
-            for lag in range(1, 25):
-                features.append(sequence_window[f"GHI_lag_{lag}"].values)
-            
-            # Add current GHI (1 feature)
-            features.append(sequence_window["GHI"].values)
-        
-        if input_config in ['met_only', 'ghi_met', 'all']:
-            # Add meteorological features (6 features)
-            met_features = [
-                "Temperature_lag_24", "Relative Humidity_lag_24",
-                "Pressure_lag_24", "Precipitable Water_lag_24",
-                "Wind Direction_lag_24", "Wind Speed_lag_24"
-            ]
-            for feature in met_features:
-                features.append(sequence_window[feature].values)
-        
-        if input_config == 'all':
-            # Add time features (4 features)
-            time_features = ["hour_sin", "hour_cos", "month_sin", "month_cos"]
-            for feature in time_features:
-                features.append(sequence_window[feature].values)
-        
-        # Stack features to create input sequence
-        X = np.column_stack(features)
-        
-        # Get target value
-        y = target_window["GHI"].values[0]
-        
-        # Skip if target value is zero (night time)
-        if y == 0:
-            continue
-        
-        X_sequences.append(X)
-        y_values.append(y)
-        dates.append(target_window["datetime"].values[0])
+    if input_config in ['met_only', 'ghi_met', 'all']:
+        # Add meteorological features
+        met_features = [
+            "Temperature_lag_24", "Relative Humidity_lag_24",
+            "Pressure_lag_24", "Precipitable Water_lag_24",
+            "Wind Direction_lag_24", "Wind Speed_lag_24"
+        ]
+        feature_columns.extend(met_features)
     
-    if not X_sequences:
-        raise ValueError("No valid sequences were created")
+    if input_config == 'all':
+        # Add time features
+        time_features = ["hour_sin", "hour_cos", "month_sin", "month_cos"]
+        feature_columns.extend(time_features)
     
-    # Convert to numpy arrays
-    X = np.array(X_sequences)
-    y = np.array(y_values)
+    # Get all required data at once
+    data = df[feature_columns].values
+    dates = df['datetime'].values
+    target = df['GHI'].values
+    
+    # Calculate number of sequences
+    n_sequences = len(df) - sequence_length
+    
+    # Pre-allocate arrays
+    X = np.zeros((n_sequences, sequence_length, len(feature_columns)))
+    y = np.zeros(n_sequences)
+    sequence_dates = np.zeros(n_sequences, dtype='datetime64[ns]')
+    
+    # Create sequences using vectorized operations
+    for i in range(n_sequences):
+        X[i] = data[i:i + sequence_length]
+        y[i] = target[i + sequence_length]
+        sequence_dates[i] = dates[i + sequence_length]
+    
+    # Filter out sequences where target is zero (night time)
+    mask = y > 0
+    X = X[mask]
+    y = y[mask]
+    sequence_dates = sequence_dates[mask]
     
     print(f"\nCreated {len(X)} sequences")
     print(f"Input shape: {X.shape}")
     print(f"Target shape: {y.shape}")
     
-    return X, y, dates
+    return X, y, sequence_dates
 
 def generate_predictions(model, test_data_dict, target_scaler, sequence_length=24, input_config='all'):
     """
