@@ -197,10 +197,9 @@ def create_prediction_sequences(df, sequence_length, input_config='all'):
         ]
         feature_columns.extend(met_features)
     
-    if input_config == 'all':
-        # Add time features
-        time_features = ["hour_sin", "hour_cos", "month_sin", "month_cos"]
-        feature_columns.extend(time_features)
+    # Always add time features
+    time_features = ["hour_sin", "hour_cos", "month_sin", "month_cos"]
+    feature_columns.extend(time_features)
     
     # Get all required data at once
     data = df[feature_columns].values
@@ -797,6 +796,141 @@ def save_hourly_ghi_values(results, save_dir="results_joint/hourly_ghi"):
         output_file = os.path.join(save_dir, f'hourly_ghi_{city}.csv')
         df.to_csv(output_file, index=False)
         print(f"Saved hourly GHI values for {city} to {output_file}")
+
+def compare_configurations(all_metrics, all_daily_metrics):
+    """
+    Compare performance metrics across different model configurations.
+    
+    Args:
+        all_metrics: Dictionary of metrics for each configuration
+        all_daily_metrics: Dictionary of daily metrics for each configuration
+    """
+    print("\nComparing model configurations...")
+    
+    # Create comparison table for overall metrics
+    comparison_data = []
+    
+    for config, metrics in all_metrics.items():
+        # Get overall metrics for this configuration
+        overall = metrics['Overall']
+        
+        comparison_data.append({
+            'Configuration': config,
+            'MAE': overall['MAE'],
+            'RMSE': overall['RMSE'],
+            'R²': overall['R2'],
+            'MAPE': overall['MAPE'],
+            'Correlation': overall['Correlation'],
+            'Mean Actual': overall['Mean_Actual'],
+            'Mean Predicted': overall['Mean_Predicted']
+        })
+    
+    # Create DataFrame and sort by MAE
+    comparison_df = pd.DataFrame(comparison_data)
+    comparison_df = comparison_df.sort_values('MAE')
+    
+    # Save comparison to CSV
+    comparison_df.to_csv("results_joint/configuration_comparison.csv", index=False)
+    
+    # Print comparison table
+    print("\nConfiguration Comparison (sorted by MAE):")
+    print(comparison_df.to_string(index=False))
+    
+    # Create comparison plots
+    os.makedirs("results_joint/comparisons", exist_ok=True)
+    
+    # Plot MAE and RMSE comparison
+    plt.figure(figsize=(12, 6))
+    x = np.arange(len(comparison_df))
+    width = 0.35
+    
+    plt.bar(x - width/2, comparison_df['MAE'], width, label='MAE')
+    plt.bar(x + width/2, comparison_df['RMSE'], width, label='RMSE')
+    
+    plt.xlabel('Configuration')
+    plt.ylabel('Error (W/m²)')
+    plt.title('MAE and RMSE Comparison Across Configurations')
+    plt.xticks(x, comparison_df['Configuration'], rotation=45)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig("results_joint/comparisons/error_comparison.png", dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # Plot R² and Correlation comparison
+    plt.figure(figsize=(12, 6))
+    plt.bar(x - width/2, comparison_df['R²'], width, label='R²')
+    plt.bar(x + width/2, comparison_df['Correlation'], width, label='Correlation')
+    
+    plt.xlabel('Configuration')
+    plt.ylabel('Score')
+    plt.title('R² and Correlation Comparison Across Configurations')
+    plt.xticks(x, comparison_df['Configuration'], rotation=45)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig("results_joint/comparisons/score_comparison.png", dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # Compare daily metrics across configurations
+    for city in all_daily_metrics[list(all_daily_metrics.keys())[0]].keys():
+        plt.figure(figsize=(15, 10))
+        
+        # Create subplots for different metrics
+        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 10))
+        
+        for config, daily_metrics in all_daily_metrics.items():
+            city_metrics = daily_metrics[city]
+            
+            # Plot correlation
+            ax1.plot(city_metrics['date'], city_metrics['correlation'], 
+                    label=f'{config} (mean: {city_metrics["correlation"].mean():.3f})')
+            
+            # Plot R²
+            ax2.plot(city_metrics['date'], city_metrics['r2'],
+                    label=f'{config} (mean: {city_metrics["r2"].mean():.3f})')
+            
+            # Plot MAE
+            ax3.plot(city_metrics['date'], city_metrics['mae'],
+                    label=f'{config} (mean: {city_metrics["mae"].mean():.1f})')
+            
+            # Plot RMSE
+            ax4.plot(city_metrics['date'], city_metrics['rmse'],
+                    label=f'{config} (mean: {city_metrics["rmse"].mean():.1f})')
+        
+        # Configure subplots
+        ax1.set_title('Daily Correlation')
+        ax1.set_xlabel('Date')
+        ax1.set_ylabel('Correlation')
+        ax1.legend()
+        ax1.grid(True, alpha=0.3)
+        
+        ax2.set_title('Daily R²')
+        ax2.set_xlabel('Date')
+        ax2.set_ylabel('R²')
+        ax2.legend()
+        ax2.grid(True, alpha=0.3)
+        
+        ax3.set_title('Daily MAE')
+        ax3.set_xlabel('Date')
+        ax3.set_ylabel('MAE (W/m²)')
+        ax3.legend()
+        ax3.grid(True, alpha=0.3)
+        
+        ax4.set_title('Daily RMSE')
+        ax4.set_xlabel('Date')
+        ax4.set_ylabel('RMSE (W/m²)')
+        ax4.legend()
+        ax4.grid(True, alpha=0.3)
+        
+        # Rotate x-axis labels
+        for ax in [ax1, ax2, ax3, ax4]:
+            plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+        
+        plt.suptitle(f'Daily Metrics Comparison for {city}')
+        plt.tight_layout()
+        plt.savefig(f"results_joint/comparisons/daily_metrics_{city}.png", dpi=300, bbox_inches='tight')
+        plt.close()
+    
+    print("\nComparison results have been saved in the 'results_joint/comparisons' directory")
 
 def main():
     """Main execution function."""

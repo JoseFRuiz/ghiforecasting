@@ -267,6 +267,8 @@ def split_and_scale_joint_data(df, locations, sequence_length=24, target_column=
     print(f"X_test: {X_test.shape}")
     print(f"y_test: {y_test.shape}")
     
+    print("y_train min/max after scaling:", df_train[target_column].min(), df_train[target_column].max())
+    
     return X_train, y_train, X_val, y_val, X_test, y_test, target_scaler
 
 def create_joint_model(input_shape):
@@ -815,10 +817,9 @@ def create_sequences_joint_with_config(df, locations, sequence_length, target_co
         ]
         feature_columns.extend(met_features)
     
-    if input_config == 'all':
-        # Add time features
-        time_features = ["hour_sin", "hour_cos", "month_sin", "month_cos"]
-        feature_columns.extend(time_features)
+    # Always add time features
+    time_features = ["hour_sin", "hour_cos", "month_sin", "month_cos"]
+    feature_columns.extend(time_features)
     
     # Initialize lists to store sequences
     all_X_sequences = []
@@ -1053,6 +1054,10 @@ def main(skip_training=False, debug_data_loading=False):
             metrics_df.to_csv(f"results_joint/tables/metrics_{config}.csv", index=False)
             
             print(f"\nResults for {config} configuration have been saved in the 'results_joint' directory")
+            
+            # Check model output range during training
+            y_val_pred = model.predict(X_val)
+            print("Validation predictions (should be in [0, 1]):", y_val_pred[:10].flatten())
             
         except Exception as e:
             print(f"× Error in {config} configuration: {str(e)}")
