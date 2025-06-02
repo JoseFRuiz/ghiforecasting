@@ -10,6 +10,7 @@ import tensorflow as tf
 from datetime import datetime, timedelta
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import pickle
 
 # Import shared utilities and configurations
 from utils import (
@@ -37,150 +38,189 @@ class CustomLambda(tf.keras.layers.Lambda):
                 output_shape = lambda x: x.shape
         super().__init__(function, output_shape=output_shape, **kwargs)
 
-def load_and_prepare_test_data(locations, sequence_length=24):
+def load_and_prepare_test_data(locations):
     """
-    Load and prepare test data for all locations.
+    Load and prepare test data for prediction.
     
     Args:
-        locations: Dictionary of location data from CONFIG
-        sequence_length: Length of input sequences
+        locations: Dictionary of location data
     
     Returns:
         tuple: (test_data_dict, target_scaler)
     """
-    print("\nLoading test data for all locations...")
-    test_data_dict = {}
-    all_ghi_values = []
+    print("\nLoading and preparing test data...")
     
-    # Load data for each location
-    for city in locations.keys():
-        # Skip locations with placeholder IDs
-        if any(file_id == "1-2-3-4-5" for file_id in locations[city].values()):
-            print(f"\nSkipping {city} - no valid data available")
-            continue
-            
-        print(f"\nLoading data for {city}...")
+    # Load the target scaler
+    scaler_path = os.path.join("models", "target_scaler.pkl")
+    if not os.path.exists(scaler_path):
+        raise FileNotFoundError(f"Target scaler not found at {scaler_path}")
+    
+    with open(scaler_path, 'rb') as f:
+        target_scaler = pickle.load(f)
+    
+    # Load and process data for each location
+    test_data_dict = {}
+    
+    for location, data in locations.items():
+        print(f"\nProcessing {location}...")
+        
         try:
-            df = load_data(locations, city)
+            # Load data
+            df = pd.read_csv(data['path'])
+            print(f"Loaded {len(df)} samples")
+            
+            # Convert datetime column
+            df['datetime'] = pd.to_datetime(df['datetime'])
             
             # Sort by datetime
             df = df.sort_values('datetime')
             
-            # Split into train/val/test by complete days
-            # Get unique dates
-            dates = df['datetime'].dt.date.unique()
-            n_dates = len(dates)
+            # Create features
+            df = create_features(df)
             
-            # Use last 15% of days for test
-            test_start_idx = int(n_dates * 0.85)
-            test_start_date = dates[test_start_idx]
+            # Validate features
+            print("\nValidating features...")
+            required_features = [
+                'GHI', 'Temperature', 'Relative Humidity', 'Pressure',
+                'Precipitable Water', 'Wind Direction', 'Wind Speed'
+            ]
             
-            # Get test data starting from the beginning of the test period
-            test_data = df[df['datetime'].dt.date >= test_start_date].copy()
+            missing_features = [f for f in required_features if f not in df.columns]
+            if missing_features:
+                raise ValueError(f"Missing required features: {missing_features}")
             
-            print(f"\nTest data info for {city}:")
-            print(f"Total samples: {len(test_data)}")
-            print(f"Date range: {test_data['datetime'].min()} to {test_data['datetime'].max()}")
-            print(f"Number of complete days: {len(test_data['datetime'].dt.date.unique())}")
-            print(f"Sample GHI values: {test_data['GHI'].head().values}")
+            # Check for missing values
+            missing_values = df[required_features].isnull().sum()
+            if missing_values.any():
+                print("WARNING: Missing values found:")
+                print(missing_values[missing_values > 0])
+                # Fill missing values with forward fill and then backward fill
+                df[required_features] = df[required_features].fillna(method='ffill').fillna(method='bfill')
             
-            # Store test data
-            test_data_dict[city] = test_data
+            # Create lag features
+            print("\nCreating lag features...")
+            for feature in required_features:
+                for lag in range(1, 25):
+                    df[f"{feature}_lag_{lag}"] = df[feature].shift(lag)
             
-            # Collect GHI values for scaling
-            all_ghi_values.extend(test_data['GHI'].values)
+            # Create time features
+            print("\nCreating time features...")
+            df['hour'] = df['datetime'].dt.hour
+            df['month'] = df['datetime'].dt.month
+            df['hour_sin'] = np.sin(2 * np.pi * df['hour'] / 24)
+            df['hour_cos'] = np.cos(2 * np.pi * df['hour'] / 24)
+            df['month_sin'] = np.sin(2 * np.pi * df['month'] / 12)
+            df['month_cos'] = np.cos(2 * np.pi * df['month'] / 12)
+            
+            # Drop rows with NaN values (from lag creation)
+            df = df.dropna()
+            
+            # Scale target values
+            df['GHI'] = target_scaler.transform(df[['GHI']])
+            
+            # Store processed data
+            test_data_dict[location] = df
+            
+            print(f"Processed {len(df)} samples for {location}")
+            
         except Exception as e:
-            print(f"Error loading data for {city}: {str(e)}")
+            print(f"Error processing {location}: {str(e)}")
             continue
     
     if not test_data_dict:
-        raise ValueError("No valid data was loaded for any location")
-    
-    # Create and fit scaler on all GHI values
-    target_scaler = MinMaxScaler()
-    target_scaler.fit(np.array(all_ghi_values).reshape(-1, 1))
+        raise ValueError("No valid test data was processed")
     
     return test_data_dict, target_scaler
 
-def create_prediction_sequences(test_data, sequence_length=24):
+def create_prediction_sequences(df, sequence_length, input_config='all'):
     """
-    Create sequences for prediction.
+    Create sequences for prediction with the specified input configuration.
     
     Args:
-        test_data: DataFrame with test data
+        df: DataFrame with processed data
         sequence_length: Length of input sequences
+        input_config: One of ['ghi_only', 'ghi_met', 'met_only', 'all']
     
     Returns:
-        tuple: (X, y, dates)
+        tuple: (X, y, dates) where X is the input sequences, y is the target values,
+               and dates is the corresponding datetime values
     """
-    # Create time-based features
-    test_data["hour_sin"] = np.sin(2 * np.pi * test_data["Hour"] / 24)
-    test_data["hour_cos"] = np.cos(2 * np.pi * test_data["Hour"] / 24)
-    test_data["month_sin"] = np.sin(2 * np.pi * test_data["Month"] / 12)
-    test_data["month_cos"] = np.cos(2 * np.pi * test_data["Month"] / 12)
+    print(f"\nCreating prediction sequences with {input_config} configuration...")
     
-    # Create lag features for GHI (24 lags)
-    for lag in range(1, 25):
-        test_data[f"GHI_lag_{lag}"] = test_data["GHI"].shift(lag)
-    
-    # Create meteorological lag features
-    meteorological_features = [
-        "Temperature", "Relative Humidity", "Pressure",
-        "Precipitable Water", "Wind Direction", "Wind Speed"
-    ]
-    
-    for feature in meteorological_features:
-        test_data[f"{feature}_lag_24"] = test_data[feature].shift(24)
-    
-    # Drop rows with missing values
-    test_data = test_data.dropna()
-    
-    # Create sequences
+    # Initialize lists to store sequences
     X_sequences = []
     y_values = []
     dates = []
     
-    for i in range(len(test_data) - sequence_length):
+    # Calculate the maximum index that allows for a complete sequence
+    max_index = len(df) - sequence_length
+    
+    # Create sequences using rolling window approach
+    for i in range(max_index):
         # Get sequence window
-        sequence_window = test_data.iloc[i:i + sequence_length]
-        target_window = test_data.iloc[i + sequence_length:i + sequence_length + 1]
+        sequence_window = df.iloc[i:i + sequence_length]
+        target_window = df.iloc[i + sequence_length:i + sequence_length + 1]
         
-        # Get features in the correct order to match training data
+        # Skip if any data is missing
+        if sequence_window.isnull().any().any() or target_window.isnull().any().any():
+            continue
+        
+        # Initialize features list
         features = []
         
-        # Add GHI lag features (24 features)
-        for lag in range(1, 25):
-            features.append(sequence_window[f"GHI_lag_{lag}"].values)
+        # Add features based on configuration
+        if input_config in ['ghi_only', 'ghi_met', 'all']:
+            # Add GHI lag features (24 features)
+            for lag in range(1, 25):
+                features.append(sequence_window[f"GHI_lag_{lag}"].values)
+            
+            # Add current GHI (1 feature)
+            features.append(sequence_window["GHI"].values)
         
-        # Add current GHI (1 feature)
-        features.append(sequence_window["GHI"].values)
+        if input_config in ['met_only', 'ghi_met', 'all']:
+            # Add meteorological features (6 features)
+            met_features = [
+                "Temperature_lag_24", "Relative Humidity_lag_24",
+                "Pressure_lag_24", "Precipitable Water_lag_24",
+                "Wind Direction_lag_24", "Wind Speed_lag_24"
+            ]
+            for feature in met_features:
+                features.append(sequence_window[feature].values)
         
-        # Add meteorological features (6 features)
-        for feature in meteorological_features:
-            features.append(sequence_window[f"{feature}_lag_24"].values)
+        if input_config == 'all':
+            # Add time features (4 features)
+            time_features = ["hour_sin", "hour_cos", "month_sin", "month_cos"]
+            for feature in time_features:
+                features.append(sequence_window[feature].values)
         
-        # Add time features (4 features)
-        time_features = ["hour_sin", "hour_cos", "month_sin", "month_cos"]
-        for feature in time_features:
-            features.append(sequence_window[feature].values)
-        
-        # Add location features (5 features - one-hot encoded)
-        location_features = np.zeros((sequence_length, 5))  # 5 locations
-        city_idx = list(CONFIG["data_locations"].keys()).index(test_data.iloc[0]["City"])
-        location_features[:, city_idx] = 1
-        
-        # Combine all features
-        features.append(location_features)
-        
-        # Stack features to create (24, 40) shape
+        # Stack features to create input sequence
         X = np.column_stack(features)
+        
+        # Get target value
+        y = target_window["GHI"].values[0]
+        
+        # Skip if target value is zero (night time)
+        if y == 0:
+            continue
+        
         X_sequences.append(X)
-        y_values.append(target_window["GHI"].values[0])
+        y_values.append(y)
         dates.append(target_window["datetime"].values[0])
     
-    return np.array(X_sequences), np.array(y_values), dates
+    if not X_sequences:
+        raise ValueError("No valid sequences were created")
+    
+    # Convert to numpy arrays
+    X = np.array(X_sequences)
+    y = np.array(y_values)
+    
+    print(f"\nCreated {len(X)} sequences")
+    print(f"Input shape: {X.shape}")
+    print(f"Target shape: {y.shape}")
+    
+    return X, y, dates
 
-def generate_predictions(model, test_data_dict, target_scaler, sequence_length=24):
+def generate_predictions(model, test_data_dict, target_scaler, sequence_length=24, input_config='all'):
     """
     Generate predictions for all locations.
     
@@ -189,27 +229,121 @@ def generate_predictions(model, test_data_dict, target_scaler, sequence_length=2
         test_data_dict: Dictionary of test data for each location
         target_scaler: Scaler for target values
         sequence_length: Length of input sequences
+        input_config: Input configuration used for training
     
     Returns:
         dict: Dictionary with predictions and actual values for each location
     """
     results = {}
     
+    # Print model information
+    print("\nModel Information:")
+    print(f"Input shape: {model.input_shape}")
+    print(f"Output shape: {model.output_shape}")
+    print(f"Number of layers: {len(model.layers)}")
+    print(f"Trainable parameters: {model.count_params()}")
+    
+    # Print model weights statistics
+    print("\nModel weights statistics:")
+    for layer in model.layers:
+        if hasattr(layer, 'weights'):
+            weights = layer.get_weights()
+            if weights:
+                print(f"\nLayer: {layer.name}")
+                for i, w in enumerate(weights):
+                    print(f"Weight {i} stats:")
+                    print(f"Shape: {w.shape}")
+                    print(f"Min: {np.min(w):.4f}")
+                    print(f"Max: {np.max(w):.4f}")
+                    print(f"Mean: {np.mean(w):.4f}")
+                    print(f"Std: {np.std(w):.4f}")
+    
     for city, test_data in test_data_dict.items():
         print(f"\nGenerating predictions for {city}...")
         
-        # Create sequences
-        X_test, y_test, dates = create_prediction_sequences(test_data, sequence_length)
+        # Create sequences with the correct configuration
+        X_test, y_test, dates = create_prediction_sequences(test_data, sequence_length, input_config)
+        
+        print(f"\nDebug info for {city}:")
+        print(f"Input shape: {X_test.shape}")
+        print(f"Sample input values (first sequence):")
+        print(X_test[0])
+        
+        # Validate input data
+        if np.isnan(X_test).any():
+            print("WARNING: NaN values found in input data!")
+            X_test = np.nan_to_num(X_test, nan=0.0)
+        
+        if np.isinf(X_test).any():
+            print("WARNING: Inf values found in input data!")
+            X_test = np.nan_to_num(X_test, nan=0.0, posinf=1e6, neginf=-1e6)
+        
+        # Get hour information for each prediction
+        hours = pd.to_datetime(dates).hour
         
         # Scale target values
         y_test_scaled = target_scaler.transform(y_test.reshape(-1, 1))
+        print(f"\nSample target values before scaling: {y_test[:5]}")
+        print(f"Sample target values after scaling: {y_test_scaled[:5].flatten()}")
+        
+        # Validate scaled target values
+        if np.isnan(y_test_scaled).any() or np.isinf(y_test_scaled).any():
+            print("WARNING: Invalid values in scaled target data!")
+            y_test_scaled = np.nan_to_num(y_test_scaled, nan=0.0, posinf=1.0, neginf=0.0)
         
         # Generate predictions
         y_pred_scaled = model.predict(X_test)
+        print(f"\nSample predictions before inverse transform: {y_pred_scaled[:5].flatten()}")
+        
+        # Validate predictions
+        if np.isnan(y_pred_scaled).any() or np.isinf(y_pred_scaled).any():
+            print("WARNING: Invalid values in predictions!")
+            y_pred_scaled = np.nan_to_num(y_pred_scaled, nan=0.0, posinf=1.0, neginf=0.0)
+        
+        # Check if predictions are all zeros or constant
+        if np.all(y_pred_scaled == 0) or np.std(y_pred_scaled) < 1e-6:
+            print("WARNING: Predictions are constant or all zeros!")
+            print("Model output shape:", y_pred_scaled.shape)
+            print("Model output statistics:")
+            print(f"Min: {np.min(y_pred_scaled):.4f}")
+            print(f"Max: {np.max(y_pred_scaled):.4f}")
+            print(f"Mean: {np.mean(y_pred_scaled):.4f}")
+            print(f"Std: {np.std(y_pred_scaled):.4f}")
+            
+            # Check model weights
+            print("\nChecking model weights for potential issues:")
+            for layer in model.layers:
+                if hasattr(layer, 'weights'):
+                    weights = layer.get_weights()
+                    if weights:
+                        print(f"\nLayer: {layer.name}")
+                        for i, w in enumerate(weights):
+                            print(f"Weight {i} stats:")
+                            print(f"Shape: {w.shape}")
+                            print(f"Min: {np.min(w):.4f}")
+                            print(f"Max: {np.max(w):.4f}")
+                            print(f"Mean: {np.mean(w):.4f}")
+                            print(f"Std: {np.std(w):.4f}")
+        
+        # Ensure predictions are within valid range [0, 1] for inverse transform
+        y_pred_scaled = np.clip(y_pred_scaled, 0, 1)
         
         # Inverse transform predictions and actual values
         y_pred = target_scaler.inverse_transform(y_pred_scaled)
         y_test = target_scaler.inverse_transform(y_test_scaled)
+        
+        # Set predictions to 0 for night time hours (before sunrise and after sunset)
+        # Using a simple rule: set to 0 if hour < 6 or hour > 18
+        night_mask = (hours < 6) | (hours > 18)
+        y_pred[night_mask] = 0
+        
+        print(f"\nSample predictions after inverse transform: {y_pred[:5].flatten()}")
+        print(f"Sample actual values after inverse transform: {y_test[:5].flatten()}")
+        
+        # Validate final predictions
+        if np.isnan(y_pred).any() or np.isinf(y_pred).any():
+            print("WARNING: Invalid values in final predictions!")
+            y_pred = np.nan_to_num(y_pred, nan=0.0, posinf=1000.0, neginf=0.0)
         
         # Store results
         results[city] = {
@@ -217,6 +351,37 @@ def generate_predictions(model, test_data_dict, target_scaler, sequence_length=2
             'actual': y_test.flatten(),
             'predicted': y_pred.flatten()
         }
+        
+        # Print summary statistics
+        print(f"\nSummary statistics for {city}:")
+        print("Actual values:")
+        print(f"Min: {np.min(y_test):.2f}")
+        print(f"Max: {np.max(y_test):.2f}")
+        print(f"Mean: {np.mean(y_test):.2f}")
+        print(f"Std: {np.std(y_test):.2f}")
+        print("\nPredicted values:")
+        print(f"Min: {np.min(y_pred):.2f}")
+        print(f"Max: {np.max(y_pred):.2f}")
+        print(f"Mean: {np.mean(y_pred):.2f}")
+        print(f"Std: {np.std(y_pred):.2f}")
+        
+        # Calculate and print error metrics
+        mae = mean_absolute_error(y_test, y_pred)
+        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+        r2 = r2_score(y_test, y_pred)
+        print(f"\nError metrics:")
+        print(f"MAE: {mae:.2f}")
+        print(f"RMSE: {rmse:.2f}")
+        print(f"R²: {r2:.4f}")
+        
+        # Additional validation
+        if mae > 1000 or rmse > 1000:
+            print("WARNING: Unusually high error values detected!")
+            print("This might indicate a problem with the model or data scaling.")
+        
+        if r2 < -1:
+            print("WARNING: Very poor R² score detected!")
+            print("This might indicate a problem with the model predictions.")
     
     return results
 
@@ -383,14 +548,27 @@ def calculate_performance_metrics(results):
     all_actual = []
     all_predicted = []
     
+    print("\nCalculating detailed performance metrics...")
+    
     for city, data in results.items():
+        print(f"\nAnalyzing {city}:")
         actual = data['actual']
         predicted = data['predicted']
+        
+        # Print raw data statistics
+        print("\nRaw data statistics:")
+        print(f"Number of samples: {len(actual)}")
+        print(f"Actual values - Min: {np.min(actual):.2f}, Max: {np.max(actual):.2f}, Mean: {np.mean(actual):.2f}")
+        print(f"Predicted values - Min: {np.min(predicted):.2f}, Max: {np.max(predicted):.2f}, Mean: {np.mean(predicted):.2f}")
         
         # Filter out zero values (night time) as done in training
         non_zero_mask = actual > 0
         actual_nonzero = actual[non_zero_mask]
         predicted_nonzero = predicted[non_zero_mask]
+        
+        print(f"\nNon-zero samples: {len(actual_nonzero)} ({len(actual_nonzero)/len(actual)*100:.1f}% of total)")
+        print(f"Non-zero actual values - Min: {np.min(actual_nonzero):.2f}, Max: {np.max(actual_nonzero):.2f}, Mean: {np.mean(actual_nonzero):.2f}")
+        print(f"Non-zero predicted values - Min: {np.min(predicted_nonzero):.2f}, Max: {np.max(predicted_nonzero):.2f}, Mean: {np.mean(predicted_nonzero):.2f}")
         
         # Store non-zero values for overall metrics
         all_actual.extend(actual_nonzero)
@@ -408,24 +586,67 @@ def calculate_performance_metrics(results):
         mape = np.mean(np.abs((actual_nonzero - predicted_nonzero) / (actual_nonzero + 1e-10))) * 100
         metrics['MAPE'] = mape
         
+        # Calculate additional metrics
+        metrics['Mean_Actual'] = np.mean(actual_nonzero)
+        metrics['Mean_Predicted'] = np.mean(predicted_nonzero)
+        metrics['Std_Actual'] = np.std(actual_nonzero)
+        metrics['Std_Predicted'] = np.std(predicted_nonzero)
+        
+        # Calculate correlation
+        correlation = np.corrcoef(actual_nonzero, predicted_nonzero)[0, 1]
+        metrics['Correlation'] = correlation
+        
         # Add statistics about data filtering
         metrics['Total_Samples'] = len(actual)
         metrics['Non_Zero_Samples'] = len(actual_nonzero)
         metrics['Zero_Percentage'] = (len(actual) - len(actual_nonzero)) / len(actual) * 100
         
+        # Print metrics
+        print("\nPerformance metrics:")
+        print(f"MAE: {metrics['MAE']:.2f} W/m²")
+        print(f"RMSE: {metrics['RMSE']:.2f} W/m²")
+        print(f"R²: {metrics['R2']:.4f}")
+        print(f"MAPE: {metrics['MAPE']:.2f}%")
+        print(f"Correlation: {metrics['Correlation']:.4f}")
+        
+        # Validate metrics
+        if metrics['MAE'] > 1000 or metrics['RMSE'] > 1000:
+            print("WARNING: Unusually high error values detected!")
+        if metrics['R2'] < -1:
+            print("WARNING: Very poor R² score detected!")
+        if metrics['MAPE'] > 1000:
+            print("WARNING: Very high MAPE detected!")
+        if abs(metrics['Correlation']) < 0.1:
+            print("WARNING: Very low correlation detected!")
+        
         all_metrics[city] = metrics
     
     # Calculate overall metrics using non-zero values
+    print("\nCalculating overall metrics...")
     overall_metrics = {
         'MAE': mean_absolute_error(all_actual, all_predicted),
         'MSE': mean_squared_error(all_actual, all_predicted),
         'RMSE': np.sqrt(mean_squared_error(all_actual, all_predicted)),
         'R2': r2_score(all_actual, all_predicted),
         'MAPE': np.mean(np.abs((np.array(all_actual) - np.array(all_predicted)) / (np.array(all_actual) + 1e-10))) * 100,
+        'Mean_Actual': np.mean(all_actual),
+        'Mean_Predicted': np.mean(all_predicted),
+        'Std_Actual': np.std(all_actual),
+        'Std_Predicted': np.std(all_predicted),
+        'Correlation': np.corrcoef(all_actual, all_predicted)[0, 1],
         'Total_Samples': len(all_actual),
         'Non_Zero_Samples': len(all_actual),
         'Zero_Percentage': 0  # Since we've already filtered zeros
     }
+    
+    print("\nOverall performance metrics:")
+    print(f"MAE: {overall_metrics['MAE']:.2f} W/m²")
+    print(f"RMSE: {overall_metrics['RMSE']:.2f} W/m²")
+    print(f"R²: {overall_metrics['R2']:.4f}")
+    print(f"MAPE: {overall_metrics['MAPE']:.2f}%")
+    print(f"Correlation: {overall_metrics['Correlation']:.4f}")
+    print(f"Mean Actual: {overall_metrics['Mean_Actual']:.2f} W/m²")
+    print(f"Mean Predicted: {overall_metrics['Mean_Predicted']:.2f} W/m²")
     
     all_metrics['Overall'] = overall_metrics
     
@@ -633,92 +854,104 @@ def plot_correlation_vs_r2(daily_metrics, results, save_dir="results_joint/corre
 
 def main():
     """Main execution function."""
-    # Load the trained model
-    model_path = os.path.join("models", "lstm_ghi_forecast_joint.h5")
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Model file not found at {model_path}")
-    
-    print(f"Loading model from {model_path}...")
-    # Use custom_objects to handle both LSTM and Lambda layers
-    model = tf.keras.models.load_model(
-        model_path,
-        custom_objects={
-            'LSTM': CustomLSTM,
-            'Lambda': CustomLambda
-        }
-    )
-    
-    # Load and prepare test data
-    test_data_dict, target_scaler = load_and_prepare_test_data(CONFIG["data_locations"])
-    
-    # Generate predictions
-    results = generate_predictions(model, test_data_dict, target_scaler)
-    
-    # Calculate and display performance metrics
-    metrics = calculate_performance_metrics(results)
-    
-    # Calculate daily correlations
-    print("\nCalculating daily correlations...")
-    daily_metrics = calculate_daily_correlations(results)
+    # Define the configurations to evaluate
+    configs = ['ghi_only', 'ghi_met', 'met_only']
+    all_results = {}
+    all_metrics = {}
+    all_daily_metrics = {}
     
     # Create results directory if it doesn't exist
     results_dir = "results_joint"
     os.makedirs(results_dir, exist_ok=True)
     
-    # Save metrics to CSV
-    metrics_data = []
-    for location, location_metrics in metrics.items():
-        row = {'Location': location}
-        row.update(location_metrics)
-        metrics_data.append(row)
+    # Load and prepare test data (only once)
+    test_data_dict, target_scaler = load_and_prepare_test_data(CONFIG["data_locations"])
     
-    metrics_df = pd.DataFrame(metrics_data)
-    metrics_path = os.path.join(results_dir, "test_metrics.csv")
-    metrics_df.to_csv(metrics_path, index=False)
-    print(f"\nMetrics saved to {metrics_path}")
+    for config in configs:
+        print(f"\n{'='*80}")
+        print(f"Evaluating {config} configuration")
+        print(f"{'='*80}")
+        
+        # Load the trained model for this configuration
+        model_path = os.path.join("models", f"lstm_ghi_forecast_joint_{config}.h5")
+        if not os.path.exists(model_path):
+            print(f"Model file not found at {model_path}, skipping...")
+            continue
+        
+        print(f"Loading model from {model_path}...")
+        try:
+            # Use custom_objects to handle both LSTM and Lambda layers
+            model = tf.keras.models.load_model(
+                model_path,
+                custom_objects={
+                    'LSTM': CustomLSTM,
+                    'Lambda': CustomLambda
+                }
+            )
+            
+            # Print model summary and configuration
+            print("\nModel Summary:")
+            model.summary()
+            
+            # Print model configuration
+            print("\nModel Configuration:")
+            print(f"Input shape: {model.input_shape}")
+            print(f"Output shape: {model.output_shape}")
+            print(f"Number of layers: {len(model.layers)}")
+            print(f"Trainable parameters: {model.count_params()}")
+            
+            # Validate model architecture
+            print("\nValidating model architecture...")
+            expected_layers = [
+                'lstm', 'batch_normalization', 'dropout',
+                'lstm_1', 'batch_normalization_1', 'dropout_1',
+                'lstm_2', 'batch_normalization_2', 'dropout_2',
+                'dense', 'batch_normalization_3', 'dropout_3',
+                'dense_1'
+            ]
+            
+            actual_layers = [layer.name.lower() for layer in model.layers]
+            missing_layers = [layer for layer in expected_layers if layer not in actual_layers]
+            
+            if missing_layers:
+                print("WARNING: Model architecture mismatch!")
+                print("Missing layers:", missing_layers)
+                print("Actual layers:", actual_layers)
+                continue
+            
+            # Generate predictions
+            print("\nGenerating predictions...")
+            results = generate_predictions(model, test_data_dict, target_scaler, sequence_length=24, input_config=config)
+            
+            # Calculate metrics
+            print("\nCalculating metrics...")
+            metrics = calculate_performance_metrics(results)
+            all_metrics[config] = metrics
+            
+            # Calculate daily metrics
+            print("\nCalculating daily metrics...")
+            daily_metrics = calculate_daily_correlations(results)
+            all_daily_metrics[config] = daily_metrics
+            
+            # Save results
+            all_results[config] = results
+            
+            # Plot results
+            print("\nPlotting results...")
+            plot_results(results, metrics, daily_metrics, config)
+            
+            print(f"\nResults for {config} configuration have been saved in the 'results_joint' directory")
+            
+        except Exception as e:
+            print(f"Error processing {config} configuration: {str(e)}")
+            continue
     
-    # Print metrics to console
-    print("\nPerformance Metrics:")
-    print("=" * 80)
-    for location, location_metrics in metrics.items():
-        print(f"\n{location}:")
-        print("-" * 40)
-        for metric_name, value in location_metrics.items():
-            print(f"{metric_name}: {value:.4f}")
+    # Compare configurations
+    if len(all_metrics) > 1:
+        print("\nComparing configurations:")
+        compare_configurations(all_metrics, all_daily_metrics)
     
-    # Print daily correlation statistics
-    print("\nDaily Correlation Statistics:")
-    print("=" * 80)
-    for city, metrics_df in daily_metrics.items():
-        print(f"\n{city}:")
-        print("-" * 40)
-        print(f"Number of days: {len(metrics_df)}")
-        print(f"Mean correlation: {metrics_df['correlation'].mean():.4f}")
-        print(f"Median correlation: {metrics_df['correlation'].median():.4f}")
-        print(f"Min correlation: {metrics_df['correlation'].min():.4f}")
-        print(f"Max correlation: {metrics_df['correlation'].max():.4f}")
-        print(f"Days with correlation > 0.8: {len(metrics_df[metrics_df['correlation'] > 0.8])}")
-        print(f"Days with correlation < 0.5: {len(metrics_df[metrics_df['correlation'] < 0.5])}")
-    
-    # Create plots for all data
-    plot_predictions(results)
-    
-    # Create plots for daily correlations
-    plot_daily_correlations(daily_metrics)
-    
-    # Create correlation analysis plots
-    plot_correlation_vs_r2(daily_metrics, results)
-    
-    # Create plots for a complete day for each city
-    for city in results.keys():
-        complete_day = find_complete_day(results, city)
-        if complete_day:
-            print(f"\nFound complete day for {city}: {complete_day}")
-            plot_single_day_predictions(results, city, complete_day)
-        else:
-            print(f"\nNo complete day found for {city}")
-    
-    print("\nPredictions and correlation analysis have been generated and saved in the 'results_joint' directory")
+    print("\nEvaluation complete!")
 
 if __name__ == "__main__":
     main() 

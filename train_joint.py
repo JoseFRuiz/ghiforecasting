@@ -12,6 +12,7 @@ import matplotlib
 matplotlib.use('Agg')  # Set non-interactive backend
 import matplotlib.pyplot as plt
 import datetime
+import pickle
 
 # Configure TensorFlow to use GPU if available
 import tensorflow as tf
@@ -246,6 +247,12 @@ def split_and_scale_joint_data(df, locations, sequence_length=24, target_column=
     df_train[target_column] = target_scaler.fit_transform(df_train[[target_column]])
     df_val[target_column] = target_scaler.transform(df_val[[target_column]])
     df_test[target_column] = target_scaler.transform(df_test[[target_column]])
+    
+    # Save the target scaler
+    scaler_path = os.path.join("models", "target_scaler.pkl")
+    with open(scaler_path, 'wb') as f:
+        pickle.dump(target_scaler, f)
+    print(f"\nTarget scaler saved to {scaler_path}")
     
     # Create sequences for each location
     X_train, y_train = create_sequences_joint(df_train, locations, sequence_length, target_column)
@@ -707,6 +714,19 @@ def create_sequences_joint(df, locations, sequence_length, target_column):
 
 def train_joint_model(model, X_train, y_train, X_val, y_val, batch_size=32, epochs=50):
     """Train the joint model with early stopping and model checkpointing."""
+    # Print training data statistics
+    print("\nTraining data statistics:")
+    print(f"X_train shape: {X_train.shape}")
+    print(f"y_train shape: {y_train.shape}")
+    print(f"X_train min: {np.min(X_train):.4f}")
+    print(f"X_train max: {np.max(X_train):.4f}")
+    print(f"X_train mean: {np.mean(X_train):.4f}")
+    print(f"X_train std: {np.std(X_train):.4f}")
+    print(f"y_train min: {np.min(y_train):.4f}")
+    print(f"y_train max: {np.max(y_train):.4f}")
+    print(f"y_train mean: {np.mean(y_train):.4f}")
+    print(f"y_train std: {np.std(y_train):.4f}")
+    
     # Create callbacks
     early_stopping = tf.keras.callbacks.EarlyStopping(
         monitor='val_loss',
@@ -732,6 +752,17 @@ def train_joint_model(model, X_train, y_train, X_val, y_val, batch_size=32, epoc
         write_graph=True
     )
     
+    # Add custom callback to monitor predictions
+    class PredictionMonitor(tf.keras.callbacks.Callback):
+        def on_epoch_end(self, epoch, logs=None):
+            if epoch % 5 == 0:  # Check every 5 epochs
+                # Get predictions for a few samples
+                sample_preds = self.model.predict(X_val[:5])
+                print(f"\nEpoch {epoch} - Sample predictions:")
+                print(f"Predictions: {sample_preds.flatten()}")
+                print(f"Actual values: {y_val[:5]}")
+                print(f"Prediction stats - Min: {np.min(sample_preds):.4f}, Max: {np.max(sample_preds):.4f}, Mean: {np.mean(sample_preds):.4f}")
+    
     # Create model checkpoint callback
     checkpoint_path = "models/joint_model_checkpoint.h5"
     model_checkpoint = tf.keras.callbacks.ModelCheckpoint(
@@ -752,10 +783,26 @@ def train_joint_model(model, X_train, y_train, X_val, y_val, batch_size=32, epoc
             early_stopping,
             reduce_lr,
             tensorboard_callback,
-            model_checkpoint
+            model_checkpoint,
+            PredictionMonitor()
         ],
         verbose=1
     )
+    
+    # Print final model weights statistics
+    print("\nFinal model weights statistics:")
+    for layer in model.layers:
+        if hasattr(layer, 'weights'):
+            weights = layer.get_weights()
+            if weights:
+                print(f"\nLayer: {layer.name}")
+                for i, w in enumerate(weights):
+                    print(f"Weight {i} stats:")
+                    print(f"Shape: {w.shape}")
+                    print(f"Min: {np.min(w):.4f}")
+                    print(f"Max: {np.max(w):.4f}")
+                    print(f"Mean: {np.mean(w):.4f}")
+                    print(f"Std: {np.std(w):.4f}")
     
     return history, model
 
@@ -775,6 +822,16 @@ def create_sequences_joint_with_config(df, locations, sequence_length, target_co
     """
     print(f"\nCreating sequences for {len(df)} samples with config: {input_config}")
     print(f"Locations: {locations}")
+    
+    # Print feature statistics before sequence creation
+    print("\nFeature statistics before sequence creation:")
+    for feature in df.columns:
+        if feature not in ['datetime', 'location']:
+            print(f"{feature}:")
+            print(f"  Min: {df[feature].min():.4f}")
+            print(f"  Max: {df[feature].max():.4f}")
+            print(f"  Mean: {df[feature].mean():.4f}")
+            print(f"  Std: {df[feature].std():.4f}")
     
     # Initialize lists to store sequences
     all_X_sequences = []
@@ -857,6 +914,19 @@ def create_sequences_joint_with_config(df, locations, sequence_length, target_co
             
             # Stack features to create input sequence
             X = np.column_stack(features)
+            
+            # Print sequence statistics for first few sequences
+            if i < 3:
+                print(f"\nSequence {i} statistics:")
+                print(f"Shape: {X.shape}")
+                print("Feature ranges:")
+                for j, feature_values in enumerate(X.T):
+                    print(f"Feature {j}:")
+                    print(f"  Min: {np.min(feature_values):.4f}")
+                    print(f"  Max: {np.max(feature_values):.4f}")
+                    print(f"  Mean: {np.mean(feature_values):.4f}")
+                    print(f"  Std: {np.std(feature_values):.4f}")
+            
             all_X_sequences.append(X)
             all_y_sequences.append(target_value)
             valid_sequences += 1
@@ -876,6 +946,13 @@ def create_sequences_joint_with_config(df, locations, sequence_length, target_co
     print(f"X: {X.shape}")
     print(f"y: {y.shape}")
     
+    # Print target value statistics
+    print("\nTarget value statistics:")
+    print(f"Min: {np.min(y):.4f}")
+    print(f"Max: {np.max(y):.4f}")
+    print(f"Mean: {np.mean(y):.4f}")
+    print(f"Std: {np.std(y):.4f}")
+    
     return X, y
 
 def create_joint_model_with_config(input_shape, input_config='all'):
@@ -883,60 +960,44 @@ def create_joint_model_with_config(input_shape, input_config='all'):
     # Input layer
     inputs = tf.keras.layers.Input(shape=input_shape)
     
-    # First LSTM block with residual connection
+    # First LSTM block
     x = tf.keras.layers.LSTM(128, return_sequences=True)(inputs)
     x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Dropout(0.3)(x)
+    x = tf.keras.layers.Dropout(0.2)(x)
     
-    # Second LSTM block with residual connection
-    lstm2 = tf.keras.layers.LSTM(128, return_sequences=True)(x)
-    lstm2 = tf.keras.layers.BatchNormalization()(lstm2)
-    lstm2 = tf.keras.layers.Dropout(0.3)(lstm2)
-    x = tf.keras.layers.Add()([x, lstm2])  # Residual connection
-    
-    # Third LSTM block
+    # Second LSTM block
     x = tf.keras.layers.LSTM(64, return_sequences=True)(x)
     x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Dropout(0.3)(x)
+    x = tf.keras.layers.Dropout(0.2)(x)
     
-    # Attention mechanism
-    attention = tf.keras.layers.Dense(1, activation='tanh')(x)
-    attention = tf.keras.layers.Flatten()(attention)
-    attention_weights = tf.keras.layers.Activation('softmax')(attention)
-    attention_weights = tf.keras.layers.RepeatVector(64)(attention_weights)
-    attention_weights = tf.keras.layers.Permute([2, 1])(attention_weights)
+    # Third LSTM block
+    x = tf.keras.layers.LSTM(32)(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Dropout(0.2)(x)
     
-    # Apply attention weights
-    x = tf.keras.layers.Multiply()([x, attention_weights])
-    x = tf.keras.layers.Lambda(lambda x: tf.keras.backend.sum(x, axis=1))(x)
+    # Dense layers
+    x = tf.keras.layers.Dense(32, activation='relu')(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Dropout(0.2)(x)
     
-    # Dense layers with residual connection
-    dense1 = tf.keras.layers.Dense(32, activation='relu')(x)
-    dense1 = tf.keras.layers.BatchNormalization()(dense1)
-    dense1 = tf.keras.layers.Dropout(0.3)(dense1)
-    
-    dense2 = tf.keras.layers.Dense(32, activation='relu')(dense1)
-    dense2 = tf.keras.layers.BatchNormalization()(dense2)
-    dense2 = tf.keras.layers.Dropout(0.3)(dense2)
-    
-    # Final residual connection
-    x = tf.keras.layers.Add()([dense1, dense2])
-    
-    # Output layer
+    # Output layer with linear activation
     outputs = tf.keras.layers.Dense(1, activation='linear')(x)
     
     # Create model
     model = tf.keras.Model(inputs=inputs, outputs=outputs)
     
     # Use Adam optimizer with a lower learning rate
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
     
     # Compile model with Huber loss for robustness
     model.compile(
         optimizer=optimizer,
         loss=tf.keras.losses.Huber(),
-        metrics=['mae']
+        metrics=['mae', 'mse']
     )
+    
+    # Print model summary
+    model.summary()
     
     return model
 
