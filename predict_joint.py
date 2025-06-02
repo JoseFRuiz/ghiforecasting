@@ -236,46 +236,17 @@ def generate_predictions(model, test_data_dict, target_scaler, sequence_length=2
     """
     results = {}
     
-    # Print model information
-    print("\nModel Information:")
-    print(f"Input shape: {model.input_shape}")
-    print(f"Output shape: {model.output_shape}")
-    print(f"Number of layers: {len(model.layers)}")
-    print(f"Trainable parameters: {model.count_params()}")
-    
-    # Print model weights statistics
-    print("\nModel weights statistics:")
-    for layer in model.layers:
-        if hasattr(layer, 'weights'):
-            weights = layer.get_weights()
-            if weights:
-                print(f"\nLayer: {layer.name}")
-                for i, w in enumerate(weights):
-                    print(f"Weight {i} stats:")
-                    print(f"Shape: {w.shape}")
-                    print(f"Min: {np.min(w):.4f}")
-                    print(f"Max: {np.max(w):.4f}")
-                    print(f"Mean: {np.mean(w):.4f}")
-                    print(f"Std: {np.std(w):.4f}")
-    
     for city, test_data in test_data_dict.items():
-        print(f"\nGenerating predictions for {city}...")
+        print(f"Processing {city}...")
         
         # Create sequences with the correct configuration
         X_test, y_test, dates = create_prediction_sequences(test_data, sequence_length, input_config)
         
-        print(f"\nDebug info for {city}:")
-        print(f"Input shape: {X_test.shape}")
-        print(f"Sample input values (first sequence):")
-        print(X_test[0])
-        
         # Validate input data
         if np.isnan(X_test).any():
-            print("WARNING: NaN values found in input data!")
             X_test = np.nan_to_num(X_test, nan=0.0)
         
         if np.isinf(X_test).any():
-            print("WARNING: Inf values found in input data!")
             X_test = np.nan_to_num(X_test, nan=0.0, posinf=1e6, neginf=-1e6)
         
         # Get hour information for each prediction
@@ -283,47 +254,17 @@ def generate_predictions(model, test_data_dict, target_scaler, sequence_length=2
         
         # Scale target values
         y_test_scaled = target_scaler.transform(y_test.reshape(-1, 1))
-        print(f"\nSample target values before scaling: {y_test[:5]}")
-        print(f"Sample target values after scaling: {y_test_scaled[:5].flatten()}")
         
         # Validate scaled target values
         if np.isnan(y_test_scaled).any() or np.isinf(y_test_scaled).any():
-            print("WARNING: Invalid values in scaled target data!")
             y_test_scaled = np.nan_to_num(y_test_scaled, nan=0.0, posinf=1.0, neginf=0.0)
         
         # Generate predictions
         y_pred_scaled = model.predict(X_test)
-        print(f"\nSample predictions before inverse transform: {y_pred_scaled[:5].flatten()}")
         
         # Validate predictions
         if np.isnan(y_pred_scaled).any() or np.isinf(y_pred_scaled).any():
-            print("WARNING: Invalid values in predictions!")
             y_pred_scaled = np.nan_to_num(y_pred_scaled, nan=0.0, posinf=1.0, neginf=0.0)
-        
-        # Check if predictions are all zeros or constant
-        if np.all(y_pred_scaled == 0) or np.std(y_pred_scaled) < 1e-6:
-            print("WARNING: Predictions are constant or all zeros!")
-            print("Model output shape:", y_pred_scaled.shape)
-            print("Model output statistics:")
-            print(f"Min: {np.min(y_pred_scaled):.4f}")
-            print(f"Max: {np.max(y_pred_scaled):.4f}")
-            print(f"Mean: {np.mean(y_pred_scaled):.4f}")
-            print(f"Std: {np.std(y_pred_scaled):.4f}")
-            
-            # Check model weights
-            print("\nChecking model weights for potential issues:")
-            for layer in model.layers:
-                if hasattr(layer, 'weights'):
-                    weights = layer.get_weights()
-                    if weights:
-                        print(f"\nLayer: {layer.name}")
-                        for i, w in enumerate(weights):
-                            print(f"Weight {i} stats:")
-                            print(f"Shape: {w.shape}")
-                            print(f"Min: {np.min(w):.4f}")
-                            print(f"Max: {np.max(w):.4f}")
-                            print(f"Mean: {np.mean(w):.4f}")
-                            print(f"Std: {np.std(w):.4f}")
         
         # Ensure predictions are within valid range [0, 1] for inverse transform
         y_pred_scaled = np.clip(y_pred_scaled, 0, 1)
@@ -333,17 +274,8 @@ def generate_predictions(model, test_data_dict, target_scaler, sequence_length=2
         y_test = target_scaler.inverse_transform(y_test_scaled)
         
         # Set predictions to 0 for night time hours (before sunrise and after sunset)
-        # Using a simple rule: set to 0 if hour < 6 or hour > 18
         night_mask = (hours < 6) | (hours > 18)
         y_pred[night_mask] = 0
-        
-        print(f"\nSample predictions after inverse transform: {y_pred[:5].flatten()}")
-        print(f"Sample actual values after inverse transform: {y_test[:5].flatten()}")
-        
-        # Validate final predictions
-        if np.isnan(y_pred).any() or np.isinf(y_pred).any():
-            print("WARNING: Invalid values in final predictions!")
-            y_pred = np.nan_to_num(y_pred, nan=0.0, posinf=1000.0, neginf=0.0)
         
         # Store results
         results[city] = {
@@ -352,36 +284,11 @@ def generate_predictions(model, test_data_dict, target_scaler, sequence_length=2
             'predicted': y_pred.flatten()
         }
         
-        # Print summary statistics
-        print(f"\nSummary statistics for {city}:")
-        print("Actual values:")
-        print(f"Min: {np.min(y_test):.2f}")
-        print(f"Max: {np.max(y_test):.2f}")
-        print(f"Mean: {np.mean(y_test):.2f}")
-        print(f"Std: {np.std(y_test):.2f}")
-        print("\nPredicted values:")
-        print(f"Min: {np.min(y_pred):.2f}")
-        print(f"Max: {np.max(y_pred):.2f}")
-        print(f"Mean: {np.mean(y_pred):.2f}")
-        print(f"Std: {np.std(y_pred):.2f}")
-        
-        # Calculate and print error metrics
+        # Print basic metrics
         mae = mean_absolute_error(y_test, y_pred)
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
         r2 = r2_score(y_test, y_pred)
-        print(f"\nError metrics:")
-        print(f"MAE: {mae:.2f}")
-        print(f"RMSE: {rmse:.2f}")
-        print(f"R²: {r2:.4f}")
-        
-        # Additional validation
-        if mae > 1000 or rmse > 1000:
-            print("WARNING: Unusually high error values detected!")
-            print("This might indicate a problem with the model or data scaling.")
-        
-        if r2 < -1:
-            print("WARNING: Very poor R² score detected!")
-            print("This might indicate a problem with the model predictions.")
+        print(f"MAE: {mae:.2f}, RMSE: {rmse:.2f}, R²: {r2:.4f}")
     
     return results
 
@@ -852,6 +759,32 @@ def plot_correlation_vs_r2(daily_metrics, results, save_dir="results_joint/corre
         plt.savefig(os.path.join(save_dir, f'correlation_analysis_{city}.png'), dpi=300, bbox_inches='tight')
         plt.close()
 
+def save_hourly_ghi_values(results, save_dir="results_joint/hourly_ghi"):
+    """
+    Save hourly GHI values (actual and predicted) to CSV files for each location.
+    
+    Args:
+        results: Dictionary with predictions and actual values for each location
+        save_dir: Directory to save CSV files
+    """
+    os.makedirs(save_dir, exist_ok=True)
+    
+    for city, data in results.items():
+        # Create DataFrame with dates, actual and predicted values
+        df = pd.DataFrame({
+            'datetime': pd.to_datetime(data['dates']),
+            'actual_ghi': data['actual'],
+            'predicted_ghi': data['predicted']
+        })
+        
+        # Sort by datetime
+        df = df.sort_values('datetime')
+        
+        # Save to CSV
+        output_file = os.path.join(save_dir, f'hourly_ghi_{city}.csv')
+        df.to_csv(output_file, index=False)
+        print(f"Saved hourly GHI values for {city} to {output_file}")
+
 def main():
     """Main execution function."""
     # Define the configurations to evaluate
@@ -865,12 +798,11 @@ def main():
     os.makedirs(results_dir, exist_ok=True)
     
     # Load and prepare test data (only once)
+    print("Loading and preparing test data...")
     test_data_dict, target_scaler = load_and_prepare_test_data(CONFIG["data_locations"])
     
     for config in configs:
-        print(f"\n{'='*80}")
-        print(f"Evaluating {config} configuration")
-        print(f"{'='*80}")
+        print(f"\nEvaluating {config} configuration...")
         
         # Load the trained model for this configuration
         model_path = os.path.join("models", f"lstm_ghi_forecast_joint_{config}.h5")
@@ -878,9 +810,8 @@ def main():
             print(f"Model file not found at {model_path}, skipping...")
             continue
         
-        print(f"Loading model from {model_path}...")
         try:
-            # Use custom_objects to handle both LSTM and Lambda layers
+            # Load model with custom objects
             model = tf.keras.models.load_model(
                 model_path,
                 custom_objects={
@@ -889,58 +820,27 @@ def main():
                 }
             )
             
-            # Print model summary and configuration
-            print("\nModel Summary:")
-            model.summary()
-            
-            # Print model configuration
-            print("\nModel Configuration:")
-            print(f"Input shape: {model.input_shape}")
-            print(f"Output shape: {model.output_shape}")
-            print(f"Number of layers: {len(model.layers)}")
-            print(f"Trainable parameters: {model.count_params()}")
-            
-            # Validate model architecture
-            print("\nValidating model architecture...")
-            expected_layers = [
-                'lstm', 'batch_normalization', 'dropout',
-                'lstm_1', 'batch_normalization_1', 'dropout_1',
-                'lstm_2', 'batch_normalization_2', 'dropout_2',
-                'dense', 'batch_normalization_3', 'dropout_3',
-                'dense_1'
-            ]
-            
-            actual_layers = [layer.name.lower() for layer in model.layers]
-            missing_layers = [layer for layer in expected_layers if layer not in actual_layers]
-            
-            if missing_layers:
-                print("WARNING: Model architecture mismatch!")
-                print("Missing layers:", missing_layers)
-                print("Actual layers:", actual_layers)
-                continue
-            
             # Generate predictions
-            print("\nGenerating predictions...")
             results = generate_predictions(model, test_data_dict, target_scaler, sequence_length=24, input_config=config)
             
             # Calculate metrics
-            print("\nCalculating metrics...")
             metrics = calculate_performance_metrics(results)
             all_metrics[config] = metrics
             
             # Calculate daily metrics
-            print("\nCalculating daily metrics...")
             daily_metrics = calculate_daily_correlations(results)
             all_daily_metrics[config] = daily_metrics
             
             # Save results
             all_results[config] = results
             
-            # Plot results
-            print("\nPlotting results...")
-            plot_results(results, metrics, daily_metrics, config)
+            # Save hourly GHI values
+            save_hourly_ghi_values(results)
             
-            print(f"\nResults for {config} configuration have been saved in the 'results_joint' directory")
+            # Plot results (optional, comment out if not needed)
+            # plot_results(results, metrics, daily_metrics, config)
+            
+            print(f"Completed evaluation for {config} configuration")
             
         except Exception as e:
             print(f"Error processing {config} configuration: {str(e)}")
@@ -948,7 +848,7 @@ def main():
     
     # Compare configurations
     if len(all_metrics) > 1:
-        print("\nComparing configurations:")
+        print("\nComparing configurations...")
         compare_configurations(all_metrics, all_daily_metrics)
     
     print("\nEvaluation complete!")

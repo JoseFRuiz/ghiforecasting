@@ -828,10 +828,14 @@ def create_sequences_joint_with_config(df, locations, sequence_length, target_co
     for feature in df.columns:
         if feature not in ['datetime', 'location']:
             print(f"{feature}:")
-            print(f"  Min: {df[feature].min():.4f}")
-            print(f"  Max: {df[feature].max():.4f}")
-            print(f"  Mean: {df[feature].mean():.4f}")
-            print(f"  Std: {df[feature].std():.4f}")
+            if pd.api.types.is_numeric_dtype(df[feature]):
+                print(f"  Min: {df[feature].min():.4f}")
+                print(f"  Max: {df[feature].max():.4f}")
+                print(f"  Mean: {df[feature].mean():.4f}")
+                print(f"  Std: {df[feature].std():.4f}")
+            else:
+                print(f"  Type: {df[feature].dtype}")
+                print(f"  Unique values: {df[feature].nunique()}")
     
     # Initialize lists to store sequences
     all_X_sequences = []
