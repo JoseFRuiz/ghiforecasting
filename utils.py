@@ -50,16 +50,6 @@ CONFIG = {
             2017: "19Vf7YBXyK2CcFaNoY88PCoy6wl5BlbyN",
             2018: "19TIzqgh0F2bc1NxpYUEJJ_yITViPO01P", 
             2019: "19YPkh-yYam6a_G--8axdiejmKomIjnmz"
-        },
-        "Leh": {
-            2017: "1-2-3-4-5",
-            2018: "1-2-3-4-5",
-            2019: "1-2-3-4-5"
-        },
-        "Kargil": {
-            2017: "1-2-3-4-5",
-            2018: "1-2-3-4-5",
-            2019: "1-2-3-4-5"
         }
     },
     "model_params": {
