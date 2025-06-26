@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 GHI Forecasting using LSTM with Joint Training (FIXED VERSION)
 This script trains a single LSTM model using data from all locations with proper scaling.
