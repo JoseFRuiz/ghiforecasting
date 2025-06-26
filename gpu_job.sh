@@ -38,6 +38,6 @@ echo "TensorFlow version: $(python -c 'import tensorflow as tf; print(tf.__versi
 echo "GPU Available: $(python -c 'import tensorflow as tf; print(tf.config.list_physical_devices("GPU"))')"
 
 # Run training script
-python train_individual.py
+python train_joint_fixed.py
 
 conda deactivate
