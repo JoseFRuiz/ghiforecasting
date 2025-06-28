@@ -11,7 +11,7 @@
 #SBATCH --ntasks-per-socket=1
 #SBATCH --mem-per-cpu=20000mb
 #SBATCH --distribution=cyclic:cyclic
-#SBATCH --partition=gpu
+#SBATCH --partition=hpg-b200 # instead of gpu
 #SBATCH --gres=gpu:1
 #SBATCH --time=96:00:00
 
