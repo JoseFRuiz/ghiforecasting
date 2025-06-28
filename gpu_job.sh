@@ -39,5 +39,6 @@ echo "GPU Available: $(python -c 'import tensorflow as tf; print(tf.config.list_
 
 # Run training script
 python train_joint_fixed.py
+python train_individual.py
 
 conda deactivate

@@ -184,11 +184,25 @@ def split_and_scale_data(df, sequence_length=24, target_column="GHI"):
     print(f"Validation: {len(df_val)} samples")
     print(f"Test: {len(df_test)} samples")
     
-    # Scale target values
+    # IMPORTANT FIX: Use a more robust scaling approach
+    # Fit scaler on all data to ensure consistent scaling across splits
     target_scaler = MinMaxScaler()
-    df_train[target_column] = target_scaler.fit_transform(df_train[[target_column]])
+    
+    # Fit on all data to get the full range
+    target_scaler.fit(df[[target_column]])
+    
+    # Now transform each split
+    df_train[target_column] = target_scaler.transform(df_train[[target_column]])
     df_val[target_column] = target_scaler.transform(df_val[[target_column]])
     df_test[target_column] = target_scaler.transform(df_test[[target_column]])
+    
+    # Print scaling statistics
+    print(f"\nScaling statistics:")
+    print(f"Original GHI range: [{target_scaler.data_min_[0]:.2f}, {target_scaler.data_max_[0]:.2f}] W/m²")
+    print(f"Scaled GHI range: [0.0, 1.0]")
+    print(f"Train GHI range: [{df_train[target_column].min():.4f}, {df_train[target_column].max():.4f}]")
+    print(f"Val GHI range: [{df_val[target_column].min():.4f}, {df_val[target_column].max():.4f}]")
+    print(f"Test GHI range: [{df_test[target_column].min():.4f}, {df_test[target_column].max():.4f}]")
     
     # Create sequences
     X_train, y_train = create_sequences(df_train, sequence_length, target_column)
@@ -258,8 +272,28 @@ def create_sequences(df, sequence_length, target_column):
     print(f"Created {len(X)} valid sequences")
     return X, y
 
+def custom_ghi_loss(y_true, y_pred):
+    """
+    Custom loss function that penalizes unrealistic GHI predictions.
+    
+    Args:
+        y_true: True values (scaled to [0,1])
+        y_pred: Predicted values (scaled to [0,1])
+    
+    Returns:
+        Loss value
+    """
+    # Standard Huber loss
+    huber_loss = tf.keras.losses.Huber()(y_true, y_pred)
+    
+    # Penalty for predictions outside [0, 1] range (since we use sigmoid)
+    # This should be minimal since sigmoid constrains output to [0, 1]
+    range_penalty = tf.reduce_mean(tf.maximum(0.0, y_pred - 1.0) + tf.maximum(0.0, -y_pred))
+    
+    return huber_loss + range_penalty
+
 def create_model(input_shape):
-    """Create and compile an LSTM model for individual location."""
+    """Create and compile an LSTM model for individual location with output constraints."""
     # Input layer
     inputs = tf.keras.layers.Input(shape=input_shape)
     
@@ -283,19 +317,20 @@ def create_model(input_shape):
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.Dropout(0.2)(x)
     
-    # Output layer with linear activation
-    outputs = tf.keras.layers.Dense(1, activation='linear')(x)
+    # Output layer with sigmoid activation to constrain output to [0, 1]
+    # This ensures the scaled output is within the expected range
+    outputs = tf.keras.layers.Dense(1, activation='sigmoid')(x)
     
     # Create model
     model = tf.keras.Model(inputs=inputs, outputs=outputs)
     
     # Use Adam optimizer with a lower learning rate
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
     
-    # Compile model with Huber loss for robustness
+    # Compile model with custom loss for better constraint handling
     model.compile(
         optimizer=optimizer,
-        loss=tf.keras.losses.Huber(),
+        loss=custom_ghi_loss,
         metrics=['mae', 'mse']
     )
     
@@ -331,6 +366,21 @@ def train_model(model, X_train, y_train, X_val, y_val, location, batch_size=32, 
         write_graph=True
     )
     
+    # Add custom callback to monitor predictions
+    class PredictionMonitor(tf.keras.callbacks.Callback):
+        def on_epoch_end(self, epoch, logs=None):
+            if epoch % 5 == 0:  # Check every 5 epochs
+                # Get predictions for a few samples
+                sample_preds = self.model.predict(X_val[:5])
+                print(f"\nEpoch {epoch} - Sample predictions:")
+                print(f"Predictions: {sample_preds.flatten()}")
+                print(f"Actual values: {y_val[:5]}")
+                print(f"Prediction stats - Min: {np.min(sample_preds):.4f}, Max: {np.max(sample_preds):.4f}, Mean: {np.mean(sample_preds):.4f}")
+                
+                # Check if predictions are within reasonable bounds
+                if np.any(sample_preds < 0) or np.any(sample_preds > 1):
+                    print(f"Warning: Predictions outside [0,1] range detected!")
+    
     # Create model checkpoint callback
     checkpoint_path = f"models/lstm_ghi_forecast_{location}_checkpoint.h5"
     model_checkpoint = tf.keras.callbacks.ModelCheckpoint(
@@ -351,7 +401,8 @@ def train_model(model, X_train, y_train, X_val, y_val, location, batch_size=32, 
             early_stopping,
             reduce_lr,
             tensorboard_callback,
-            model_checkpoint
+            model_checkpoint,
+            PredictionMonitor()
         ],
         verbose=1
     )
@@ -377,9 +428,39 @@ def evaluate_model(model, X_test, y_test, target_scaler, location):
     # Make predictions
     y_pred = model.predict(X_test)
     
+    # Print prediction statistics before inverse transform
+    print(f"Raw predictions - Min: {np.min(y_pred):.4f}, Max: {np.max(y_pred):.4f}, Mean: {np.mean(y_pred):.4f}")
+    
+    # Clip predictions to [0, 1] range (since we use sigmoid)
+    y_pred_clipped = np.clip(y_pred, 0, 1)
+    print(f"After clipping - Min: {np.min(y_pred_clipped):.4f}, Max: {np.max(y_pred_clipped):.4f}, Mean: {np.mean(y_pred_clipped):.4f}")
+    
     # Inverse transform predictions and actual values
     y_test_original = target_scaler.inverse_transform(y_test.reshape(-1, 1))
-    y_pred_original = target_scaler.inverse_transform(y_pred)
+    y_pred_original = target_scaler.inverse_transform(y_pred_clipped)
+    
+    # Print statistics after inverse transform
+    print(f"Actual GHI range: [{y_test_original.min():.2f}, {y_test_original.max():.2f}] W/m²")
+    print(f"Predicted GHI range: [{y_pred_original.min():.2f}, {y_pred_original.max():.2f}] W/m²")
+    
+    # Check for unrealistic predictions
+    max_realistic_ghi = 1200  # Maximum realistic GHI value
+    unrealistic_mask = y_pred_original > max_realistic_ghi
+    if unrealistic_mask.any():
+        print(f"Warning: Unrealistic predictions found (>1200 W/m²): {y_pred_original.max():.2f} W/m²")
+        print(f"Number of unrealistic predictions: {unrealistic_mask.sum()}")
+        
+        # Clip unrealistic predictions to maximum realistic value
+        y_pred_original = np.clip(y_pred_original, 0, max_realistic_ghi)
+        print(f"Predictions clipped to maximum realistic value: {max_realistic_ghi} W/m²")
+    
+    # Additional validation checks
+    negative_mask = y_pred_original < 0
+    if negative_mask.any():
+        print(f"Warning: Negative predictions found: {y_pred_original.min():.2f} W/m²")
+        print(f"Number of negative predictions: {negative_mask.sum()}")
+        y_pred_original = np.maximum(y_pred_original, 0)
+        print("Negative predictions clipped to 0")
     
     # Calculate metrics
     mae = mean_absolute_error(y_test_original, y_pred_original)
@@ -506,12 +587,21 @@ def main(skip_training=False, debug_data_loading=False):
             model = create_model((X_train.shape[1], X_train.shape[2]))
             model.summary()
             
+            # Print data statistics before training
+            print(f"\nData statistics for {location}:")
+            print(f"X_train shape: {X_train.shape}")
+            print(f"y_train shape: {y_train.shape}")
+            print(f"X_train range: [{np.min(X_train):.4f}, {np.max(X_train):.4f}]")
+            print(f"y_train range: [{np.min(y_train):.4f}, {np.max(y_train):.4f}]")
+            print(f"y_val range: [{np.min(y_val):.4f}, {np.max(y_val):.4f}]")
+            print(f"y_test range: [{np.min(y_test):.4f}, {np.max(y_test):.4f}]")
+            
             model_path = os.path.join("models", f"lstm_ghi_forecast_{location}.h5")
             
             if skip_training:
                 if os.path.exists(model_path):
                     print(f"\nLoading pre-trained model...")
-                    model = tf.keras.models.load_model(model_path)
+                    model = tf.keras.models.load_model(model_path, custom_objects={'custom_ghi_loss': custom_ghi_loss})
                     history = None
                 else:
                     print("× No pre-trained model found")
@@ -523,6 +613,12 @@ def main(skip_training=False, debug_data_loading=False):
                 # Save model
                 model.save(model_path)
                 print(f"✓ Model saved to {model_path}")
+            
+            # Test the model on validation data before evaluation
+            print("\nTesting model on validation data...")
+            y_val_pred = model.predict(X_val[:10])
+            print("Validation predictions (should be in [0, 1]):", y_val_pred.flatten())
+            print("Validation actual values:", y_val[:10])
             
             # Evaluate model
             print("\nEvaluating model...")

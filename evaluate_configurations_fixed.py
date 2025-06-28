@@ -377,7 +377,7 @@ def evaluate_joint_models():
     os.makedirs(base_dir, exist_ok=True)
     
     # Load target scaler
-    scaler_path = os.path.join("models", "target_scaler.pkl")
+    scaler_path = os.path.join("models", "target_scaler_fixed.pkl")
     if not os.path.exists(scaler_path):
         print(f"Target scaler not found: {scaler_path}")
         return {}
@@ -475,7 +475,7 @@ def evaluate_individual_models():
     os.makedirs(base_dir, exist_ok=True)
     
     # Load the same global target scaler used by joint models
-    scaler_path = os.path.join("models", "target_scaler.pkl")
+    scaler_path = os.path.join("models", "target_scaler_fixed.pkl")
     if not os.path.exists(scaler_path):
         print(f"Target scaler not found: {scaler_path}")
         return {}
