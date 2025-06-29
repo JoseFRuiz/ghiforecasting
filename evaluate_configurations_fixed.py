@@ -321,7 +321,7 @@ def create_summary_table(all_metrics):
     
     for model_type, config_metrics in all_metrics.items():
         if model_type == 'joint':
-            # Joint models have configurations
+            # Joint models have configurations (now just 'joint_fixed')
             for config, city_metrics in config_metrics.items():
                 for city, metrics_df in city_metrics.items():
                     summary_data.append({
@@ -358,16 +358,84 @@ def create_summary_table(all_metrics):
     
     # Create DataFrame and sort by model type, configuration and location
     summary_df = pd.DataFrame(summary_data)
-    summary_df = summary_df.sort_values(['Model Type', 'Configuration', 'Location'])
-    
-    # Round numeric columns
-    numeric_cols = summary_df.select_dtypes(include=[np.number]).columns
-    summary_df[numeric_cols] = summary_df[numeric_cols].round(4)
+    if not summary_df.empty:
+        summary_df = summary_df.sort_values(['Model Type', 'Configuration', 'Location'])
+        
+        # Round numeric columns
+        numeric_cols = summary_df.select_dtypes(include=[np.number]).columns
+        summary_df[numeric_cols] = summary_df[numeric_cols].round(4)
     
     return summary_df
 
+def create_sequences_joint_all_features(df, sequence_length, locations):
+    """
+    Create sequences for joint model evaluation that matches train_joint_fixed.py.
+    
+    Args:
+        df: DataFrame with data for a single location
+        sequence_length: Length of input sequences
+        locations: List of all locations (for one-hot encoding)
+    
+    Returns:
+        tuple: (X, y, dates) where X is the input sequences and y is the target values
+    """
+    print(f"\nCreating sequences for joint model evaluation")
+    print(f"Data shape: {df.shape}")
+    print(f"Location: {df['location'].iloc[0]}")
+    
+    # Get all required features (same as in train_joint_fixed.py)
+    feature_columns = (
+        [f"GHI_lag_{lag}" for lag in range(1, 25)] +  # GHI lag features
+        ["GHI"] +  # Current GHI
+        [  # Meteorological features
+            "Temperature_lag_24", "Relative Humidity_lag_24",
+            "Pressure_lag_24", "Precipitable Water_lag_24",
+            "Wind Direction_lag_24", "Wind Speed_lag_24"
+        ] +
+        [  # Time features
+            "hour_sin", "hour_cos",
+            "month_sin", "month_cos"
+        ]
+    )
+    
+    # Get all data at once
+    data = df[feature_columns].values
+    target = df["GHI"].values
+    
+    # Calculate number of sequences
+    n_sequences = len(df) - sequence_length
+    
+    # Pre-allocate arrays
+    X = np.zeros((n_sequences, sequence_length, len(feature_columns)))
+    y = np.zeros(n_sequences)
+    
+    # Create sequences using vectorized operations
+    for i in range(n_sequences):
+        X[i] = data[i:i + sequence_length]
+        y[i] = target[i + sequence_length]
+    
+    # Filter out sequences where target is zero (night time)
+    mask = y > 0
+    X = X[mask]
+    y = y[mask]
+    
+    # Add location features (one-hot encoding)
+    current_location = df['location'].iloc[0]
+    location_vector = np.zeros(len(locations))
+    location_vector[locations.index(current_location)] = 1
+    
+    # Add location features to each sequence
+    location_features = np.tile(location_vector, (len(X), sequence_length, 1))
+    X = np.concatenate([X, location_features], axis=2)
+    
+    print(f"Created {len(X)} valid sequences")
+    print(f"Final X shape: {X.shape}")
+    print(f"Final y shape: {y.shape}")
+    
+    return X, y, df['datetime'].values[sequence_length:][mask]
+
 def evaluate_joint_models():
-    """Evaluate joint models from train_joint.py with FIXED scaling."""
+    """Evaluate joint models from train_joint_fixed.py with FIXED scaling."""
     print("\n" + "="*80)
     print("EVALUATING JOINT MODELS (FIXED SCALING)")
     print("="*80)
@@ -394,73 +462,70 @@ def evaluate_joint_models():
     # Dictionary to store all metrics
     all_metrics = {}
     
-    # Process each configuration
-    for config in ['ghi_only', 'met_only', 'ghi_met']:
+    # Load the single joint model (train_joint_fixed.py saves only one model)
+    model_path = os.path.join("models", "lstm_ghi_forecast_joint_fixed.h5")
+    if not os.path.exists(model_path):
+        print(f"Joint model not found: {model_path}")
+        print("Please run train_joint_fixed.py first to train the joint model.")
+        return {}
+    
+    print(f"\nLoading joint model from: {model_path}")
+    model = tf.keras.models.load_model(model_path)
+    
+    # Initialize dictionary for the single joint model
+    all_metrics['joint_fixed'] = {}
+    
+    # Get all locations for one-hot encoding
+    all_locations = list(CONFIG["data_locations"].keys())
+    
+    # Process each city
+    for city in CONFIG["data_locations"].keys():
         print(f"\n{'='*60}")
-        print(f"Processing joint {config} configuration")
+        print(f"Processing {city} with joint model")
         print(f"{'='*60}")
         
-        # Create configuration-specific directory
-        config_dir = os.path.join(base_dir, config)
-        os.makedirs(config_dir, exist_ok=True)
+        # Load and prepare data
+        df = load_data(CONFIG["data_locations"], city)
+        df = create_features(df)
         
-        # Load model
-        model_path = os.path.join("models", f"lstm_ghi_forecast_joint_{config}.h5")
-        if not os.path.exists(model_path):
-            print(f"Model not found: {model_path}")
+        # Add location column for joint models
+        df['location'] = city
+        
+        # Split data by days
+        df_train, df_val, df_test = split_data_by_days(df)
+        
+        # Create sequences for joint model (uses all features like in train_joint_fixed.py)
+        X, y, dates = create_sequences_joint_all_features(df_test, sequence_length=24, locations=all_locations)
+        
+        if len(X) == 0:
+            print(f"No valid sequences for {city}")
             continue
         
-        model = tf.keras.models.load_model(model_path)
+        # Make predictions
+        y_pred_scaled = model.predict(X)
         
-        # Initialize dictionary for this configuration
-        all_metrics[config] = {}
+        # IMPORTANT FIX: Use the same scaling approach for both actual and predicted
+        # Scale the actual values using the same global scaler
+        y_scaled = target_scaler.transform(y.reshape(-1, 1))
         
-        # Process each city
-        for city in CONFIG["data_locations"].keys():
-            print(f"\nProcessing {city}...")
-            
-            # Load and prepare data
-            df = load_data(CONFIG["data_locations"], city)
-            df = create_features(df)
-            
-            # Add location column for joint models
-            df['location'] = city
-            
-            # Split data by days
-            df_train, df_val, df_test = split_data_by_days(df)
-            
-            # Create sequences
-            X, y, dates = create_sequences_joint(df_test, sequence_length=24, input_config=config)
-            
-            if len(X) == 0:
-                print(f"No valid sequences for {city}")
-                continue
-            
-            # Make predictions
-            y_pred_scaled = model.predict(X)
-            
-            # IMPORTANT FIX: Use the same scaling approach for both actual and predicted
-            # Scale the actual values using the same global scaler
-            y_scaled = target_scaler.transform(y.reshape(-1, 1))
-            
-            # Inverse transform both using the same scaler
-            y_pred = target_scaler.inverse_transform(y_pred_scaled)
-            y_true = target_scaler.inverse_transform(y_scaled)
-            
-            # Calculate daily metrics
-            daily_metrics = calculate_daily_metrics(dates, y_true, y_pred)
-            
-            # Store metrics for summary
-            all_metrics[config][city] = daily_metrics
-            
-            # Save daily metrics
-            daily_metrics.to_csv(os.path.join(config_dir, f'daily_correlations_{city}.csv'), index=False)
-            
-            # Create plots
-            plot_daily_correlations(daily_metrics, city, "joint", config, config_dir)
-            plot_correlation_analysis(daily_metrics, dates, y_true, y_pred, city, "joint", config, config_dir)
-            
-            print(f"Completed analysis for {city}")
+        # Inverse transform both using the same scaler
+        y_pred = target_scaler.inverse_transform(y_pred_scaled)
+        y_true = target_scaler.inverse_transform(y_scaled)
+        
+        # Calculate daily metrics
+        daily_metrics = calculate_daily_metrics(dates, y_true, y_pred)
+        
+        # Store metrics for summary
+        all_metrics['joint_fixed'][city] = daily_metrics
+        
+        # Save daily metrics
+        daily_metrics.to_csv(os.path.join(base_dir, f'daily_correlations_{city}.csv'), index=False)
+        
+        # Create plots
+        plot_daily_correlations(daily_metrics, city, "joint", "fixed", base_dir)
+        plot_correlation_analysis(daily_metrics, dates, y_true, y_pred, city, "joint", "fixed", base_dir)
+        
+        print(f"Completed analysis for {city}")
     
     return all_metrics
 
@@ -478,6 +543,7 @@ def evaluate_individual_models():
     scaler_path = os.path.join("models", "target_scaler_fixed.pkl")
     if not os.path.exists(scaler_path):
         print(f"Target scaler not found: {scaler_path}")
+        print("Please run train_joint_fixed.py first to create the target scaler.")
         return {}
     
     with open(scaler_path, 'rb') as f:
@@ -492,6 +558,17 @@ def evaluate_individual_models():
     # Dictionary to store all metrics
     all_metrics = {}
     
+    # Define custom loss function (same as in train_individual.py)
+    def custom_ghi_loss(y_true, y_pred):
+        """Custom loss function that penalizes unrealistic GHI predictions."""
+        # Standard Huber loss
+        huber_loss = tf.keras.losses.Huber()(y_true, y_pred)
+        
+        # Penalty for predictions outside [0, 1] range (since we use sigmoid)
+        range_penalty = tf.reduce_mean(tf.maximum(0.0, y_pred - 1.0) + tf.maximum(0.0, -y_pred))
+        
+        return huber_loss + range_penalty
+    
     # Process each city
     for city in CONFIG["data_locations"].keys():
         print(f"\n{'='*60}")
@@ -501,10 +578,16 @@ def evaluate_individual_models():
         # Load model
         model_path = os.path.join("models", f"lstm_ghi_forecast_{city}.h5")
         if not os.path.exists(model_path):
-            print(f"Model not found: {model_path}")
+            print(f"Individual model not found: {model_path}")
+            print(f"Please run train_individual.py first to train the model for {city}.")
             continue
         
-        model = tf.keras.models.load_model(model_path)
+        try:
+            model = tf.keras.models.load_model(model_path, custom_objects={'custom_ghi_loss': custom_ghi_loss})
+            print(f"✓ Successfully loaded model for {city}")
+        except Exception as e:
+            print(f"× Error loading model for {city}: {str(e)}")
+            continue
         
         # Load and prepare data
         df = load_data(CONFIG["data_locations"], city)
@@ -637,11 +720,36 @@ def main():
     print("GHI Forecasting Model Evaluation (FIXED SCALING)")
     print("="*80)
     
+    # Check if models directory exists
+    if not os.path.exists("models"):
+        print("× Models directory not found!")
+        print("Please run the training scripts first:")
+        print("  1. python train_joint_fixed.py")
+        print("  2. python train_individual.py")
+        return
+    
+    # Check if target scaler exists
+    scaler_path = os.path.join("models", "target_scaler_fixed.pkl")
+    if not os.path.exists(scaler_path):
+        print("× Target scaler not found!")
+        print("Please run train_joint_fixed.py first to create the target scaler.")
+        return
+    
     # Evaluate joint models
+    print("\nEvaluating joint models...")
     joint_metrics = evaluate_joint_models()
     
     # Evaluate individual models
+    print("\nEvaluating individual models...")
     individual_metrics = evaluate_individual_models()
+    
+    # Check if we have any results
+    if not joint_metrics and not individual_metrics:
+        print("\n× No models were evaluated successfully!")
+        print("Please ensure you have trained models available:")
+        print("  - Joint model: models/lstm_ghi_forecast_joint_fixed.h5")
+        print("  - Individual models: models/lstm_ghi_forecast_{city}.h5")
+        return
     
     # Combine all metrics
     all_metrics = {
@@ -681,40 +789,53 @@ def main():
             print(mean_metrics.round(4))
     
     # Best performing configuration for each metric
-    print("\nBest performing configuration for each metric:")
-    for metric in ['MAE (W/m²)', 'RMSE (W/m²)', 'R²', 'MAPE (%)', 'Correlation']:
-        best_config = summary_df.groupby(['Model Type', 'Configuration'])[metric].mean()
-        if metric in ['MAE (W/m²)', 'RMSE (W/m²)', 'MAPE (%)']:
-            best_idx = best_config.idxmin()
-        else:
-            best_idx = best_config.idxmax()
-        best_value = best_config.loc[best_idx]
-        print(f"{metric}: {best_idx} = {best_value:.4f}")
+    if not summary_df.empty:
+        print("\nBest performing configuration for each metric:")
+        for metric in ['MAE (W/m²)', 'RMSE (W/m²)', 'R²', 'MAPE (%)', 'Correlation']:
+            if metric in summary_df.columns:
+                best_config = summary_df.groupby(['Model Type', 'Configuration'])[metric].mean()
+                if metric in ['MAE (W/m²)', 'RMSE (W/m²)', 'MAPE (%)']:
+                    best_idx = best_config.idxmin()
+                else:
+                    best_idx = best_config.idxmax()
+                best_value = best_config.loc[best_idx]
+                print(f"{metric}: {best_idx} = {best_value:.4f}")
+        
+        # Special handling for bias - use absolute values
+        if 'Bias (W/m²)' in summary_df.columns:
+            abs_bias = summary_df.groupby(['Model Type', 'Configuration'])['Bias (W/m²)'].mean().abs()
+            best_bias_config = abs_bias.idxmin()
+            print(f"Bias (W/m²) - Best configuration (lowest absolute bias): {best_bias_config}")
+            print(f"Absolute bias values: {abs_bias.round(4)}")
+        
+        # Model comparison
+        print("\nModel Type Comparison:")
+        print("=" * 40)
+        model_comparison = summary_df.groupby('Model Type')[['MAE (W/m²)', 'RMSE (W/m²)', 'R²', 'MAPE (%)', 'Correlation']].mean()
+        print(model_comparison.round(4))
+        
+        # Location-specific comparison
+        print("\nLocation-specific comparison (Joint vs Individual):")
+        print("=" * 60)
+        for location in summary_df['Location'].unique():
+            loc_data = summary_df[summary_df['Location'] == location]
+            joint_data = loc_data[loc_data['Model Type'] == 'joint']
+            individual_data = loc_data[loc_data['Model Type'] == 'individual']
+            
+            if not joint_data.empty and not individual_data.empty:
+                joint_best = joint_data.groupby('Configuration')['R²'].mean().max()
+                individual_r2 = individual_data['R²'].mean()
+                print(f"{location}: Joint (best) R² = {joint_best:.4f}, Individual R² = {individual_r2:.4f}")
+                if joint_best > individual_r2:
+                    print(f"  → Joint model performs better by {joint_best - individual_r2:.4f}")
+                else:
+                    print(f"  → Individual model performs better by {individual_r2 - joint_best:.4f}")
     
-    # Special handling for bias - use absolute values
-    abs_bias = summary_df.groupby(['Model Type', 'Configuration'])['Bias (W/m²)'].mean().abs()
-    best_bias_config = abs_bias.idxmin()
-    print(f"Bias (W/m²) - Best configuration (lowest absolute bias): {best_bias_config}")
-    print(f"Absolute bias values: {abs_bias.round(4)}")
-    
-    # Model comparison
-    print("\nModel Type Comparison:")
-    print("=" * 40)
-    model_comparison = summary_df.groupby('Model Type')[['MAE (W/m²)', 'RMSE (W/m²)', 'R²', 'MAPE (%)', 'Correlation']].mean()
-    print(model_comparison.round(4))
-    
-    # Location-specific comparison
-    print("\nLocation-specific comparison (Joint vs Individual):")
-    print("=" * 60)
-    for location in summary_df['Location'].unique():
-        loc_data = summary_df[summary_df['Location'] == location]
-        joint_best = loc_data[loc_data['Model Type'] == 'joint'].groupby('Configuration')['R²'].mean().max()
-        individual_r2 = loc_data[loc_data['Model Type'] == 'individual']['R²'].mean()
-        print(f"{location}: Joint (best) R² = {joint_best:.4f}, Individual R² = {individual_r2:.4f}")
-        if joint_best > individual_r2:
-            print(f"  → Joint model performs better by {joint_best - individual_r2:.4f}")
-        else:
-            print(f"  → Individual model performs better by {individual_r2 - joint_best:.4f}")
+    print(f"\n✓ Evaluation completed successfully!")
+    print(f"Results saved to:")
+    print(f"  - Joint models: results_joint_fixed/")
+    print(f"  - Individual models: results_individual_fixed/")
+    print(f"  - Comprehensive comparison: results_comprehensive_fixed/")
 
 if __name__ == "__main__":
     main() 
