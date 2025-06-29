@@ -4,216 +4,266 @@ Currently Loaded Modules:
 
  
 
-2025-06-13 11:51:31.011037: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+2025-06-28 19:44:57.164329: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1938] TensorFlow was not built with CUDA kernel binaries compatible with compute capability 10.0. CUDA kernels will be jit-compiled from PTX, which could take 30 minutes or longer.
+2025-06-28 19:45:07.322914: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1938] TensorFlow was not built with CUDA kernel binaries compatible with compute capability 10.0. CUDA kernels will be jit-compiled from PTX, which could take 30 minutes or longer.
+2025-06-28 19:45:07.324420: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
 To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2025-06-13 11:51:32.192732: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1510] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 79164 MB memory:  -> device: 0, name: NVIDIA A100-SXM4-80GB, pci bus id: 0000:bd:00.0, compute capability: 8.0
-2025-06-13 11:51:33.445966: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
-2025-06-13 11:51:33.446243: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
-2025-06-13 11:51:33.447692: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1614] Profiler found 1 GPUs
-2025-06-13 11:51:33.449260: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcupti.so.11.2'; dlerror: libcupti.so.11.2: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/opt/slurm/lib64:
-2025-06-13 11:51:33.539867: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
-2025-06-13 11:51:33.540264: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
-2025-06-13 11:51:33.632681: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:185] None of the MLIR Optimization Passes are enabled (registered 2)
-2025-06-13 11:51:37.484195: I tensorflow/stream_executor/cuda/cuda_dnn.cc:369] Loaded cuDNN version 8201
-2025-06-13 11:51:39.537669: I tensorflow/stream_executor/cuda/cuda_blas.cc:1760] TensorFloat-32 will be used for the matrix multiplication. This will only be logged once.
-2025-06-13 11:51:39.978664: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
-2025-06-13 11:51:39.978826: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
-2025-06-13 11:51:40.314742: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
-2025-06-13 11:51:40.315038: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
-2025-06-13 11:51:40.325877: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 777 callback api events and 777 activity events. 
-2025-06-13 11:51:40.339074: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
-2025-06-13 11:51:40.362977: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Jaisalmer/20250613-115133/train/plugins/profile/2025_06_13_11_51_40
+2025-06-28 19:45:07.330155: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1938] TensorFlow was not built with CUDA kernel binaries compatible with compute capability 10.0. CUDA kernels will be jit-compiled from PTX, which could take 30 minutes or longer.
+2025-06-28 19:51:28.238648: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1510] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 180450 MB memory:  -> device: 0, name: NVIDIA B200, pci bus id: 0000:52:00.0, compute capability: 10.0
+2025-06-28 19:51:30.965292: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-28 19:51:30.965728: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-28 19:51:30.968305: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1614] Profiler found 1 GPUs
+2025-06-28 19:51:30.973126: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcupti.so.11.2'; dlerror: libcupti.so.11.2: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/opt/slurm/lib64:
+2025-06-28 19:51:31.002016: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1666] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI_ERROR_NOT_INITIALIZED
+2025-06-28 19:51:31.002118: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-28 19:51:31.298562: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:185] None of the MLIR Optimization Passes are enabled (registered 2)
+2025-06-28 19:54:43.910880: I tensorflow/stream_executor/cuda/cuda_dnn.cc:369] Loaded cuDNN version 8201
+2025-06-28 20:05:08.757019: I tensorflow/stream_executor/cuda/cuda_blas.cc:1760] TensorFloat-32 will be used for the matrix multiplication. This will only be logged once.
+2025-06-28 20:07:40.553662: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-28 20:07:40.566499: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-28 20:07:40.574299: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1666] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI_ERROR_NOT_INITIALIZED
+2025-06-28 20:07:40.585800: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
+2025-06-28 20:07:40.589231: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 0 callback api events and 0 activity events. 
+2025-06-28 20:07:40.591864: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-28 20:07:40.609412: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250628-195130/train/plugins/profile/2025_06_28_20_07_40
 
-2025-06-13 11:51:40.373839: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/Jaisalmer/20250613-115133/train/plugins/profile/2025_06_13_11_51_40/c1009a-s35.ufhpc.trace.json.gz
-2025-06-13 11:51:40.399288: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Jaisalmer/20250613-115133/train/plugins/profile/2025_06_13_11_51_40
+2025-06-28 20:07:40.610769: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/20250628-195130/train/plugins/profile/2025_06_28_20_07_40/c0903a-s15.ufhpc.trace.json.gz
+2025-06-28 20:07:40.610862: E tensorflow/core/profiler/utils/hardware_type_utils.cc:73] Invalid GPU compute capability.
+2025-06-28 20:07:40.624239: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/20250628-195130/train/plugins/profile/2025_06_28_20_07_40
 
-2025-06-13 11:51:40.402993: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/Jaisalmer/20250613-115133/train/plugins/profile/2025_06_13_11_51_40/c1009a-s35.ufhpc.memory_profile.json.gz
-2025-06-13 11:51:40.407319: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/Jaisalmer/20250613-115133/train/plugins/profile/2025_06_13_11_51_40
-Dumped tool data for xplane.pb to logs/fit/Jaisalmer/20250613-115133/train/plugins/profile/2025_06_13_11_51_40/c1009a-s35.ufhpc.xplane.pb
-Dumped tool data for overview_page.pb to logs/fit/Jaisalmer/20250613-115133/train/plugins/profile/2025_06_13_11_51_40/c1009a-s35.ufhpc.overview_page.pb
-Dumped tool data for input_pipeline.pb to logs/fit/Jaisalmer/20250613-115133/train/plugins/profile/2025_06_13_11_51_40/c1009a-s35.ufhpc.input_pipeline.pb
-Dumped tool data for tensorflow_stats.pb to logs/fit/Jaisalmer/20250613-115133/train/plugins/profile/2025_06_13_11_51_40/c1009a-s35.ufhpc.tensorflow_stats.pb
-Dumped tool data for kernel_stats.pb to logs/fit/Jaisalmer/20250613-115133/train/plugins/profile/2025_06_13_11_51_40/c1009a-s35.ufhpc.kernel_stats.pb
+2025-06-28 20:07:40.634019: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/20250628-195130/train/plugins/profile/2025_06_28_20_07_40/c0903a-s15.ufhpc.memory_profile.json.gz
+2025-06-28 20:07:40.640359: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/20250628-195130/train/plugins/profile/2025_06_28_20_07_40
+Dumped tool data for xplane.pb to logs/fit/20250628-195130/train/plugins/profile/2025_06_28_20_07_40/c0903a-s15.ufhpc.xplane.pb
+Dumped tool data for overview_page.pb to logs/fit/20250628-195130/train/plugins/profile/2025_06_28_20_07_40/c0903a-s15.ufhpc.overview_page.pb
+Dumped tool data for input_pipeline.pb to logs/fit/20250628-195130/train/plugins/profile/2025_06_28_20_07_40/c0903a-s15.ufhpc.input_pipeline.pb
+Dumped tool data for tensorflow_stats.pb to logs/fit/20250628-195130/train/plugins/profile/2025_06_28_20_07_40/c0903a-s15.ufhpc.tensorflow_stats.pb
+Dumped tool data for kernel_stats.pb to logs/fit/20250628-195130/train/plugins/profile/2025_06_28_20_07_40/c0903a-s15.ufhpc.kernel_stats.pb
 
-2025-06-13 11:53:08.627889: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
-2025-06-13 11:53:08.727948: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
-2025-06-13 11:53:09.089188: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
-2025-06-13 11:53:09.089559: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
-2025-06-13 11:53:12.119505: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
-2025-06-13 11:53:12.119955: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
-2025-06-13 11:53:12.497066: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
-2025-06-13 11:53:12.497840: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
-2025-06-13 11:53:12.508175: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 777 callback api events and 776 activity events. 
-2025-06-13 11:53:12.521713: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
-2025-06-13 11:53:12.540028: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Jodhpur/20250613-115308/train/plugins/profile/2025_06_13_11_53_12
+/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/utils/generic_utils.py:494: CustomMaskWarning: Custom mask layers require a config and must override get_config. When loading, the custom mask layer must be passed to the custom_objects argument.
+  warnings.warn('Custom mask layers require a config and must override '
+WARNING:tensorflow:Callback method `on_train_batch_end` is slow compared to the batch time (batch time: 0.0075s vs `on_train_batch_end` time: 0.0404s). Check your callbacks.
+2025-06-28 20:18:42.542520: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1938] TensorFlow was not built with CUDA kernel binaries compatible with compute capability 10.0. CUDA kernels will be jit-compiled from PTX, which could take 30 minutes or longer.
+2025-06-28 20:18:42.544375: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2025-06-28 20:18:42.549461: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1938] TensorFlow was not built with CUDA kernel binaries compatible with compute capability 10.0. CUDA kernels will be jit-compiled from PTX, which could take 30 minutes or longer.
+2025-06-28 20:25:02.160994: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1510] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 180450 MB memory:  -> device: 0, name: NVIDIA B200, pci bus id: 0000:52:00.0, compute capability: 10.0
+2025-06-28 20:25:04.680604: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-28 20:25:04.680707: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-28 20:25:04.682208: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1614] Profiler found 1 GPUs
+2025-06-28 20:25:04.687734: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcupti.so.11.2'; dlerror: libcupti.so.11.2: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/slurm/lib64:/opt/slurm/lib64:
+2025-06-28 20:25:04.694589: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1666] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI_ERROR_NOT_INITIALIZED
+2025-06-28 20:25:04.694662: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-28 20:25:04.766050: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:185] None of the MLIR Optimization Passes are enabled (registered 2)
+2025-06-28 20:28:16.525554: I tensorflow/stream_executor/cuda/cuda_dnn.cc:369] Loaded cuDNN version 8201
+2025-06-28 20:38:42.272420: I tensorflow/stream_executor/cuda/cuda_blas.cc:1760] TensorFloat-32 will be used for the matrix multiplication. This will only be logged once.
+2025-06-28 20:41:14.977411: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-28 20:41:14.987680: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-28 20:41:14.992871: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1666] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI_ERROR_NOT_INITIALIZED
+2025-06-28 20:41:15.003163: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
+2025-06-28 20:41:15.005123: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 0 callback api events and 0 activity events. 
+2025-06-28 20:41:15.006939: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-28 20:41:15.018789: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Jaisalmer/20250628-202504/train/plugins/profile/2025_06_28_20_41_15
 
-2025-06-13 11:53:12.550784: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/Jodhpur/20250613-115308/train/plugins/profile/2025_06_13_11_53_12/c1009a-s35.ufhpc.trace.json.gz
-2025-06-13 11:53:12.572228: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Jodhpur/20250613-115308/train/plugins/profile/2025_06_13_11_53_12
+2025-06-28 20:41:15.019996: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/Jaisalmer/20250628-202504/train/plugins/profile/2025_06_28_20_41_15/c0903a-s15.ufhpc.trace.json.gz
+2025-06-28 20:41:15.020087: E tensorflow/core/profiler/utils/hardware_type_utils.cc:73] Invalid GPU compute capability.
+2025-06-28 20:41:15.028341: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Jaisalmer/20250628-202504/train/plugins/profile/2025_06_28_20_41_15
 
-2025-06-13 11:53:12.576135: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/Jodhpur/20250613-115308/train/plugins/profile/2025_06_13_11_53_12/c1009a-s35.ufhpc.memory_profile.json.gz
-2025-06-13 11:53:12.580946: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/Jodhpur/20250613-115308/train/plugins/profile/2025_06_13_11_53_12
-Dumped tool data for xplane.pb to logs/fit/Jodhpur/20250613-115308/train/plugins/profile/2025_06_13_11_53_12/c1009a-s35.ufhpc.xplane.pb
-Dumped tool data for overview_page.pb to logs/fit/Jodhpur/20250613-115308/train/plugins/profile/2025_06_13_11_53_12/c1009a-s35.ufhpc.overview_page.pb
-Dumped tool data for input_pipeline.pb to logs/fit/Jodhpur/20250613-115308/train/plugins/profile/2025_06_13_11_53_12/c1009a-s35.ufhpc.input_pipeline.pb
-Dumped tool data for tensorflow_stats.pb to logs/fit/Jodhpur/20250613-115308/train/plugins/profile/2025_06_13_11_53_12/c1009a-s35.ufhpc.tensorflow_stats.pb
-Dumped tool data for kernel_stats.pb to logs/fit/Jodhpur/20250613-115308/train/plugins/profile/2025_06_13_11_53_12/c1009a-s35.ufhpc.kernel_stats.pb
+2025-06-28 20:41:15.031566: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/Jaisalmer/20250628-202504/train/plugins/profile/2025_06_28_20_41_15/c0903a-s15.ufhpc.memory_profile.json.gz
+2025-06-28 20:41:15.040178: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/Jaisalmer/20250628-202504/train/plugins/profile/2025_06_28_20_41_15
+Dumped tool data for xplane.pb to logs/fit/Jaisalmer/20250628-202504/train/plugins/profile/2025_06_28_20_41_15/c0903a-s15.ufhpc.xplane.pb
+Dumped tool data for overview_page.pb to logs/fit/Jaisalmer/20250628-202504/train/plugins/profile/2025_06_28_20_41_15/c0903a-s15.ufhpc.overview_page.pb
+Dumped tool data for input_pipeline.pb to logs/fit/Jaisalmer/20250628-202504/train/plugins/profile/2025_06_28_20_41_15/c0903a-s15.ufhpc.input_pipeline.pb
+Dumped tool data for tensorflow_stats.pb to logs/fit/Jaisalmer/20250628-202504/train/plugins/profile/2025_06_28_20_41_15/c0903a-s15.ufhpc.tensorflow_stats.pb
+Dumped tool data for kernel_stats.pb to logs/fit/Jaisalmer/20250628-202504/train/plugins/profile/2025_06_28_20_41_15/c0903a-s15.ufhpc.kernel_stats.pb
 
-2025-06-13 11:54:41.120648: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
-2025-06-13 11:54:41.239356: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
-2025-06-13 11:54:41.580520: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
-2025-06-13 11:54:41.580900: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
-2025-06-13 11:54:44.816349: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
-2025-06-13 11:54:44.818782: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
-2025-06-13 11:54:45.203185: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
-2025-06-13 11:54:45.203629: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
-2025-06-13 11:54:45.216849: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 777 callback api events and 776 activity events. 
-2025-06-13 11:54:45.230377: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
-2025-06-13 11:54:45.249386: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/New Delhi/20250613-115441/train/plugins/profile/2025_06_13_11_54_45
-
-2025-06-13 11:54:45.260182: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/New Delhi/20250613-115441/train/plugins/profile/2025_06_13_11_54_45/c1009a-s35.ufhpc.trace.json.gz
-2025-06-13 11:54:45.281810: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/New Delhi/20250613-115441/train/plugins/profile/2025_06_13_11_54_45
-
-2025-06-13 11:54:45.285611: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/New Delhi/20250613-115441/train/plugins/profile/2025_06_13_11_54_45/c1009a-s35.ufhpc.memory_profile.json.gz
-2025-06-13 11:54:45.289933: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/New Delhi/20250613-115441/train/plugins/profile/2025_06_13_11_54_45
-Dumped tool data for xplane.pb to logs/fit/New Delhi/20250613-115441/train/plugins/profile/2025_06_13_11_54_45/c1009a-s35.ufhpc.xplane.pb
-Dumped tool data for overview_page.pb to logs/fit/New Delhi/20250613-115441/train/plugins/profile/2025_06_13_11_54_45/c1009a-s35.ufhpc.overview_page.pb
-Dumped tool data for input_pipeline.pb to logs/fit/New Delhi/20250613-115441/train/plugins/profile/2025_06_13_11_54_45/c1009a-s35.ufhpc.input_pipeline.pb
-Dumped tool data for tensorflow_stats.pb to logs/fit/New Delhi/20250613-115441/train/plugins/profile/2025_06_13_11_54_45/c1009a-s35.ufhpc.tensorflow_stats.pb
-Dumped tool data for kernel_stats.pb to logs/fit/New Delhi/20250613-115441/train/plugins/profile/2025_06_13_11_54_45/c1009a-s35.ufhpc.kernel_stats.pb
-
-2025-06-13 11:56:29.782058: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
-2025-06-13 11:56:29.834595: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
-2025-06-13 11:56:30.073258: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
-2025-06-13 11:56:30.073644: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
-2025-06-13 11:56:33.122819: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
-2025-06-13 11:56:33.123357: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
-2025-06-13 11:56:33.527820: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
-2025-06-13 11:56:33.528369: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
-2025-06-13 11:56:33.538872: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 777 callback api events and 776 activity events. 
-2025-06-13 11:56:33.552618: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
-2025-06-13 11:56:33.571302: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Shimla/20250613-115629/train/plugins/profile/2025_06_13_11_56_33
-
-2025-06-13 11:56:33.582172: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/Shimla/20250613-115629/train/plugins/profile/2025_06_13_11_56_33/c1009a-s35.ufhpc.trace.json.gz
-2025-06-13 11:56:33.603819: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Shimla/20250613-115629/train/plugins/profile/2025_06_13_11_56_33
-
-2025-06-13 11:56:33.607680: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/Shimla/20250613-115629/train/plugins/profile/2025_06_13_11_56_33/c1009a-s35.ufhpc.memory_profile.json.gz
-2025-06-13 11:56:33.612014: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/Shimla/20250613-115629/train/plugins/profile/2025_06_13_11_56_33
-Dumped tool data for xplane.pb to logs/fit/Shimla/20250613-115629/train/plugins/profile/2025_06_13_11_56_33/c1009a-s35.ufhpc.xplane.pb
-Dumped tool data for overview_page.pb to logs/fit/Shimla/20250613-115629/train/plugins/profile/2025_06_13_11_56_33/c1009a-s35.ufhpc.overview_page.pb
-Dumped tool data for input_pipeline.pb to logs/fit/Shimla/20250613-115629/train/plugins/profile/2025_06_13_11_56_33/c1009a-s35.ufhpc.input_pipeline.pb
-Dumped tool data for tensorflow_stats.pb to logs/fit/Shimla/20250613-115629/train/plugins/profile/2025_06_13_11_56_33/c1009a-s35.ufhpc.tensorflow_stats.pb
-Dumped tool data for kernel_stats.pb to logs/fit/Shimla/20250613-115629/train/plugins/profile/2025_06_13_11_56_33/c1009a-s35.ufhpc.kernel_stats.pb
-
-2025-06-13 11:58:11.474015: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
-2025-06-13 11:58:11.575468: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
-2025-06-13 11:58:11.763893: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
-2025-06-13 11:58:11.764255: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
-2025-06-13 11:58:14.685684: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
-2025-06-13 11:58:14.691240: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
-2025-06-13 11:58:15.081940: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
-2025-06-13 11:58:15.082468: I tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1748] CUPTI activity buffer flushed
-2025-06-13 11:58:15.093305: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 777 callback api events and 776 activity events. 
-2025-06-13 11:58:15.107252: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
-2025-06-13 11:58:15.126368: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Srinagar/20250613-115811/train/plugins/profile/2025_06_13_11_58_15
-
-2025-06-13 11:58:15.137014: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/Srinagar/20250613-115811/train/plugins/profile/2025_06_13_11_58_15/c1009a-s35.ufhpc.trace.json.gz
-2025-06-13 11:58:15.159216: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Srinagar/20250613-115811/train/plugins/profile/2025_06_13_11_58_15
-
-2025-06-13 11:58:15.163143: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/Srinagar/20250613-115811/train/plugins/profile/2025_06_13_11_58_15/c1009a-s35.ufhpc.memory_profile.json.gz
-2025-06-13 11:58:15.167353: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/Srinagar/20250613-115811/train/plugins/profile/2025_06_13_11_58_15
-Dumped tool data for xplane.pb to logs/fit/Srinagar/20250613-115811/train/plugins/profile/2025_06_13_11_58_15/c1009a-s35.ufhpc.xplane.pb
-Dumped tool data for overview_page.pb to logs/fit/Srinagar/20250613-115811/train/plugins/profile/2025_06_13_11_58_15/c1009a-s35.ufhpc.overview_page.pb
-Dumped tool data for input_pipeline.pb to logs/fit/Srinagar/20250613-115811/train/plugins/profile/2025_06_13_11_58_15/c1009a-s35.ufhpc.input_pipeline.pb
-Dumped tool data for tensorflow_stats.pb to logs/fit/Srinagar/20250613-115811/train/plugins/profile/2025_06_13_11_58_15/c1009a-s35.ufhpc.tensorflow_stats.pb
-Dumped tool data for kernel_stats.pb to logs/fit/Srinagar/20250613-115811/train/plugins/profile/2025_06_13_11_58_15/c1009a-s35.ufhpc.kernel_stats.pb
-
-train_individual.py:189: SettingWithCopyWarning: 
+train_individual.py:195: SettingWithCopyWarning: 
 A value is trying to be set on a copy of a slice from a DataFrame.
 Try using .loc[row_indexer,col_indexer] = value instead
 
 See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
-  df_train[target_column] = target_scaler.fit_transform(df_train[[target_column]])
-train_individual.py:190: SettingWithCopyWarning: 
+  df_train[target_column] = target_scaler.transform(df_train[[target_column]])
+train_individual.py:196: SettingWithCopyWarning: 
 A value is trying to be set on a copy of a slice from a DataFrame.
 Try using .loc[row_indexer,col_indexer] = value instead
 
 See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
   df_val[target_column] = target_scaler.transform(df_val[[target_column]])
-train_individual.py:191: SettingWithCopyWarning: 
+train_individual.py:197: SettingWithCopyWarning: 
 A value is trying to be set on a copy of a slice from a DataFrame.
 Try using .loc[row_indexer,col_indexer] = value instead
 
 See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
   df_test[target_column] = target_scaler.transform(df_test[[target_column]])
-train_individual.py:189: SettingWithCopyWarning: 
+WARNING:tensorflow:Callback method `on_train_batch_end` is slow compared to the batch time (batch time: 0.0064s vs `on_train_batch_end` time: 0.0515s). Check your callbacks.
+2025-06-28 20:42:55.632782: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-28 20:42:55.634596: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-28 20:42:55.635871: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1666] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI_ERROR_MULTIPLE_SUBSCRIBERS_NOT_SUPPORTED
+2025-06-28 20:42:55.635906: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-28 20:42:57.677559: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-28 20:42:57.678253: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-28 20:42:57.678312: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1666] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI_ERROR_MULTIPLE_SUBSCRIBERS_NOT_SUPPORTED
+2025-06-28 20:42:57.845697: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
+2025-06-28 20:42:57.847791: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 0 callback api events and 0 activity events. 
+2025-06-28 20:42:57.849454: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-28 20:42:57.920512: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Jodhpur/20250628-204255/train/plugins/profile/2025_06_28_20_42_57
+
+2025-06-28 20:42:57.921769: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/Jodhpur/20250628-204255/train/plugins/profile/2025_06_28_20_42_57/c0903a-s15.ufhpc.trace.json.gz
+2025-06-28 20:42:57.921876: E tensorflow/core/profiler/utils/hardware_type_utils.cc:73] Invalid GPU compute capability.
+2025-06-28 20:42:57.930105: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Jodhpur/20250628-204255/train/plugins/profile/2025_06_28_20_42_57
+
+2025-06-28 20:42:57.933372: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/Jodhpur/20250628-204255/train/plugins/profile/2025_06_28_20_42_57/c0903a-s15.ufhpc.memory_profile.json.gz
+2025-06-28 20:42:57.939184: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/Jodhpur/20250628-204255/train/plugins/profile/2025_06_28_20_42_57
+Dumped tool data for xplane.pb to logs/fit/Jodhpur/20250628-204255/train/plugins/profile/2025_06_28_20_42_57/c0903a-s15.ufhpc.xplane.pb
+Dumped tool data for overview_page.pb to logs/fit/Jodhpur/20250628-204255/train/plugins/profile/2025_06_28_20_42_57/c0903a-s15.ufhpc.overview_page.pb
+Dumped tool data for input_pipeline.pb to logs/fit/Jodhpur/20250628-204255/train/plugins/profile/2025_06_28_20_42_57/c0903a-s15.ufhpc.input_pipeline.pb
+Dumped tool data for tensorflow_stats.pb to logs/fit/Jodhpur/20250628-204255/train/plugins/profile/2025_06_28_20_42_57/c0903a-s15.ufhpc.tensorflow_stats.pb
+Dumped tool data for kernel_stats.pb to logs/fit/Jodhpur/20250628-204255/train/plugins/profile/2025_06_28_20_42_57/c0903a-s15.ufhpc.kernel_stats.pb
+
+train_individual.py:195: SettingWithCopyWarning: 
 A value is trying to be set on a copy of a slice from a DataFrame.
 Try using .loc[row_indexer,col_indexer] = value instead
 
 See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
-  df_train[target_column] = target_scaler.fit_transform(df_train[[target_column]])
-train_individual.py:190: SettingWithCopyWarning: 
+  df_train[target_column] = target_scaler.transform(df_train[[target_column]])
+train_individual.py:196: SettingWithCopyWarning: 
 A value is trying to be set on a copy of a slice from a DataFrame.
 Try using .loc[row_indexer,col_indexer] = value instead
 
 See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
   df_val[target_column] = target_scaler.transform(df_val[[target_column]])
-train_individual.py:191: SettingWithCopyWarning: 
+train_individual.py:197: SettingWithCopyWarning: 
 A value is trying to be set on a copy of a slice from a DataFrame.
 Try using .loc[row_indexer,col_indexer] = value instead
 
 See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
   df_test[target_column] = target_scaler.transform(df_test[[target_column]])
-train_individual.py:189: SettingWithCopyWarning: 
+WARNING:tensorflow:Callback method `on_train_batch_end` is slow compared to the batch time (batch time: 0.0060s vs `on_train_batch_end` time: 0.0598s). Check your callbacks.
+2025-06-28 20:44:52.417032: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-28 20:44:52.452076: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-28 20:44:52.452193: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1666] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI_ERROR_MULTIPLE_SUBSCRIBERS_NOT_SUPPORTED
+2025-06-28 20:44:52.452233: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-28 20:44:54.595297: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-28 20:44:54.598767: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-28 20:44:54.598859: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1666] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI_ERROR_MULTIPLE_SUBSCRIBERS_NOT_SUPPORTED
+2025-06-28 20:44:54.727384: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
+2025-06-28 20:44:54.729490: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 0 callback api events and 0 activity events. 
+2025-06-28 20:44:54.731253: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-28 20:44:54.741106: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/New Delhi/20250628-204452/train/plugins/profile/2025_06_28_20_44_54
+
+2025-06-28 20:44:54.743708: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/New Delhi/20250628-204452/train/plugins/profile/2025_06_28_20_44_54/c0903a-s15.ufhpc.trace.json.gz
+2025-06-28 20:44:54.743798: E tensorflow/core/profiler/utils/hardware_type_utils.cc:73] Invalid GPU compute capability.
+2025-06-28 20:44:54.752415: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/New Delhi/20250628-204452/train/plugins/profile/2025_06_28_20_44_54
+
+2025-06-28 20:44:54.755780: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/New Delhi/20250628-204452/train/plugins/profile/2025_06_28_20_44_54/c0903a-s15.ufhpc.memory_profile.json.gz
+2025-06-28 20:44:54.761162: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/New Delhi/20250628-204452/train/plugins/profile/2025_06_28_20_44_54
+Dumped tool data for xplane.pb to logs/fit/New Delhi/20250628-204452/train/plugins/profile/2025_06_28_20_44_54/c0903a-s15.ufhpc.xplane.pb
+Dumped tool data for overview_page.pb to logs/fit/New Delhi/20250628-204452/train/plugins/profile/2025_06_28_20_44_54/c0903a-s15.ufhpc.overview_page.pb
+Dumped tool data for input_pipeline.pb to logs/fit/New Delhi/20250628-204452/train/plugins/profile/2025_06_28_20_44_54/c0903a-s15.ufhpc.input_pipeline.pb
+Dumped tool data for tensorflow_stats.pb to logs/fit/New Delhi/20250628-204452/train/plugins/profile/2025_06_28_20_44_54/c0903a-s15.ufhpc.tensorflow_stats.pb
+Dumped tool data for kernel_stats.pb to logs/fit/New Delhi/20250628-204452/train/plugins/profile/2025_06_28_20_44_54/c0903a-s15.ufhpc.kernel_stats.pb
+
+train_individual.py:195: SettingWithCopyWarning: 
 A value is trying to be set on a copy of a slice from a DataFrame.
 Try using .loc[row_indexer,col_indexer] = value instead
 
 See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
-  df_train[target_column] = target_scaler.fit_transform(df_train[[target_column]])
-train_individual.py:190: SettingWithCopyWarning: 
+  df_train[target_column] = target_scaler.transform(df_train[[target_column]])
+train_individual.py:196: SettingWithCopyWarning: 
 A value is trying to be set on a copy of a slice from a DataFrame.
 Try using .loc[row_indexer,col_indexer] = value instead
 
 See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
   df_val[target_column] = target_scaler.transform(df_val[[target_column]])
-train_individual.py:191: SettingWithCopyWarning: 
+train_individual.py:197: SettingWithCopyWarning: 
 A value is trying to be set on a copy of a slice from a DataFrame.
 Try using .loc[row_indexer,col_indexer] = value instead
 
 See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
   df_test[target_column] = target_scaler.transform(df_test[[target_column]])
-train_individual.py:189: SettingWithCopyWarning: 
+WARNING:tensorflow:Callback method `on_train_batch_end` is slow compared to the batch time (batch time: 0.0064s vs `on_train_batch_end` time: 0.0426s). Check your callbacks.
+2025-06-28 20:46:01.786355: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-28 20:46:01.859817: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-28 20:46:01.861040: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1666] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI_ERROR_MULTIPLE_SUBSCRIBERS_NOT_SUPPORTED
+2025-06-28 20:46:01.861073: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-28 20:46:03.675539: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-28 20:46:03.676158: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-28 20:46:03.676219: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1666] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI_ERROR_MULTIPLE_SUBSCRIBERS_NOT_SUPPORTED
+2025-06-28 20:46:03.808005: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
+2025-06-28 20:46:03.810038: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 0 callback api events and 0 activity events. 
+2025-06-28 20:46:03.811766: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-28 20:46:03.819491: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Shimla/20250628-204601/train/plugins/profile/2025_06_28_20_46_03
+
+2025-06-28 20:46:03.820823: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/Shimla/20250628-204601/train/plugins/profile/2025_06_28_20_46_03/c0903a-s15.ufhpc.trace.json.gz
+2025-06-28 20:46:03.820913: E tensorflow/core/profiler/utils/hardware_type_utils.cc:73] Invalid GPU compute capability.
+2025-06-28 20:46:03.829183: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Shimla/20250628-204601/train/plugins/profile/2025_06_28_20_46_03
+
+2025-06-28 20:46:03.832801: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/Shimla/20250628-204601/train/plugins/profile/2025_06_28_20_46_03/c0903a-s15.ufhpc.memory_profile.json.gz
+2025-06-28 20:46:03.839208: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/Shimla/20250628-204601/train/plugins/profile/2025_06_28_20_46_03
+Dumped tool data for xplane.pb to logs/fit/Shimla/20250628-204601/train/plugins/profile/2025_06_28_20_46_03/c0903a-s15.ufhpc.xplane.pb
+Dumped tool data for overview_page.pb to logs/fit/Shimla/20250628-204601/train/plugins/profile/2025_06_28_20_46_03/c0903a-s15.ufhpc.overview_page.pb
+Dumped tool data for input_pipeline.pb to logs/fit/Shimla/20250628-204601/train/plugins/profile/2025_06_28_20_46_03/c0903a-s15.ufhpc.input_pipeline.pb
+Dumped tool data for tensorflow_stats.pb to logs/fit/Shimla/20250628-204601/train/plugins/profile/2025_06_28_20_46_03/c0903a-s15.ufhpc.tensorflow_stats.pb
+Dumped tool data for kernel_stats.pb to logs/fit/Shimla/20250628-204601/train/plugins/profile/2025_06_28_20_46_03/c0903a-s15.ufhpc.kernel_stats.pb
+
+train_individual.py:195: SettingWithCopyWarning: 
 A value is trying to be set on a copy of a slice from a DataFrame.
 Try using .loc[row_indexer,col_indexer] = value instead
 
 See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
-  df_train[target_column] = target_scaler.fit_transform(df_train[[target_column]])
-train_individual.py:190: SettingWithCopyWarning: 
+  df_train[target_column] = target_scaler.transform(df_train[[target_column]])
+train_individual.py:196: SettingWithCopyWarning: 
 A value is trying to be set on a copy of a slice from a DataFrame.
 Try using .loc[row_indexer,col_indexer] = value instead
 
 See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
   df_val[target_column] = target_scaler.transform(df_val[[target_column]])
-train_individual.py:191: SettingWithCopyWarning: 
+train_individual.py:197: SettingWithCopyWarning: 
 A value is trying to be set on a copy of a slice from a DataFrame.
 Try using .loc[row_indexer,col_indexer] = value instead
 
 See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
   df_test[target_column] = target_scaler.transform(df_test[[target_column]])
-train_individual.py:189: SettingWithCopyWarning: 
+WARNING:tensorflow:Callback method `on_train_batch_end` is slow compared to the batch time (batch time: 0.0063s vs `on_train_batch_end` time: 0.0416s). Check your callbacks.
+2025-06-28 20:47:37.098703: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-28 20:47:37.116592: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-28 20:47:37.116694: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1666] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI_ERROR_MULTIPLE_SUBSCRIBERS_NOT_SUPPORTED
+2025-06-28 20:47:37.116729: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-28 20:47:38.975451: I tensorflow/core/profiler/lib/profiler_session.cc:131] Profiler session initializing.
+2025-06-28 20:47:38.976021: I tensorflow/core/profiler/lib/profiler_session.cc:146] Profiler session started.
+2025-06-28 20:47:38.976084: E tensorflow/core/profiler/internal/gpu/cupti_tracer.cc:1666] function cupti_interface_->Subscribe( &subscriber_, (CUpti_CallbackFunc)ApiCallback, this)failed with error CUPTI_ERROR_MULTIPLE_SUBSCRIBERS_NOT_SUPPORTED
+2025-06-28 20:47:39.162779: I tensorflow/core/profiler/lib/profiler_session.cc:66] Profiler session collecting data.
+2025-06-28 20:47:39.164804: I tensorflow/core/profiler/internal/gpu/cupti_collector.cc:673]  GpuTracer has collected 0 callback api events and 0 activity events. 
+2025-06-28 20:47:39.166704: I tensorflow/core/profiler/lib/profiler_session.cc:164] Profiler session tear down.
+2025-06-28 20:47:39.172928: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Srinagar/20250628-204737/train/plugins/profile/2025_06_28_20_47_39
+
+2025-06-28 20:47:39.174007: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for trace.json.gz to logs/fit/Srinagar/20250628-204737/train/plugins/profile/2025_06_28_20_47_39/c0903a-s15.ufhpc.trace.json.gz
+2025-06-28 20:47:39.174098: E tensorflow/core/profiler/utils/hardware_type_utils.cc:73] Invalid GPU compute capability.
+2025-06-28 20:47:39.182428: I tensorflow/core/profiler/rpc/client/save_profile.cc:136] Creating directory: logs/fit/Srinagar/20250628-204737/train/plugins/profile/2025_06_28_20_47_39
+
+2025-06-28 20:47:39.185780: I tensorflow/core/profiler/rpc/client/save_profile.cc:142] Dumped gzipped tool data for memory_profile.json.gz to logs/fit/Srinagar/20250628-204737/train/plugins/profile/2025_06_28_20_47_39/c0903a-s15.ufhpc.memory_profile.json.gz
+2025-06-28 20:47:39.191346: I tensorflow/core/profiler/rpc/client/capture_profile.cc:251] Creating directory: logs/fit/Srinagar/20250628-204737/train/plugins/profile/2025_06_28_20_47_39
+Dumped tool data for xplane.pb to logs/fit/Srinagar/20250628-204737/train/plugins/profile/2025_06_28_20_47_39/c0903a-s15.ufhpc.xplane.pb
+Dumped tool data for overview_page.pb to logs/fit/Srinagar/20250628-204737/train/plugins/profile/2025_06_28_20_47_39/c0903a-s15.ufhpc.overview_page.pb
+Dumped tool data for input_pipeline.pb to logs/fit/Srinagar/20250628-204737/train/plugins/profile/2025_06_28_20_47_39/c0903a-s15.ufhpc.input_pipeline.pb
+Dumped tool data for tensorflow_stats.pb to logs/fit/Srinagar/20250628-204737/train/plugins/profile/2025_06_28_20_47_39/c0903a-s15.ufhpc.tensorflow_stats.pb
+Dumped tool data for kernel_stats.pb to logs/fit/Srinagar/20250628-204737/train/plugins/profile/2025_06_28_20_47_39/c0903a-s15.ufhpc.kernel_stats.pb
+
+train_individual.py:195: SettingWithCopyWarning: 
 A value is trying to be set on a copy of a slice from a DataFrame.
 Try using .loc[row_indexer,col_indexer] = value instead
 
 See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
-  df_train[target_column] = target_scaler.fit_transform(df_train[[target_column]])
-train_individual.py:190: SettingWithCopyWarning: 
+  df_train[target_column] = target_scaler.transform(df_train[[target_column]])
+train_individual.py:196: SettingWithCopyWarning: 
 A value is trying to be set on a copy of a slice from a DataFrame.
 Try using .loc[row_indexer,col_indexer] = value instead
 
 See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
   df_val[target_column] = target_scaler.transform(df_val[[target_column]])
-train_individual.py:191: SettingWithCopyWarning: 
+train_individual.py:197: SettingWithCopyWarning: 
 A value is trying to be set on a copy of a slice from a DataFrame.
 Try using .loc[row_indexer,col_indexer] = value instead
 
 See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
   df_test[target_column] = target_scaler.transform(df_test[[target_column]])
+WARNING:tensorflow:Callback method `on_train_batch_end` is slow compared to the batch time (batch time: 0.0062s vs `on_train_batch_end` time: 0.0505s). Check your callbacks.
