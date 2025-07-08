@@ -94,11 +94,13 @@ def build_daily_graphs(df_all, adj_matrix):
             df_city = df_all[(df_all["location"] == city) &
                              (pd.to_datetime(df_all["datetime"]).dt.date == date)]
             if len(df_city) < SEQUENCE_LENGTH + FORECAST_HORIZON:
+                print(f"Skipping {date} for {city}: not enough data ({len(df_city)} rows, need {SEQUENCE_LENGTH + FORECAST_HORIZON})")
                 valid = False
                 break
             X = df_city.iloc[:SEQUENCE_LENGTH][[col for col in df_city.columns if 'lag' in col or 'sin' in col or 'cos' in col]].values
             y = df_city.iloc[SEQUENCE_LENGTH:SEQUENCE_LENGTH + FORECAST_HORIZON]['GHI'].values
             if (y <= 0).all():
+                print(f"Skipping {date} for {city}: all target GHI values are zero or negative")
                 valid = False
                 break
             node_features.append(X.flatten())
@@ -109,6 +111,7 @@ def build_daily_graphs(df_all, adj_matrix):
             graphs.append(Graph(x=x, a=adj_matrix))
             targets.append(y)
 
+    print(f"Total valid daily graphs: {len(graphs)}")
     return graphs, np.array(targets), scaler
 
 class GHIDataset(Dataset):
