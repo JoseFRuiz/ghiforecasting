@@ -15,8 +15,8 @@ from geopy.distance import geodesic
 from utils import CONFIG, load_data
 
 # Set global parameters
-SEQUENCE_LENGTH = 24
-FORECAST_HORIZON = 24
+SEQUENCE_LENGTH = 12  # Use 12 hours for sequence
+FORECAST_HORIZON = 12  # Forecast next 12 hours
 
 CITIES = list(CONFIG["data_locations"].keys())
 CITY_IDX = {city: i for i, city in enumerate(CITIES)}
@@ -85,26 +85,55 @@ def build_daily_graphs(df_all, adj_matrix):
     scaler = MinMaxScaler()
     df_all['GHI_scaled'] = scaler.fit_transform(df_all[["GHI"]])
 
-    dates = pd.to_datetime(df_all["datetime"]).dt.date.unique()
+    # Group by date and process each day
+    df_all['date'] = pd.to_datetime(df_all["datetime"]).dt.date
+    dates = df_all['date'].unique()
+    
+    print(f"Processing {len(dates)} unique dates")
+    
     for date in dates:
         node_features = []
         node_targets = []
         valid = True
+        
         for city in CITIES:
-            df_city = df_all[(df_all["location"] == city) &
-                             (pd.to_datetime(df_all["datetime"]).dt.date == date)]
-            if len(df_city) < SEQUENCE_LENGTH + FORECAST_HORIZON:
-                print(f"Skipping {date} for {city}: not enough data ({len(df_city)} rows, need {SEQUENCE_LENGTH + FORECAST_HORIZON})")
+            # Get data for this city and date
+            df_city = df_all[(df_all["location"] == city) & (df_all['date'] == date)]
+            
+            if len(df_city) < 24:  # Need at least 24 hours
+                print(f"Skipping {date} for {city}: not enough data ({len(df_city)} rows, need 24)")
                 valid = False
                 break
-            X = df_city.iloc[:SEQUENCE_LENGTH][[col for col in df_city.columns if 'lag' in col or 'sin' in col or 'cos' in col]].values
-            y = df_city.iloc[SEQUENCE_LENGTH:SEQUENCE_LENGTH + FORECAST_HORIZON]['GHI'].values
-            if (y <= 0).all():
+            
+            # Sort by datetime to ensure proper order
+            df_city = df_city.sort_values('datetime')
+            
+            # Use first 12 hours for sequence, next 12 hours for target
+            # This gives us a 12-hour forecast horizon instead of 24
+            sequence_data = df_city.iloc[:12]
+            target_data = df_city.iloc[12:24]
+            
+            if len(target_data) < 12:
+                print(f"Skipping {date} for {city}: not enough target data ({len(target_data)} rows, need 12)")
+                valid = False
+                break
+            
+            # Check if target has any non-zero values
+            if (target_data['GHI'] <= 0).all():
                 print(f"Skipping {date} for {city}: all target GHI values are zero or negative")
                 valid = False
                 break
-            node_features.append(X.flatten())
+            
+            # Create features from sequence data
+            feature_cols = [col for col in sequence_data.columns if 'lag' in col or 'sin' in col or 'cos' in col]
+            X = sequence_data[feature_cols].values.flatten()
+            
+            # Target is the GHI values for the next 12 hours
+            y = target_data['GHI'].values
+            
+            node_features.append(X)
             node_targets.append(y)
+        
         if valid:
             x = np.stack(node_features, axis=0)
             y = np.stack(node_targets, axis=0)
@@ -155,6 +184,20 @@ def main():
         df['location'] = city
         all_dfs.append(df)
     df_all = pd.concat(all_dfs).sort_values("datetime")
+
+    print(f"\nData statistics:")
+    print(f"Total rows: {len(df_all)}")
+    print(f"Date range: {df_all['datetime'].min()} to {df_all['datetime'].max()}")
+    print(f"Rows per city:")
+    for city in CITIES:
+        city_data = df_all[df_all['location'] == city]
+        print(f"  {city}: {len(city_data)} rows")
+    
+    # Check data per day
+    df_all['date'] = pd.to_datetime(df_all["datetime"]).dt.date
+    daily_counts = df_all.groupby(['date', 'location']).size().reset_index(name='count')
+    print(f"\nDaily data counts (sample):")
+    print(daily_counts.head(20))
 
     print("\nComputing adjacency matrix...")
     adj_matrix = compute_weighted_adjacency(df_all, alpha=0.5)
