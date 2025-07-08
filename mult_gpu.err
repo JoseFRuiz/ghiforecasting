@@ -4,8 +4,13 @@ Currently Loaded Modules:
 
  
 
-2025-06-29 12:13:01.295332: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1938] TensorFlow was not built with CUDA kernel binaries compatible with compute capability 10.0. CUDA kernels will be jit-compiled from PTX, which could take 30 minutes or longer.
+2025-07-01 21:13:25.715220: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1938] TensorFlow was not built with CUDA kernel binaries compatible with compute capability 10.0. CUDA kernels will be jit-compiled from PTX, which could take 30 minutes or longer.
+<frozen importlib._bootstrap>:219: RuntimeWarning: scipy._lib.messagestream.MessageStream size changed, may indicate binary incompatibility. Expected 56 from C header, got 64 from PyObject
 Traceback (most recent call last):
-  File "train_gnn.py", line 9, in <module>
-    from spektral.data import Dataset, Graph
-ModuleNotFoundError: No module named 'spektral'
+  File "train_gnn.py", line 177, in <module>
+    main()
+  File "train_gnn.py", line 164, in main
+    num_features = dataset[0].x.shape[1]
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/spektral/data/dataset.py", line 172, in __getitem__
+    return self.graphs[int(key)]
+IndexError: list index out of range
