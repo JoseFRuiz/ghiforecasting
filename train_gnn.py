@@ -297,7 +297,7 @@ def main():
 
     print("\nTraining model...")
     # Test the model with a sample batch to check shapes
-    sample_batch = next(loader.load())
+    sample_batch = next(iter(loader.load()))
     print(f"Sample batch shapes:")
     print(f"  x: {sample_batch[0].shape}")
     print(f"  a: {sample_batch[1].shape}")
