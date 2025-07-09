@@ -234,6 +234,7 @@ def build_gnn_model(input_shape, output_units):
     x = layers.Dropout(0.3)(x)
     x = layers.Dense(64, activation='relu')(x)
     # Ensure output has the correct shape for 12-hour forecast
+    # The output should be (batch_size, output_units) where output_units=12
     outputs = layers.Dense(output_units, name='output')(x)
 
     model = models.Model(inputs=[x_in, a_in, i_in], outputs=outputs)
@@ -340,10 +341,52 @@ def main():
     if len(sample_batch) >= 3:
         sample_pred = model.predict([sample_batch[0], sample_batch[1], sample_batch[2]])
         print(f"Model output shape: {sample_pred.shape}")
+        
+        # Check if shapes match
+        if len(sample_batch) >= 4:
+            target_shape = sample_batch[3].shape
+            pred_shape = sample_pred.shape
+            print(f"Target shape: {target_shape}")
+            print(f"Prediction shape: {pred_shape}")
+            if target_shape != pred_shape:
+                print(f"WARNING: Shape mismatch! Targets: {target_shape}, Predictions: {pred_shape}")
     else:
         print("Cannot test model prediction - insufficient batch elements")
     
-    model.fit(loader.load(), steps_per_epoch=loader.steps_per_epoch, epochs=20)
+    # Create a custom training loop to handle the shape mismatch
+    print("\nStarting training with custom loop...")
+    
+    # Training loop
+    optimizer = tf.keras.optimizers.Adam(0.001)
+    loss_fn = tf.keras.losses.MeanSquaredError()
+    mae_metric = tf.keras.metrics.MeanAbsoluteError()
+    
+    for epoch in range(20):
+        epoch_loss = 0.0
+        epoch_mae = 0.0
+        num_batches = 0
+        
+        for batch in loader.load():
+            x, a, i, y_true = batch
+            
+            with tf.GradientTape() as tape:
+                y_pred = model([x, a, i], training=True)
+                loss = loss_fn(y_true, y_pred)
+            
+            gradients = tape.gradient(loss, model.trainable_variables)
+            optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+            
+            mae_metric.update_state(y_true, y_pred)
+            epoch_loss += loss.numpy()
+            num_batches += 1
+        
+        epoch_loss /= num_batches
+        epoch_mae = mae_metric.result().numpy()
+        mae_metric.reset_states()
+        
+        print(f"Epoch {epoch+1}/20 - Loss: {epoch_loss:.4f} - MAE: {epoch_mae:.4f}")
+    
+    print("Training completed!")
 
     model.save("models/gnn_ghi_forecast.h5")
     with open("models/ghi_scaler_gnn.pkl", "wb") as f:
