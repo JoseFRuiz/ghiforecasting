@@ -367,7 +367,27 @@ def main():
         num_batches = 0
         
         for batch in loader.load():
-            x, a, i, y_true = batch
+            # Debug the batch structure
+            if num_batches == 0:  # Only print for first batch of first epoch
+                print(f"Batch type: {type(batch)}")
+                print(f"Batch length: {len(batch)}")
+                for i, item in enumerate(batch):
+                    print(f"  Batch item {i}: {type(item)} - {item}")
+            
+            # Handle different batch formats
+            if len(batch) == 4:
+                x, a, i, y_true = batch
+            elif len(batch) == 2:
+                # If batch has only 2 items, it might be (inputs, targets)
+                inputs, y_true = batch
+                if isinstance(inputs, (list, tuple)) and len(inputs) >= 3:
+                    x, a, i = inputs[0], inputs[1], inputs[2]
+                else:
+                    print(f"Unexpected batch format: {batch}")
+                    continue
+            else:
+                print(f"Unexpected batch length: {len(batch)}")
+                continue
             
             with tf.GradientTape() as tape:
                 y_pred = model([x, a, i], training=True)
@@ -380,11 +400,14 @@ def main():
             epoch_loss += loss.numpy()
             num_batches += 1
         
-        epoch_loss /= num_batches
-        epoch_mae = mae_metric.result().numpy()
-        mae_metric.reset_states()
-        
-        print(f"Epoch {epoch+1}/20 - Loss: {epoch_loss:.4f} - MAE: {epoch_mae:.4f}")
+        if num_batches > 0:
+            epoch_loss /= num_batches
+            epoch_mae = mae_metric.result().numpy()
+            mae_metric.reset_states()
+            
+            print(f"Epoch {epoch+1}/20 - Loss: {epoch_loss:.4f} - MAE: {epoch_mae:.4f}")
+        else:
+            print(f"Epoch {epoch+1}/20 - No valid batches processed")
     
     print("Training completed!")
 
