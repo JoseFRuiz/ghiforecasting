@@ -1,8 +1,8 @@
-Date      = Tue Jul  1 09:13:06 PM EDT 2025
-host      = c1000a-s5
+Date      = Tue Jul  8 08:17:42 PM EDT 2025
+host      = c0903a-s15
 Directory = /blue/azare/jruizmunoz/ghiforecasting
 Loaded modules:
-Tue Jul  1 21:13:11 2025       
+Tue Jul  8 20:17:46 2025       
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 570.148.08             Driver Version: 570.148.08     CUDA Version: 12.8     |
 |-----------------------------------------+------------------------+----------------------+
@@ -10,8 +10,8 @@ Tue Jul  1 21:13:11 2025
 | Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
 |                                         |                        |               MIG M. |
 |=========================================+========================+======================|
-|   0  NVIDIA B200                    On  |   00000000:1B:00.0 Off |                    0 |
-| N/A   24C    P0            138W / 1000W |       0MiB / 183359MiB |      0%      Default |
+|   0  NVIDIA B200                    On  |   00000000:9D:00.0 Off |                    0 |
+| N/A   24C    P0            145W / 1000W |       0MiB / 183359MiB |      0%      Default |
 |                                         |                        |             Disabled |
 +-----------------------------------------+------------------------+----------------------+
                                                                                          
@@ -283,6 +283,72 @@ Shape: (26280, 25)
 Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
 Memory usage: 5.01 MB
 
+Data statistics:
+Total rows: 131160
+Date range: 2017-01-02 00:30:00 to 2019-12-30 23:30:00
+Rows per city:
+  Jaisalmer: 26232 rows
+  Jodhpur: 26232 rows
+  New Delhi: 26232 rows
+  Shimla: 26232 rows
+  Srinagar: 26232 rows
+
+Daily data counts (sample):
+          date   location  count
+0   2017-01-02  Jaisalmer     24
+1   2017-01-02    Jodhpur     24
+2   2017-01-02  New Delhi     24
+3   2017-01-02     Shimla     24
+4   2017-01-02   Srinagar     24
+5   2017-01-03  Jaisalmer     24
+6   2017-01-03    Jodhpur     24
+7   2017-01-03  New Delhi     24
+8   2017-01-03     Shimla     24
+9   2017-01-03   Srinagar     24
+10  2017-01-04  Jaisalmer     24
+11  2017-01-04    Jodhpur     24
+12  2017-01-04  New Delhi     24
+13  2017-01-04     Shimla     24
+14  2017-01-04   Srinagar     24
+15  2017-01-05  Jaisalmer     24
+16  2017-01-05    Jodhpur     24
+17  2017-01-05  New Delhi     24
+18  2017-01-05     Shimla     24
+19  2017-01-05   Srinagar     24
+
+Missing values per column:
+Series([], dtype: int64)
+
 Computing adjacency matrix...
+Processing 1093 unique dates
+Total valid daily graphs: 1093
+Skipped dates by reason:
 
 Building model...
+Model: "model"
+__________________________________________________________________________________________________
+Layer (type)                    Output Shape         Param #     Connected to                     
+==================================================================================================
+input_1 (InputLayer)            [(None, 420)]        0                                            
+__________________________________________________________________________________________________
+input_2 (InputLayer)            [(None, None)]       0                                            
+__________________________________________________________________________________________________
+gcn_conv (GCNConv)              (None, 64)           26944       input_1[0][0]                    
+                                                                 input_2[0][0]                    
+__________________________________________________________________________________________________
+dropout (Dropout)               (None, 64)           0           gcn_conv[0][0]                   
+__________________________________________________________________________________________________
+gcn_conv_1 (GCNConv)            (None, 64)           4160        dropout[0][0]                    
+                                                                 input_2[0][0]                    
+__________________________________________________________________________________________________
+dropout_1 (Dropout)             (None, 64)           0           gcn_conv_1[0][0]                 
+__________________________________________________________________________________________________
+dense (Dense)                   (None, 12)           780         dropout_1[0][0]                  
+==================================================================================================
+Total params: 31,884
+Trainable params: 31,884
+Non-trainable params: 0
+__________________________________________________________________________________________________
+
+Training model...
+Epoch 1/20
