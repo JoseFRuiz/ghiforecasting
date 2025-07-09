@@ -1,8 +1,8 @@
-Date      = Wed Jul  9 09:03:08 AM EDT 2025
-host      = c0900a-s5
+Date      = Wed Jul  9 09:43:26 AM EDT 2025
+host      = c0900a-s15
 Directory = /blue/azare/jruizmunoz/ghiforecasting
 Loaded modules:
-Wed Jul  9 09:03:13 2025       
+Wed Jul  9 09:43:29 2025       
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 570.148.08             Driver Version: 570.148.08     CUDA Version: 12.8     |
 |-----------------------------------------+------------------------+----------------------+
@@ -10,8 +10,8 @@ Wed Jul  9 09:03:13 2025
 | Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
 |                                         |                        |               MIG M. |
 |=========================================+========================+======================|
-|   0  NVIDIA B200                    On  |   00000000:D1:00.0 Off |                    0 |
-| N/A   34C    P0            146W / 1000W |       0MiB / 183359MiB |      0%      Default |
+|   0  NVIDIA B200                    On  |   00000000:52:00.0 Off |                    0 |
+| N/A   29C    P0            140W / 1000W |       0MiB / 183359MiB |      0%      Default |
 |                                         |                        |             Disabled |
 +-----------------------------------------+------------------------+----------------------+
                                                                                          
@@ -325,6 +325,10 @@ Total valid daily graphs: 1093
 Skipped dates by reason:
 
 Building model...
+Number of features per node: 420
+Number of nodes per graph: 5
+Target shape: (1093, 12)
+Sample target shape: (12,)
 Model: "model"
 __________________________________________________________________________________________________
 Layer (type)                    Output Shape         Param #     Connected to                     
@@ -353,7 +357,7 @@ dense_1 (Dense)                 (None, 64)           8256        dropout_2[0][0]
 __________________________________________________________________________________________________
 i_in (InputLayer)               [(None,)]            0                                            
 __________________________________________________________________________________________________
-dense_2 (Dense)                 (None, 12)           780         dense_1[0][0]                    
+output (Dense)                  (None, 12)           780         dense_1[0][0]                    
 ==================================================================================================
 Total params: 48,460
 Trainable params: 48,460
@@ -361,4 +365,3 @@ Non-trainable params: 0
 __________________________________________________________________________________________________
 
 Training model...
-Epoch 1/20
