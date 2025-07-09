@@ -159,7 +159,10 @@ def build_daily_graphs(df_all, adj_matrix):
         
         if valid:
             x = np.stack(node_features, axis=0)
-            y = np.stack(node_targets, axis=0)
+            # Create a single target per graph by averaging across cities
+            # This gives us a single 12-hour forecast for the entire region
+            y = np.mean(node_targets, axis=0)
+            
             graphs.append(Graph(x=x, a=adj_matrix))
             targets.append(y)
         else:
