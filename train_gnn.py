@@ -91,17 +91,21 @@ def build_daily_graphs(df_all, adj_matrix):
     
     print(f"Processing {len(dates)} unique dates")
     
+    # Count how many dates are skipped and why
+    skipped_reasons = {}
+    
     for date in dates:
         node_features = []
         node_targets = []
         valid = True
+        skip_reason = None
         
         for city in CITIES:
             # Get data for this city and date
             df_city = df_all[(df_all["location"] == city) & (df_all['date'] == date)]
             
             if len(df_city) < 24:  # Need at least 24 hours
-                print(f"Skipping {date} for {city}: not enough data ({len(df_city)} rows, need 24)")
+                skip_reason = f"not enough data ({len(df_city)} rows, need 24)"
                 valid = False
                 break
             
@@ -114,22 +118,41 @@ def build_daily_graphs(df_all, adj_matrix):
             target_data = df_city.iloc[12:24]
             
             if len(target_data) < 12:
-                print(f"Skipping {date} for {city}: not enough target data ({len(target_data)} rows, need 12)")
+                skip_reason = f"not enough target data ({len(target_data)} rows, need 12)"
                 valid = False
                 break
             
-            # Check if target has any non-zero values
-            if (target_data['GHI'] <= 0).all():
-                print(f"Skipping {date} for {city}: all target GHI values are zero or negative")
+            # Check if target has any non-zero values (but be less strict)
+            if (target_data['GHI'] <= 0).sum() >= 11:  # Allow at least 1 non-zero value
+                skip_reason = f"all target GHI values are zero or negative"
                 valid = False
                 break
             
             # Create features from sequence data
             feature_cols = [col for col in sequence_data.columns if 'lag' in col or 'sin' in col or 'cos' in col]
+            
+            # Check if we have the required features
+            if len(feature_cols) == 0:
+                skip_reason = f"no feature columns found"
+                valid = False
+                break
+                
             X = sequence_data[feature_cols].values.flatten()
+            
+            # Check for NaN values in features
+            if np.isnan(X).any():
+                skip_reason = f"NaN values in features"
+                valid = False
+                break
             
             # Target is the GHI values for the next 12 hours
             y = target_data['GHI'].values
+            
+            # Check for NaN values in targets
+            if np.isnan(y).any():
+                skip_reason = f"NaN values in targets"
+                valid = False
+                break
             
             node_features.append(X)
             node_targets.append(y)
@@ -139,8 +162,35 @@ def build_daily_graphs(df_all, adj_matrix):
             y = np.stack(node_targets, axis=0)
             graphs.append(Graph(x=x, a=adj_matrix))
             targets.append(y)
+        else:
+            if skip_reason not in skipped_reasons:
+                skipped_reasons[skip_reason] = 0
+            skipped_reasons[skip_reason] += 1
 
     print(f"Total valid daily graphs: {len(graphs)}")
+    print(f"Skipped dates by reason:")
+    for reason, count in skipped_reasons.items():
+        print(f"  {reason}: {count} dates")
+    
+    if len(graphs) == 0:
+        print("\nWARNING: No valid graphs created!")
+        print("This could be due to:")
+        print("1. Insufficient data per day")
+        print("2. Missing feature columns")
+        print("3. NaN values in data")
+        print("4. All target values being zero")
+        
+        # Let's check a sample date to debug
+        if len(dates) > 0:
+            sample_date = dates[0]
+            print(f"\nDebugging sample date: {sample_date}")
+            for city in CITIES:
+                df_city = df_all[(df_all["location"] == city) & (df_all['date'] == sample_date)]
+                print(f"  {city}: {len(df_city)} rows")
+                if len(df_city) > 0:
+                    print(f"    Columns: {df_city.columns.tolist()}")
+                    print(f"    Feature cols: {[col for col in df_city.columns if 'lag' in col or 'sin' in col or 'cos' in col]}")
+    
     return graphs, np.array(targets), scaler
 
 class GHIDataset(Dataset):
@@ -198,11 +248,21 @@ def main():
     daily_counts = df_all.groupby(['date', 'location']).size().reset_index(name='count')
     print(f"\nDaily data counts (sample):")
     print(daily_counts.head(20))
+    
+    # Check for missing values
+    print(f"\nMissing values per column:")
+    missing_values = df_all.isnull().sum()
+    print(missing_values[missing_values > 0])
 
     print("\nComputing adjacency matrix...")
     adj_matrix = compute_weighted_adjacency(df_all, alpha=0.5)
 
     graphs, targets, ghi_scaler = build_daily_graphs(df_all, adj_matrix)
+    
+    if len(graphs) == 0:
+        print("ERROR: No valid graphs created. Exiting.")
+        return
+    
     dataset = GHIDataset(graphs, targets)
     loader = DisjointLoader(dataset, batch_size=8, epochs=1, shuffle=True)
 
