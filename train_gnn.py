@@ -208,16 +208,31 @@ class GHIDataset(Dataset):
 # GNN model
 # ----------------------------------------------
 def build_gnn_model(input_shape, output_units):
-    inputs = layers.Input(shape=input_shape)
-    a_input = layers.Input(shape=(None,), sparse=True)
-
-    x = GCNConv(64, activation='relu')([inputs, a_input])
+    # Create a model that can handle the DisjointLoader format
+    # The loader provides: [x, a, i] where x is node features, a is adjacency, i is batch indices
+    
+    # Input layers
+    x_in = layers.Input(shape=input_shape, name='x_in')
+    a_in = layers.Input(shape=(None,), sparse=True, name='a_in')
+    i_in = layers.Input(shape=(), dtype=tf.int64, name='i_in')
+    
+    # GNN layers
+    x = GCNConv(64, activation='relu')([x_in, a_in])
     x = layers.Dropout(0.2)(x)
-    x = GCNConv(64, activation='relu')([x, a_input])
+    x = GCNConv(64, activation='relu')([x, a_in])
     x = layers.Dropout(0.2)(x)
+    
+    # Global pooling to get graph-level representation
+    # Use mean pooling across nodes
+    x = layers.GlobalAveragePooling1D()(x)
+    
+    # Dense layers for final prediction
+    x = layers.Dense(128, activation='relu')(x)
+    x = layers.Dropout(0.3)(x)
+    x = layers.Dense(64, activation='relu')(x)
     outputs = layers.Dense(output_units)(x)
 
-    model = models.Model(inputs=[inputs, a_input], outputs=outputs)
+    model = models.Model(inputs=[x_in, a_in, i_in], outputs=outputs)
     model.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss='mse', metrics=['mae'])
     return model
 
