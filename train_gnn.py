@@ -275,6 +275,9 @@ def main():
 
     print("\nComputing adjacency matrix...")
     adj_matrix = compute_weighted_adjacency(df_all, alpha=0.5)
+    print(f"Adjacency matrix shape: {adj_matrix.shape}")
+    print(f"Adjacency matrix type: {type(adj_matrix)}")
+    print(f"Adjacency matrix sample values:\n{adj_matrix}")
 
     graphs, targets, ghi_scaler = build_daily_graphs(df_all, adj_matrix)
     
@@ -283,14 +286,28 @@ def main():
         return
     
     dataset = GHIDataset(graphs, targets)
+    print(f"Dataset size: {len(dataset)}")
+    
+    # Debug first graph
+    if len(dataset) > 0:
+        first_graph = dataset[0]
+        print(f"First graph x shape: {first_graph.x.shape}")
+        print(f"First graph a shape: {first_graph.a.shape}")
+        print(f"First graph y shape: {first_graph.y.shape}")
+        print(f"First graph a type: {type(first_graph.a)}")
+    
     loader = DisjointLoader(dataset, batch_size=8, epochs=1, shuffle=True)
 
     print("\nBuilding model...")
-    num_features = dataset[0].x.shape[1]
-    print(f"Number of features per node: {num_features}")
-    print(f"Number of nodes per graph: {dataset[0].x.shape[0]}")
-    print(f"Target shape: {targets.shape}")
-    print(f"Sample target shape: {targets[0].shape}")
+    if len(dataset) > 0:
+        num_features = dataset[0].x.shape[1]
+        print(f"Number of features per node: {num_features}")
+        print(f"Number of nodes per graph: {dataset[0].x.shape[0]}")
+        print(f"Target shape: {targets.shape}")
+        print(f"Sample target shape: {targets[0].shape}")
+    else:
+        print("ERROR: No graphs in dataset!")
+        return
     
     model = build_gnn_model(input_shape=(num_features,), output_units=FORECAST_HORIZON)
     model.summary()
@@ -305,14 +322,26 @@ def main():
         print(f"  Item {i}: {type(item)} - {item}")
     
     print(f"Sample batch shapes:")
-    print(f"  x: {sample_batch[0].shape}")
-    print(f"  a: {sample_batch[1].shape}")
-    print(f"  i: {sample_batch[2].shape}")
-    print(f"  y: {sample_batch[3].shape}")
+    # The DisjointLoader returns [x, a, i, y] where each is a tensor
+    if len(sample_batch) >= 4:
+        print(f"  x: {sample_batch[0].shape}")
+        print(f"  a: {sample_batch[1].shape}")
+        print(f"  i: {sample_batch[2].shape}")
+        print(f"  y: {sample_batch[3].shape}")
+    else:
+        print(f"  Unexpected batch format: {len(sample_batch)} items")
+        for i, item in enumerate(sample_batch):
+            if hasattr(item, 'shape'):
+                print(f"  Item {i} shape: {item.shape}")
+            else:
+                print(f"  Item {i} has no shape attribute")
     
-    # Test model prediction
-    sample_pred = model.predict(sample_batch[:3])
-    print(f"Model output shape: {sample_pred.shape}")
+    # Test model prediction - pass the first 3 elements (x, a, i)
+    if len(sample_batch) >= 3:
+        sample_pred = model.predict([sample_batch[0], sample_batch[1], sample_batch[2]])
+        print(f"Model output shape: {sample_pred.shape}")
+    else:
+        print("Cannot test model prediction - insufficient batch elements")
     
     model.fit(loader.load(), steps_per_epoch=loader.steps_per_epoch, epochs=20)
 
