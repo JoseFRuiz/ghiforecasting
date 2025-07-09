@@ -233,7 +233,8 @@ def build_gnn_model(input_shape, output_units):
     x = layers.Dense(128, activation='relu')(x)
     x = layers.Dropout(0.3)(x)
     x = layers.Dense(64, activation='relu')(x)
-    outputs = layers.Dense(output_units)(x)
+    # Ensure output has the correct shape for 12-hour forecast
+    outputs = layers.Dense(output_units, name='output')(x)
 
     model = models.Model(inputs=[x_in, a_in, i_in], outputs=outputs)
     model.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss='mse', metrics=['mae'])
@@ -286,10 +287,27 @@ def main():
 
     print("\nBuilding model...")
     num_features = dataset[0].x.shape[1]
+    print(f"Number of features per node: {num_features}")
+    print(f"Number of nodes per graph: {dataset[0].x.shape[0]}")
+    print(f"Target shape: {targets.shape}")
+    print(f"Sample target shape: {targets[0].shape}")
+    
     model = build_gnn_model(input_shape=(num_features,), output_units=FORECAST_HORIZON)
     model.summary()
 
     print("\nTraining model...")
+    # Test the model with a sample batch to check shapes
+    sample_batch = next(loader.load())
+    print(f"Sample batch shapes:")
+    print(f"  x: {sample_batch[0].shape}")
+    print(f"  a: {sample_batch[1].shape}")
+    print(f"  i: {sample_batch[2].shape}")
+    print(f"  y: {sample_batch[3].shape}")
+    
+    # Test model prediction
+    sample_pred = model.predict(sample_batch[:3])
+    print(f"Model output shape: {sample_pred.shape}")
+    
     model.fit(loader.load(), steps_per_epoch=loader.steps_per_epoch, epochs=20)
 
     model.save("models/gnn_ghi_forecast.h5")
