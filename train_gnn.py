@@ -372,7 +372,12 @@ def main():
                 print(f"Batch type: {type(batch)}")
                 print(f"Batch length: {len(batch)}")
                 for i, item in enumerate(batch):
-                    print(f"  Batch item {i}: {type(item)} - {item}")
+                    print(f"  Batch item {i}: {type(item)}")
+                    if hasattr(item, 'shape'):
+                        print(f"    Shape: {item.shape}")
+                    if hasattr(item, 'dtype'):
+                        print(f"    Dtype: {item.dtype}")
+                    print(f"    Value: {item}")
             
             # Handle different batch formats
             if len(batch) == 4:
@@ -391,6 +396,25 @@ def main():
             
             with tf.GradientTape() as tape:
                 y_pred = model([x, a, i], training=True)
+                
+                # Debug shapes
+                if num_batches == 0:  # Only print for first batch of first epoch
+                    print(f"y_true shape: {y_true.shape}")
+                    print(f"y_pred shape: {y_pred.shape}")
+                    print(f"y_true dtype: {y_true.dtype}")
+                    print(f"y_pred dtype: {y_pred.dtype}")
+                    print(f"y_true sample values: {y_true[:2] if len(y_true.shape) > 0 else y_true}")
+                    print(f"y_pred sample values: {y_pred[:2] if len(y_pred.shape) > 0 else y_pred}")
+                
+                # Ensure shapes match
+                if y_true.shape != y_pred.shape:
+                    print(f"Shape mismatch! y_true: {y_true.shape}, y_pred: {y_pred.shape}")
+                    # Try to reshape if possible
+                    if len(y_true.shape) == 1 and len(y_pred.shape) == 2:
+                        y_true = tf.expand_dims(y_true, axis=0)
+                    elif len(y_pred.shape) == 1 and len(y_true.shape) == 2:
+                        y_pred = tf.expand_dims(y_pred, axis=0)
+                
                 loss = loss_fn(y_true, y_pred)
             
             gradients = tape.gradient(loss, model.trainable_variables)
