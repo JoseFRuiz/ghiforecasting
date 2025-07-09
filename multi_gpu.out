@@ -1,8 +1,8 @@
-Date      = Wed Jul  9 08:50:44 AM EDT 2025
-host      = c0900a-s25
+Date      = Wed Jul  9 09:03:08 AM EDT 2025
+host      = c0900a-s5
 Directory = /blue/azare/jruizmunoz/ghiforecasting
 Loaded modules:
-Wed Jul  9 08:50:51 2025       
+Wed Jul  9 09:03:13 2025       
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 570.148.08             Driver Version: 570.148.08     CUDA Version: 12.8     |
 |-----------------------------------------+------------------------+----------------------+
@@ -10,8 +10,8 @@ Wed Jul  9 08:50:51 2025
 | Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
 |                                         |                        |               MIG M. |
 |=========================================+========================+======================|
-|   0  NVIDIA B200                    On  |   00000000:9D:00.0 Off |                    0 |
-| N/A   28C    P0            141W / 1000W |       0MiB / 183359MiB |      0%      Default |
+|   0  NVIDIA B200                    On  |   00000000:D1:00.0 Off |                    0 |
+| N/A   34C    P0            146W / 1000W |       0MiB / 183359MiB |      0%      Default |
 |                                         |                        |             Disabled |
 +-----------------------------------------+------------------------+----------------------+
                                                                                          
