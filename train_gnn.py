@@ -222,9 +222,9 @@ def build_gnn_model(input_shape, output_units):
     x = GCNConv(64, activation='relu')([x, a_in])
     x = layers.Dropout(0.2)(x)
     
-    # Global pooling to get graph-level representation
-    # Use mean pooling across nodes
-    x = layers.GlobalAveragePooling1D()(x)
+    # Since we have 5 cities (nodes), we can directly use the node features
+    # Each node represents a city, so we can flatten and use dense layers
+    x = layers.Flatten()(x)
     
     # Dense layers for final prediction
     x = layers.Dense(128, activation='relu')(x)
