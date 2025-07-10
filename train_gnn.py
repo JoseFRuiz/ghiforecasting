@@ -312,6 +312,25 @@ def main():
     
     model = build_gnn_model(input_shape=(num_features,), output_units=FORECAST_HORIZON)
     model.summary()
+    
+    # Test model compilation
+    print("\nTesting model compilation...")
+    try:
+        # Create dummy inputs to test the model
+        dummy_x = tf.random.normal((1, 5, num_features))  # 1 batch, 5 nodes, num_features
+        dummy_a = tf.sparse.SparseTensor(
+            indices=[[0, 0], [0, 1], [1, 1], [2, 2], [3, 3], [4, 4]], 
+            values=[1.0, 0.5, 1.0, 1.0, 1.0, 1.0], 
+            dense_shape=[5, 5]
+        )
+        dummy_i = tf.constant([0, 0, 0, 0, 0])  # batch indices
+        
+        dummy_output = model([dummy_x, dummy_a, dummy_i])
+        print(f"Dummy output shape: {dummy_output.shape}")
+        print("Model compilation successful!")
+    except Exception as e:
+        print(f"Model compilation failed: {e}")
+        return
 
     print("\nTraining model...")
     # Test the model with a sample batch to check shapes
@@ -378,6 +397,17 @@ def main():
                     if hasattr(item, 'dtype'):
                         print(f"    Dtype: {item.dtype}")
                     print(f"    Value: {item}")
+                    
+                    # Additional debugging for targets (item 3)
+                    if i == 3 and hasattr(item, 'numpy'):
+                        print(f"    Target numpy shape: {item.numpy().shape}")
+                        print(f"    Target numpy dtype: {item.numpy().dtype}")
+                        print(f"    First target: {item.numpy()[0]}")
+                        if len(item.numpy()) > 0:
+                            first_target = item.numpy()[0]
+                            print(f"    First target type: {type(first_target)}")
+                            print(f"    First target shape: {first_target.shape if hasattr(first_target, 'shape') else 'no shape'}")
+                            print(f"    First target value: {first_target}")
             
             # Handle different batch formats
             if len(batch) == 4:
@@ -406,20 +436,55 @@ def main():
                     print(f"y_true sample values: {y_true[:2] if len(y_true.shape) > 0 else y_true}")
                     print(f"y_pred sample values: {y_pred[:2] if len(y_pred.shape) > 0 else y_pred}")
                 
-                # Ensure shapes match
+                # Handle shape mismatch - the DisjointLoader returns targets in a different format
+                # y_true from DisjointLoader is typically (batch_size,) with each element being a target
+                # y_pred from model is (batch_size, output_units)
+                
+                # Convert y_true to the same shape as y_pred
+                if len(y_true.shape) == 1:
+                    # If y_true is 1D, we need to expand it to match y_pred's 2D shape
+                    # Each element in y_true should be a target array of length output_units
+                    y_true_reshaped = []
+                    for target in y_true:
+                        if hasattr(target, 'numpy'):
+                            target_array = target.numpy()
+                        else:
+                            target_array = target
+                        # Ensure target_array is the right shape
+                        if len(target_array.shape) == 0:  # scalar
+                            # This shouldn't happen, but handle it
+                            target_array = np.array([target_array] * FORECAST_HORIZON)
+                        elif len(target_array.shape) == 1:
+                            # This is what we expect - a 1D array of length FORECAST_HORIZON
+                            if target_array.shape[0] != FORECAST_HORIZON:
+                                print(f"Warning: target_array shape {target_array.shape} != FORECAST_HORIZON {FORECAST_HORIZON}")
+                                # Pad or truncate to match
+                                if target_array.shape[0] < FORECAST_HORIZON:
+                                    target_array = np.pad(target_array, (0, FORECAST_HORIZON - target_array.shape[0]), 'constant')
+                                else:
+                                    target_array = target_array[:FORECAST_HORIZON]
+                        y_true_reshaped.append(target_array)
+                    
+                    y_true = tf.convert_to_tensor(y_true_reshaped, dtype=tf.float32)
+                
+                # Final shape check
                 if y_true.shape != y_pred.shape:
-                    print(f"Shape mismatch! y_true: {y_true.shape}, y_pred: {y_pred.shape}")
-                    # Try to reshape if possible
-                    if len(y_true.shape) == 1 and len(y_pred.shape) == 2:
-                        y_true = tf.expand_dims(y_true, axis=0)
-                    elif len(y_pred.shape) == 1 and len(y_true.shape) == 2:
-                        y_pred = tf.expand_dims(y_pred, axis=0)
+                    print(f"Final shape mismatch! y_true: {y_true.shape}, y_pred: {y_pred.shape}")
+                    # Force reshape if needed
+                    if len(y_true.shape) == 2 and len(y_pred.shape) == 2:
+                        if y_true.shape[1] != y_pred.shape[1]:
+                            # Truncate or pad to match
+                            if y_true.shape[1] > y_pred.shape[1]:
+                                y_true = y_true[:, :y_pred.shape[1]]
+                            else:
+                                y_true = tf.pad(y_true, [[0, 0], [0, y_pred.shape[1] - y_true.shape[1]]])
                 
                 loss = loss_fn(y_true, y_pred)
             
             gradients = tape.gradient(loss, model.trainable_variables)
             optimizer.apply_gradients(zip(gradients, model.trainable_variables))
             
+            # Use the same reshaped y_true for MAE calculation
             mae_metric.update_state(y_true, y_pred)
             epoch_loss += loss.numpy()
             num_batches += 1
