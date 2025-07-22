@@ -317,7 +317,7 @@ def main():
     print("\nTesting model compilation...")
     try:
         # Create dummy inputs to test the model
-        dummy_x = tf.random.normal((1, 5, num_features))  # 1 batch, 5 nodes, num_features
+        dummy_x = tf.random.normal((5, num_features))  # 5 nodes, num_features
         dummy_a = tf.sparse.SparseTensor(
             indices=[[0, 0], [0, 1], [1, 1], [2, 2], [3, 3], [4, 4]], 
             values=[1.0, 0.5, 1.0, 1.0, 1.0, 1.0], 
