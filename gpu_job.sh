@@ -6,7 +6,7 @@
 #SBATCH --mail-user=jfruizmu@unal.edu.co
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4  # Increased for better data loading
+#SBATCH --cpus-per-task=1  # Increased for better data loading
 #SBATCH --ntasks-per-node=1
 #SBATCH --ntasks-per-socket=1
 #SBATCH --mem-per-cpu=20000mb
