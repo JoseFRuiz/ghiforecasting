@@ -1,13 +1,34 @@
 
+The following have been reloaded with a version change:
+  1) cuda/12.9.1 => cuda/12.4.1
+
+
 Currently Loaded Modules:
-  1) tensorflow/2.6.0
+  1) cuda/12.4.1   2) tensorflow/2.18
 
  
 
-2025-07-22 04:08:36.654968: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1938] TensorFlow was not built with CUDA kernel binaries compatible with compute capability 10.0. CUDA kernels will be jit-compiled from PTX, which could take 30 minutes or longer.
-2025-07-22 04:09:32.709928: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1938] TensorFlow was not built with CUDA kernel binaries compatible with compute capability 10.0. CUDA kernels will be jit-compiled from PTX, which could take 30 minutes or longer.
-2025-07-22 04:09:32.710372: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
-To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2025-07-22 04:09:32.720304: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1938] TensorFlow was not built with CUDA kernel binaries compatible with compute capability 10.0. CUDA kernels will be jit-compiled from PTX, which could take 30 minutes or longer.
-2025-07-22 04:15:58.452633: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1510] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 180450 MB memory:  -> device: 0, name: NVIDIA B200, pci bus id: 0000:9d:00.0, compute capability: 10.0
+2025-07-24 03:05:40.799516: E tensorflow/stream_executor/cuda/cuda_driver.cc:271] failed call to cuInit: CUDA_ERROR_UNKNOWN: unknown error
 <frozen importlib._bootstrap>:219: RuntimeWarning: scipy._lib.messagestream.MessageStream size changed, may indicate binary incompatibility. Expected 56 from C header, got 64 from PyObject
+2025-07-24 03:05:49.503403: E tensorflow/stream_executor/cuda/cuda_driver.cc:271] failed call to cuInit: CUDA_ERROR_UNKNOWN: unknown error
+2025-07-24 03:06:41.803115: E tensorflow/stream_executor/cuda/cuda_driver.cc:271] failed call to cuInit: CUDA_ERROR_UNKNOWN: unknown error
+<frozen importlib._bootstrap>:219: RuntimeWarning: scipy._lib.messagestream.MessageStream size changed, may indicate binary incompatibility. Expected 56 from C header, got 64 from PyObject
+Traceback (most recent call last):
+  File "train_gnn.py", line 509, in <module>
+    main()
+  File "train_gnn.py", line 482, in main
+    loss = loss_fn(y_true, y_pred)
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/losses.py", line 141, in __call__
+    losses = call_fn(y_true, y_pred)
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/losses.py", line 245, in call
+    return ag_fn(y_true, y_pred, **self._fn_kwargs)
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/tensorflow/python/util/dispatch.py", line 206, in wrapper
+    return target(*args, **kwargs)
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/losses.py", line 1204, in mean_squared_error
+    return backend.mean(tf.math.squared_difference(y_pred, y_true), axis=-1)
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/tensorflow/python/ops/gen_math_ops.py", line 10497, in squared_difference
+    _ops.raise_from_not_ok_status(e, name)
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/tensorflow/python/framework/ops.py", line 6941, in raise_from_not_ok_status
+    six.raise_from(core._status_to_exception(e.code, message), None)
+  File "<string>", line 3, in raise_from
+tensorflow.python.framework.errors_impl.InvalidArgumentError: Incompatible shapes: [40,12] vs. [8,12] [Op:SquaredDifference]
