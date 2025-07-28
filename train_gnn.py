@@ -225,9 +225,33 @@ def build_gnn_model(input_shape, output_units):
     x = GCNConv(64, activation='relu')([x, a_in])
     x = layers.Dropout(0.2)(x)
     
-    # Since we have 5 cities (nodes), we can directly use the node features
-    # Each node represents a city, so we can flatten and use dense layers
-    x = layers.Flatten()(x)
+    # Custom aggregation layer to group nodes by graph
+    # We'll use a Lambda layer to implement graph-wise pooling
+    def aggregate_nodes(inputs):
+        node_features, batch_indices = inputs
+        # Get unique batch indices to determine number of graphs
+        unique_batches = tf.unique(batch_indices)[0]
+        num_graphs = tf.shape(unique_batches)[0]
+        
+        # Initialize output tensor
+        graph_features = tf.zeros((num_graphs, tf.shape(node_features)[1]))
+        
+        # Aggregate features for each graph
+        for i in range(num_graphs):
+            # Get nodes belonging to this graph
+            mask = tf.equal(batch_indices, unique_batches[i])
+            graph_nodes = tf.boolean_mask(node_features, mask)
+            # Average the node features for this graph
+            graph_features = tf.tensor_scatter_nd_update(
+                graph_features, 
+                [[i]], 
+                [tf.reduce_mean(graph_nodes, axis=0)]
+            )
+        
+        return graph_features
+    
+    # Apply the aggregation
+    x = layers.Lambda(aggregate_nodes)([x, i_in])
     
     # Dense layers for final prediction
     x = layers.Dense(128, activation='relu')(x)
@@ -436,14 +460,13 @@ def main():
                     print(f"y_true sample values: {y_true[:2] if len(y_true.shape) > 0 else y_true}")
                     print(f"y_pred sample values: {y_pred[:2] if len(y_pred.shape) > 0 else y_pred}")
                 
-                # Handle shape mismatch - the DisjointLoader returns targets in a different format
-                # y_true from DisjointLoader is typically (batch_size,) with each element being a target
+                # The model now outputs one prediction per graph, so we need to reshape y_true accordingly
+                # y_true from DisjointLoader is (batch_size,) where each element is a target array
                 # y_pred from model is (batch_size, output_units)
                 
-                # Convert y_true to the same shape as y_pred
+                # Convert y_true to the correct shape
                 if len(y_true.shape) == 1:
-                    # If y_true is 1D, we need to expand it to match y_pred's 2D shape
-                    # Each element in y_true should be a target array of length output_units
+                    # Each element in y_true is a target array of length FORECAST_HORIZON
                     y_true_reshaped = []
                     for target in y_true:
                         if hasattr(target, 'numpy'):
@@ -452,12 +475,9 @@ def main():
                             target_array = target
                         # Ensure target_array is the right shape
                         if len(target_array.shape) == 0:  # scalar
-                            # This shouldn't happen, but handle it
                             target_array = np.array([target_array] * FORECAST_HORIZON)
                         elif len(target_array.shape) == 1:
-                            # This is what we expect - a 1D array of length FORECAST_HORIZON
                             if target_array.shape[0] != FORECAST_HORIZON:
-                                print(f"Warning: target_array shape {target_array.shape} != FORECAST_HORIZON {FORECAST_HORIZON}")
                                 # Pad or truncate to match
                                 if target_array.shape[0] < FORECAST_HORIZON:
                                     target_array = np.pad(target_array, (0, FORECAST_HORIZON - target_array.shape[0]), 'constant')
@@ -467,17 +487,11 @@ def main():
                     
                     y_true = tf.convert_to_tensor(y_true_reshaped, dtype=tf.float32)
                 
-                # Final shape check
+                # Ensure shapes match
                 if y_true.shape != y_pred.shape:
-                    print(f"Final shape mismatch! y_true: {y_true.shape}, y_pred: {y_pred.shape}")
-                    # Force reshape if needed
-                    if len(y_true.shape) == 2 and len(y_pred.shape) == 2:
-                        if y_true.shape[1] != y_pred.shape[1]:
-                            # Truncate or pad to match
-                            if y_true.shape[1] > y_pred.shape[1]:
-                                y_true = y_true[:, :y_pred.shape[1]]
-                            else:
-                                y_true = tf.pad(y_true, [[0, 0], [0, y_pred.shape[1] - y_true.shape[1]]])
+                    print(f"Shape mismatch! y_true: {y_true.shape}, y_pred: {y_pred.shape}")
+                    # The model should now output the correct shape, so this shouldn't happen
+                    continue
                 
                 loss = loss_fn(y_true, y_pred)
             
