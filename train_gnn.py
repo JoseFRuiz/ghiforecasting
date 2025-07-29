@@ -233,22 +233,15 @@ def build_gnn_model(input_shape, output_units):
         unique_batches = tf.unique(batch_indices)[0]
         num_graphs = tf.shape(unique_batches)[0]
         
-        # Initialize output tensor
-        graph_features = tf.zeros((num_graphs, tf.shape(node_features)[1]))
+        # Use tf.unsorted_segment_mean to aggregate features per graph
+        # This is more efficient than loops
+        aggregated_features = tf.unsorted_segment_mean(
+            node_features, 
+            batch_indices, 
+            num_segments=tf.reduce_max(batch_indices) + 1
+        )
         
-        # Aggregate features for each graph
-        for i in range(num_graphs):
-            # Get nodes belonging to this graph
-            mask = tf.equal(batch_indices, unique_batches[i])
-            graph_nodes = tf.boolean_mask(node_features, mask)
-            # Average the node features for this graph
-            graph_features = tf.tensor_scatter_nd_update(
-                graph_features, 
-                [[i]], 
-                [tf.reduce_mean(graph_nodes, axis=0)]
-            )
-        
-        return graph_features
+        return aggregated_features
     
     # Apply the aggregation
     x = layers.Lambda(aggregate_nodes)([x, i_in])
