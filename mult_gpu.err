@@ -8,27 +8,25 @@ Currently Loaded Modules:
 
  
 
-2025-07-24 03:05:40.799516: E tensorflow/stream_executor/cuda/cuda_driver.cc:271] failed call to cuInit: CUDA_ERROR_UNKNOWN: unknown error
 <frozen importlib._bootstrap>:219: RuntimeWarning: scipy._lib.messagestream.MessageStream size changed, may indicate binary incompatibility. Expected 56 from C header, got 64 from PyObject
-2025-07-24 03:05:49.503403: E tensorflow/stream_executor/cuda/cuda_driver.cc:271] failed call to cuInit: CUDA_ERROR_UNKNOWN: unknown error
-2025-07-24 03:06:41.803115: E tensorflow/stream_executor/cuda/cuda_driver.cc:271] failed call to cuInit: CUDA_ERROR_UNKNOWN: unknown error
 <frozen importlib._bootstrap>:219: RuntimeWarning: scipy._lib.messagestream.MessageStream size changed, may indicate binary incompatibility. Expected 56 from C header, got 64 from PyObject
 Traceback (most recent call last):
-  File "train_gnn.py", line 509, in <module>
+  File "train_gnn.py", line 523, in <module>
     main()
-  File "train_gnn.py", line 482, in main
-    loss = loss_fn(y_true, y_pred)
-  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/losses.py", line 141, in __call__
-    losses = call_fn(y_true, y_pred)
-  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/losses.py", line 245, in call
-    return ag_fn(y_true, y_pred, **self._fn_kwargs)
-  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/tensorflow/python/util/dispatch.py", line 206, in wrapper
-    return target(*args, **kwargs)
-  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/losses.py", line 1204, in mean_squared_error
-    return backend.mean(tf.math.squared_difference(y_pred, y_true), axis=-1)
-  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/tensorflow/python/ops/gen_math_ops.py", line 10497, in squared_difference
-    _ops.raise_from_not_ok_status(e, name)
-  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/tensorflow/python/framework/ops.py", line 6941, in raise_from_not_ok_status
-    six.raise_from(core._status_to_exception(e.code, message), None)
-  File "<string>", line 3, in raise_from
-tensorflow.python.framework.errors_impl.InvalidArgumentError: Incompatible shapes: [40,12] vs. [8,12] [Op:SquaredDifference]
+  File "train_gnn.py", line 337, in main
+    model = build_gnn_model(input_shape=(num_features,), output_units=FORECAST_HORIZON)
+  File "train_gnn.py", line 254, in build_gnn_model
+    x = layers.Lambda(aggregate_nodes)([x, i_in])
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/engine/base_layer.py", line 976, in __call__
+    return self._functional_construction_call(inputs, args, kwargs,
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/engine/base_layer.py", line 1114, in _functional_construction_call
+    outputs = self._keras_tensor_symbolic_call(
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/engine/base_layer.py", line 848, in _keras_tensor_symbolic_call
+    return self._infer_output_signature(inputs, args, kwargs, input_masks)
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/engine/base_layer.py", line 888, in _infer_output_signature
+    outputs = call_fn(inputs, *args, **kwargs)
+  File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/layers/core.py", line 903, in call
+    result = self.function(inputs, **kwargs)
+  File "train_gnn.py", line 240, in aggregate_nodes
+    for i in range(num_graphs):
+TypeError: 'Tensor' object cannot be interpreted as an integer
