@@ -351,43 +351,33 @@ def main():
 
     print("\nTraining model...")
     # Test the model with a sample batch to check shapes
-    sample_batch = next(iter(loader.load()))
+    sample_batch = next(iter(loader))
     print(f"Sample batch type: {type(sample_batch)}")
     print(f"Sample batch length: {len(sample_batch)}")
-    print(f"Sample batch contents:")
-    for i, item in enumerate(sample_batch):
-        print(f"  Item {i}: {type(item)} - {item}")
     
-    print(f"Sample batch shapes:")
-    # The DisjointLoader returns [x, a, i, y] where each is a tensor
-    if len(sample_batch) >= 4:
-        print(f"  x: {sample_batch[0].shape}")
-        print(f"  a: {sample_batch[1].shape}")
-        print(f"  i: {sample_batch[2].shape}")
-        print(f"  y: {sample_batch[3].shape}")
+    # Handle the actual batch format from DisjointLoader
+    if len(sample_batch) == 2:
+        inputs, y_true = sample_batch
+        x, a, i = inputs
+        print(f"Batch format: (inputs, y_true) where inputs = (x, a, i)")
+        print(f"  x shape: {x.shape}")
+        print(f"  a shape: {a.shape}")
+        print(f"  i shape: {i.shape}")
+        print(f"  y_true shape: {y_true.shape}")
+        
+        # Test model prediction
+        sample_pred = model([x, a, i])
+        print(f"Model output shape: {sample_pred.shape}")
+        print(f"Target shape: {y_true.shape}")
+        if y_true.shape != sample_pred.shape:
+            print(f"WARNING: Shape mismatch! Targets: {y_true.shape}, Predictions: {sample_pred.shape}")
     else:
-        print(f"  Unexpected batch format: {len(sample_batch)} items")
+        print(f"Unexpected batch format: {len(sample_batch)} items")
         for i, item in enumerate(sample_batch):
             if hasattr(item, 'shape'):
                 print(f"  Item {i} shape: {item.shape}")
             else:
                 print(f"  Item {i} has no shape attribute")
-    
-    # Test model prediction - pass the first 3 elements (x, a, i)
-    if len(sample_batch) >= 3:
-        sample_pred = model.predict([sample_batch[0], sample_batch[1], sample_batch[2]])
-        print(f"Model output shape: {sample_pred.shape}")
-        
-        # Check if shapes match
-        if len(sample_batch) >= 4:
-            target_shape = sample_batch[3].shape
-            pred_shape = sample_pred.shape
-            print(f"Target shape: {target_shape}")
-            print(f"Prediction shape: {pred_shape}")
-            if target_shape != pred_shape:
-                print(f"WARNING: Shape mismatch! Targets: {target_shape}, Predictions: {pred_shape}")
-    else:
-        print("Cannot test model prediction - insufficient batch elements")
     
     # Create a custom training loop to handle the shape mismatch
     print("\nStarting training with custom loop...")
