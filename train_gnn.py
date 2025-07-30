@@ -314,7 +314,7 @@ def main():
         print(f"First graph y shape: {first_graph.y.shape}")
         print(f"First graph a type: {type(first_graph.a)}")
     
-    loader = DisjointLoader(dataset, batch_size=8, epochs=1, shuffle=True)
+    loader = DisjointLoader(dataset, batch_size=8, shuffle=True)
 
     print("\nBuilding model...")
     if len(dataset) > 0:
