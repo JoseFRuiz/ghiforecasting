@@ -402,105 +402,22 @@ def main():
         epoch_mae = 0.0
         num_batches = 0
         
-        for batch in loader.load():
-            # Debug the batch structure
-            if num_batches == 0:  # Only print for first batch of first epoch
-                print(f"Batch type: {type(batch)}")
-                print(f"Batch length: {len(batch)}")
-                for i, item in enumerate(batch):
-                    print(f"  Batch item {i}: {type(item)}")
-                    if hasattr(item, 'shape'):
-                        print(f"    Shape: {item.shape}")
-                    if hasattr(item, 'dtype'):
-                        print(f"    Dtype: {item.dtype}")
-                    print(f"    Value: {item}")
-                    
-                    # Additional debugging for targets (item 3)
-                    if i == 3 and hasattr(item, 'numpy'):
-                        print(f"    Target numpy shape: {item.numpy().shape}")
-                        print(f"    Target numpy dtype: {item.numpy().dtype}")
-                        print(f"    First target: {item.numpy()[0]}")
-                        if len(item.numpy()) > 0:
-                            first_target = item.numpy()[0]
-                            print(f"    First target type: {type(first_target)}")
-                            print(f"    First target shape: {first_target.shape if hasattr(first_target, 'shape') else 'no shape'}")
-                            print(f"    First target value: {first_target}")
-            
-            # Handle different batch formats
-            if len(batch) == 4:
-                x, a, i, y_true = batch
-            elif len(batch) == 2:
-                # If batch has only 2 items, it might be (inputs, targets)
-                inputs, y_true = batch
-                if isinstance(inputs, (list, tuple)) and len(inputs) >= 3:
-                    x, a, i = inputs[0], inputs[1], inputs[2]
-                else:
-                    print(f"Unexpected batch format: {batch}")
-                    continue
-            else:
-                print(f"Unexpected batch length: {len(batch)}")
-                continue
-            
+        for batch in loader:
+            inputs, y_true = batch
+            x, a, i = inputs
+            y_true = tf.cast(y_true, tf.float32)
             with tf.GradientTape() as tape:
                 y_pred = model([x, a, i], training=True)
-                
-                # Debug shapes
-                if num_batches == 0:  # Only print for first batch of first epoch
-                    print(f"y_true shape: {y_true.shape}")
-                    print(f"y_pred shape: {y_pred.shape}")
-                    print(f"y_true dtype: {y_true.dtype}")
-                    print(f"y_pred dtype: {y_pred.dtype}")
-                    print(f"y_true sample values: {y_true[:2] if len(y_true.shape) > 0 else y_true}")
-                    print(f"y_pred sample values: {y_pred[:2] if len(y_pred.shape) > 0 else y_pred}")
-                
-                # The model now outputs one prediction per graph, so we need to reshape y_true accordingly
-                # y_true from DisjointLoader is (batch_size,) where each element is a target array
-                # y_pred from model is (batch_size, output_units)
-                
-                # Convert y_true to the correct shape
-                if len(y_true.shape) == 1:
-                    # Each element in y_true is a target array of length FORECAST_HORIZON
-                    y_true_reshaped = []
-                    for target in y_true:
-                        if hasattr(target, 'numpy'):
-                            target_array = target.numpy()
-                        else:
-                            target_array = target
-                        # Ensure target_array is the right shape
-                        if len(target_array.shape) == 0:  # scalar
-                            target_array = np.array([target_array] * FORECAST_HORIZON)
-                        elif len(target_array.shape) == 1:
-                            if target_array.shape[0] != FORECAST_HORIZON:
-                                # Pad or truncate to match
-                                if target_array.shape[0] < FORECAST_HORIZON:
-                                    target_array = np.pad(target_array, (0, FORECAST_HORIZON - target_array.shape[0]), 'constant')
-                                else:
-                                    target_array = target_array[:FORECAST_HORIZON]
-                        y_true_reshaped.append(target_array)
-                    
-                    y_true = tf.convert_to_tensor(y_true_reshaped, dtype=tf.float32)
-                
-                # Ensure shapes match
-                if y_true.shape != y_pred.shape:
-                    print(f"Shape mismatch! y_true: {y_true.shape}, y_pred: {y_pred.shape}")
-                    # The model should now output the correct shape, so this shouldn't happen
-                    continue
-                
                 loss = loss_fn(y_true, y_pred)
-            
             gradients = tape.gradient(loss, model.trainable_variables)
             optimizer.apply_gradients(zip(gradients, model.trainable_variables))
-            
-            # Use the same reshaped y_true for MAE calculation
             mae_metric.update_state(y_true, y_pred)
             epoch_loss += loss.numpy()
             num_batches += 1
-        
         if num_batches > 0:
             epoch_loss /= num_batches
             epoch_mae = mae_metric.result().numpy()
             mae_metric.reset_states()
-            
             print(f"Epoch {epoch+1}/20 - Loss: {epoch_loss:.4f} - MAE: {epoch_mae:.4f}")
         else:
             print(f"Epoch {epoch+1}/20 - No valid batches processed")
