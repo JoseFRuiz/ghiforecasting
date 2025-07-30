@@ -233,9 +233,9 @@ def build_gnn_model(input_shape, output_units):
         unique_batches = tf.unique(batch_indices)[0]
         num_graphs = tf.shape(unique_batches)[0]
         
-        # Use tf.unsorted_segment_mean to aggregate features per graph
+        # Use tf.math.unsorted_segment_mean to aggregate features per graph
         # This is more efficient than loops
-        aggregated_features = tf.unsorted_segment_mean(
+        aggregated_features = tf.math.unsorted_segment_mean(
             node_features, 
             batch_indices, 
             num_segments=tf.reduce_max(batch_indices) + 1

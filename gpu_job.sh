@@ -7,13 +7,11 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1  # Increased for better data loading
-#SBATCH --ntasks-per-node=1
-#SBATCH --ntasks-per-socket=1
 #SBATCH --mem-per-cpu=20000mb
-#SBATCH --distribution=cyclic:cyclic
-#SBATCH --partition=hpg-b200 # instead of gpu
-#SBATCH --gres=gpu:1
+#SBATCH --gpus=1
 #SBATCH --time=96:00:00
+
+# If you want to use the hpg-b200 partition, uncomment the following line and place above # SBATCH --partition=hpg-b200 # SBATCH --gres=gpu:1
 
 echo "Date      = $(date)"
 echo "host      = $(hostname -s)"
