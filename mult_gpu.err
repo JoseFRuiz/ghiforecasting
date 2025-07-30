@@ -11,11 +11,11 @@ Currently Loaded Modules:
 <frozen importlib._bootstrap>:219: RuntimeWarning: scipy._lib.messagestream.MessageStream size changed, may indicate binary incompatibility. Expected 56 from C header, got 64 from PyObject
 <frozen importlib._bootstrap>:219: RuntimeWarning: scipy._lib.messagestream.MessageStream size changed, may indicate binary incompatibility. Expected 56 from C header, got 64 from PyObject
 Traceback (most recent call last):
-  File "train_gnn.py", line 523, in <module>
+  File "train_gnn.py", line 516, in <module>
     main()
-  File "train_gnn.py", line 337, in main
+  File "train_gnn.py", line 330, in main
     model = build_gnn_model(input_shape=(num_features,), output_units=FORECAST_HORIZON)
-  File "train_gnn.py", line 254, in build_gnn_model
+  File "train_gnn.py", line 247, in build_gnn_model
     x = layers.Lambda(aggregate_nodes)([x, i_in])
   File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/engine/base_layer.py", line 976, in __call__
     return self._functional_construction_call(inputs, args, kwargs,
@@ -27,6 +27,6 @@ Traceback (most recent call last):
     outputs = call_fn(inputs, *args, **kwargs)
   File "/home/jruizmunoz/anaconda3/envs/ghifo_py38/lib/python3.8/site-packages/keras/layers/core.py", line 903, in call
     result = self.function(inputs, **kwargs)
-  File "train_gnn.py", line 240, in aggregate_nodes
-    for i in range(num_graphs):
-TypeError: 'Tensor' object cannot be interpreted as an integer
+  File "train_gnn.py", line 238, in aggregate_nodes
+    aggregated_features = tf.unsorted_segment_mean(
+AttributeError: module 'tensorflow' has no attribute 'unsorted_segment_mean'
