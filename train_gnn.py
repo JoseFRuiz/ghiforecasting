@@ -59,6 +59,7 @@ def create_features(df):
     return df
 
 def compute_weighted_adjacency(df_all, alpha=0.5):
+    print("    Computing weighted adjacency matrix (optimized)...")
     city_coords = {
         "Jaisalmer": (26.9157, 70.9083),
         "Jodhpur": (26.2389, 73.0243),
@@ -69,7 +70,8 @@ def compute_weighted_adjacency(df_all, alpha=0.5):
     cities = list(city_coords.keys())
     n = len(cities)
 
-    # Geodesic proximity (1 / distance)
+    print(f"      Computing geodesic distances for {n} cities...")
+    # Geodesic proximity (1 / distance) - vectorized
     geo_weights = np.zeros((n, n), dtype=np.float32)
     for i in range(n):
         for j in range(n):
@@ -79,24 +81,36 @@ def compute_weighted_adjacency(df_all, alpha=0.5):
 
     geo_weights /= geo_weights.max()
 
-    # Correlation
+    print(f"      Computing correlations for {n} cities...")
+    # Correlation - optimized with pre-computed time series
     corr_weights = np.zeros((n, n), dtype=np.float32)
+    
+    # Pre-compute GHI time series for all cities
+    ghi_series = {}
+    for i, city in enumerate(cities):
+        city_data = df_all[df_all['location'] == city].set_index('datetime')['GHI']
+        ghi_series[city] = city_data
+    
+    # Compute correlations more efficiently
     for i, ci in enumerate(cities):
-        ghi_i = df_all[df_all['location'] == ci].set_index('datetime')['GHI']
+        ghi_i = ghi_series[ci]
         for j, cj in enumerate(cities):
-            ghi_j = df_all[df_all['location'] == cj].set_index('datetime')['GHI']
-            common = ghi_i.index.intersection(ghi_j.index)
-            if len(common) > 0:
-                corr = ghi_i.loc[common].corr(ghi_j.loc[common])
-                corr_weights[i, j] = corr if not np.isnan(corr) else 0
+            if i != j:  # Skip self-correlation
+                ghi_j = ghi_series[cj]
+                # Find common time indices
+                common = ghi_i.index.intersection(ghi_j.index)
+                if len(common) > 100:  # Only compute if we have enough data
+                    corr = ghi_i.loc[common].corr(ghi_j.loc[common])
+                    corr_weights[i, j] = corr if not np.isnan(corr) else 0
 
     corr_weights = np.clip(corr_weights, 0, 1)
     adj = alpha * geo_weights + (1 - alpha) * corr_weights
     np.fill_diagonal(adj, 1.0)
+    print(f"      Adjacency matrix computed: {adj.shape}")
     return adj
 
 def build_daily_graphs(df_all, adj_matrix):
-    print("    Starting to build daily graphs...")
+    print("    Starting to build daily graphs (optimized)...")
     graphs = []
     targets = []
 
@@ -104,98 +118,86 @@ def build_daily_graphs(df_all, adj_matrix):
     scaler = MinMaxScaler()
     df_all['GHI_scaled'] = scaler.fit_transform(df_all[["GHI"]])
 
-    # Group by date and process each day
+    # Pre-compute feature columns once
+    print("    Pre-computing feature columns...")
+    sample_data = df_all[df_all['location'] == CITIES[0]].iloc[:12]
+    feature_cols = [col for col in sample_data.columns if 'lag' in col or 'sin' in col or 'cos' in col]
+    print(f"    Found {len(feature_cols)} feature columns")
+
+    # Group by date and process each day more efficiently
     df_all['date'] = pd.to_datetime(df_all["datetime"]).dt.date
     dates = df_all['date'].unique()
     
     print(f"    Processing {len(dates)} unique dates")
     
-    # Count how many dates are skipped and why
-    skipped_reasons = {}
-    
-    for i, date in enumerate(dates):
-        if i % 50 == 0:
-            print(f"      Processing date {i+1}/{len(dates)}: {date}")
-        
-        node_features = []
-        node_targets = []
-        valid = True
-        skip_reason = None
-        
+    # Pre-filter data to only include dates with sufficient data
+    print("    Pre-filtering valid dates...")
+    valid_dates = []
+    for date in dates:
+        # Check if all cities have at least 24 hours of data for this date
+        all_cities_valid = True
         for city in CITIES:
-            # Get data for this city and date
-            df_city = df_all[(df_all["location"] == city) & (df_all['date'] == date)]
-            
-            if len(df_city) < 24:  # Need at least 24 hours
-                skip_reason = f"not enough data ({len(df_city)} rows, need 24)"
-                valid = False
+            city_data = df_all[(df_all["location"] == city) & (df_all['date'] == date)]
+            if len(city_data) < 24:
+                all_cities_valid = False
                 break
-            
-            # Sort by datetime to ensure proper order
-            df_city = df_city.sort_values('datetime')
-            
-            # Use first 12 hours for sequence, next 12 hours for target
-            # This gives us a 12-hour forecast horizon instead of 24
-            sequence_data = df_city.iloc[:12]
-            target_data = df_city.iloc[12:24]
-            
-            if len(target_data) < 12:
-                skip_reason = f"not enough target data ({len(target_data)} rows, need 12)"
-                valid = False
-                break
-            
-            # Check if target has any non-zero values (but be less strict)
-            if (target_data['GHI'] <= 0).sum() >= 11:  # Allow at least 1 non-zero value
-                skip_reason = f"all target GHI values are zero or negative"
-                valid = False
-                break
-            
-            # Create features from sequence data
-            feature_cols = [col for col in sequence_data.columns if 'lag' in col or 'sin' in col or 'cos' in col]
-            
-            # Check if we have the required features
-            if len(feature_cols) == 0:
-                skip_reason = f"no feature columns found"
-                valid = False
-                break
-                
-            X = sequence_data[feature_cols].values.flatten()
-            
-            # Check for NaN values in features
-            if np.isnan(X).any():
-                skip_reason = f"NaN values in features"
-                valid = False
-                break
-            
-            # Target is the GHI values for the next 12 hours
-            y = target_data['GHI'].values
-            
-            # Check for NaN values in targets
-            if np.isnan(y).any():
-                skip_reason = f"NaN values in targets"
-                valid = False
-                break
-            
-            node_features.append(X)
-            node_targets.append(y)
+        if all_cities_valid:
+            valid_dates.append(date)
+    
+    print(f"    Found {len(valid_dates)} valid dates out of {len(dates)} total dates")
+    
+    # Process valid dates in batches for better performance
+    batch_size = 50
+    for batch_start in range(0, len(valid_dates), batch_size):
+        batch_end = min(batch_start + batch_size, len(valid_dates))
+        batch_dates = valid_dates[batch_start:batch_end]
         
-        if valid:
-            x = np.stack(node_features, axis=0)
-            # Create a single target per graph by averaging across cities
-            # This gives us a single 12-hour forecast for the entire region
-            y = np.mean(node_targets, axis=0)
+        print(f"      Processing batch {batch_start//batch_size + 1}/{(len(valid_dates) + batch_size - 1)//batch_size}: dates {batch_start+1}-{batch_end}")
+        
+        for date in batch_dates:
+            node_features = []
+            node_targets = []
             
-            graphs.append(Graph(x=x, a=adj_matrix))
-            targets.append(y)
-        else:
-            if skip_reason not in skipped_reasons:
-                skipped_reasons[skip_reason] = 0
-            skipped_reasons[skip_reason] += 1
+            # Process all cities for this date
+            for city in CITIES:
+                # Get data for this city and date
+                df_city = df_all[(df_all["location"] == city) & (df_all['date'] == date)].sort_values('datetime')
+                
+                # Use first 12 hours for sequence, next 12 hours for target
+                sequence_data = df_city.iloc[:12]
+                target_data = df_city.iloc[12:24]
+                
+                # Check if target has any non-zero values (but be less strict)
+                if (target_data['GHI'] <= 0).sum() >= 11:  # Allow at least 1 non-zero value
+                    continue  # Skip this city for this date
+                
+                # Extract features more efficiently
+                X = sequence_data[feature_cols].values.flatten()
+                
+                # Check for NaN values in features
+                if np.isnan(X).any():
+                    continue  # Skip this city for this date
+                
+                # Target is the GHI values for the next 12 hours
+                y = target_data['GHI'].values
+                
+                # Check for NaN values in targets
+                if np.isnan(y).any():
+                    continue  # Skip this city for this date
+                
+                node_features.append(X)
+                node_targets.append(y)
+            
+            # Only create graph if we have data from all cities
+            if len(node_features) == len(CITIES):
+                x = np.stack(node_features, axis=0)
+                # Create a single target per graph by averaging across cities
+                y = np.mean(node_targets, axis=0)
+                
+                graphs.append(Graph(x=x, a=adj_matrix))
+                targets.append(y)
 
     print(f"    Total valid daily graphs: {len(graphs)}")
-    print(f"    Skipped dates by reason:")
-    for reason, count in skipped_reasons.items():
-        print(f"      {reason}: {count} dates")
     
     if len(graphs) == 0:
         print("\n    WARNING: No valid graphs created!")

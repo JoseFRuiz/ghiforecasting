@@ -27,7 +27,7 @@ module list
 source ~/.bashrc
 source activate ghifo_py38
 
-echo "Testing graph building phase..."
-python test_graph_building.py
+echo "Testing optimized graph building..."
+python test_optimized_graphs.py
 
 echo "Test completed!" 
