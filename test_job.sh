@@ -27,7 +27,7 @@ module list
 source ~/.bashrc
 source activate ghifo_py38
 
-echo "Testing ultra-fast graph building..."
-python train_gnn_ultra_fast.py
+echo "Testing optimized train_gnn.py..."
+python train_gnn.py
 
 echo "Test completed!" 
