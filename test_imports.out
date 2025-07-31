@@ -1,9 +1,9 @@
-Date      = Thu Jul 31 03:37:02 PM EDT 2025
+Date      = Thu Jul 31 03:56:32 PM EDT 2025
 host      = c0709a-s1
 Directory = /blue/azare/jruizmunoz/ghiforecasting
 Loaded modules:
-Testing feature creation...
-Testing create_features function...
+Testing full feature creation (24 lags)...
+Testing full create_features function with 24 lags...
 Testing with city: Jaisalmer
 Loading data...
 
@@ -57,17 +57,15 @@ Validating final dataset:
 Shape: (26280, 25)
 Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
 Memory usage: 5.01 MB
-Data loaded in 0.06 seconds: (26280, 25)
-Creating features...
+Data loaded in 0.07 seconds: (26280, 25)
+Creating full features (24 lags)...
     Creating features for dataframe with 26280 rows...
       Adding time-based features...
       Adding GHI lag features...
-        Added GHI lag 1
-        Added GHI lag 2
-        Added GHI lag 3
-        Added GHI lag 4
-        Added GHI lag 5
-        Added GHI lag 6
+        Added 6/24 GHI lag features
+        Added 12/24 GHI lag features
+        Added 18/24 GHI lag features
+        Added 24/24 GHI lag features
       Adding meteorological lag features...
         Added lag feature for Temperature (1/6)
         Added lag feature for Relative Humidity (2/6)
@@ -78,8 +76,9 @@ Creating features...
       Adding target variable...
       Dropping NaN values...
       Dropped 48 rows with NaN values
-      Final shape: (26232, 42)
-Features created in 0.01 seconds: (26232, 42)
-✓ Feature creation test completed successfully!
-Total time: 0.08 seconds
+      Final shape: (26232, 60)
+Full features created in 0.02 seconds: (26232, 60)
+✓ Full feature creation test completed successfully!
+Total time: 0.09 seconds
+Memory usage: 13.46 MB
 Test completed!
