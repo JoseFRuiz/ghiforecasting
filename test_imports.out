@@ -1,10 +1,9 @@
-Date      = Thu Jul 31 04:35:42 PM EDT 2025
+Date      = Thu Jul 31 04:48:19 PM EDT 2025
 host      = c0709a-s1
 Directory = /blue/azare/jruizmunoz/ghiforecasting
 Loaded modules:
-Testing optimized graph building...
-Testing optimized graph building functions...
-Testing optimized functions with all cities: ['Jaisalmer', 'Jodhpur', 'New Delhi', 'Shimla', 'Srinagar']
+Testing ultra-fast graph building...
+Ultra-fast graph building test...
 Loading data for city 1/5: Jaisalmer
 
 ============================================================
@@ -57,28 +56,7 @@ Validating final dataset:
 Shape: (26280, 25)
 Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
 Memory usage: 5.01 MB
-  Data loaded in 0.08 seconds: (26280, 25)
-  Creating features for Jaisalmer...
-    Creating features for dataframe with 26280 rows...
-      Adding time-based features...
-      Adding GHI lag features...
-        Added 6/24 GHI lag features
-        Added 12/24 GHI lag features
-        Added 18/24 GHI lag features
-        Added 24/24 GHI lag features
-      Adding meteorological lag features...
-        Added lag feature for Temperature (1/6)
-        Added lag feature for Relative Humidity (2/6)
-        Added lag feature for Pressure (3/6)
-        Added lag feature for Precipitable Water (4/6)
-        Added lag feature for Wind Direction (5/6)
-        Added lag feature for Wind Speed (6/6)
-      Adding target variable...
-      Dropping NaN values...
-      Dropped 48 rows with NaN values
-      Final shape: (26232, 60)
-  Features created in 0.03 seconds: (26232, 60)
-  ✓ Jaisalmer data processed
+  ✓ Jaisalmer processed
 Loading data for city 2/5: Jodhpur
 
 ============================================================
@@ -131,28 +109,7 @@ Validating final dataset:
 Shape: (26280, 25)
 Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
 Memory usage: 5.01 MB
-  Data loaded in 0.06 seconds: (26280, 25)
-  Creating features for Jodhpur...
-    Creating features for dataframe with 26280 rows...
-      Adding time-based features...
-      Adding GHI lag features...
-        Added 6/24 GHI lag features
-        Added 12/24 GHI lag features
-        Added 18/24 GHI lag features
-        Added 24/24 GHI lag features
-      Adding meteorological lag features...
-        Added lag feature for Temperature (1/6)
-        Added lag feature for Relative Humidity (2/6)
-        Added lag feature for Pressure (3/6)
-        Added lag feature for Precipitable Water (4/6)
-        Added lag feature for Wind Direction (5/6)
-        Added lag feature for Wind Speed (6/6)
-      Adding target variable...
-      Dropping NaN values...
-      Dropped 48 rows with NaN values
-      Final shape: (26232, 60)
-  Features created in 0.02 seconds: (26232, 60)
-  ✓ Jodhpur data processed
+  ✓ Jodhpur processed
 Loading data for city 3/5: New Delhi
 
 ============================================================
@@ -205,28 +162,7 @@ Validating final dataset:
 Shape: (26280, 25)
 Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
 Memory usage: 5.01 MB
-  Data loaded in 0.06 seconds: (26280, 25)
-  Creating features for New Delhi...
-    Creating features for dataframe with 26280 rows...
-      Adding time-based features...
-      Adding GHI lag features...
-        Added 6/24 GHI lag features
-        Added 12/24 GHI lag features
-        Added 18/24 GHI lag features
-        Added 24/24 GHI lag features
-      Adding meteorological lag features...
-        Added lag feature for Temperature (1/6)
-        Added lag feature for Relative Humidity (2/6)
-        Added lag feature for Pressure (3/6)
-        Added lag feature for Precipitable Water (4/6)
-        Added lag feature for Wind Direction (5/6)
-        Added lag feature for Wind Speed (6/6)
-      Adding target variable...
-      Dropping NaN values...
-      Dropped 48 rows with NaN values
-      Final shape: (26232, 60)
-  Features created in 0.02 seconds: (26232, 60)
-  ✓ New Delhi data processed
+  ✓ New Delhi processed
 Loading data for city 4/5: Shimla
 
 ============================================================
@@ -279,28 +215,7 @@ Validating final dataset:
 Shape: (26280, 25)
 Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
 Memory usage: 5.01 MB
-  Data loaded in 0.05 seconds: (26280, 25)
-  Creating features for Shimla...
-    Creating features for dataframe with 26280 rows...
-      Adding time-based features...
-      Adding GHI lag features...
-        Added 6/24 GHI lag features
-        Added 12/24 GHI lag features
-        Added 18/24 GHI lag features
-        Added 24/24 GHI lag features
-      Adding meteorological lag features...
-        Added lag feature for Temperature (1/6)
-        Added lag feature for Relative Humidity (2/6)
-        Added lag feature for Pressure (3/6)
-        Added lag feature for Precipitable Water (4/6)
-        Added lag feature for Wind Direction (5/6)
-        Added lag feature for Wind Speed (6/6)
-      Adding target variable...
-      Dropping NaN values...
-      Dropped 48 rows with NaN values
-      Final shape: (26232, 60)
-  Features created in 0.02 seconds: (26232, 60)
-  ✓ Shimla data processed
+  ✓ Shimla processed
 Loading data for city 5/5: Srinagar
 
 ============================================================
@@ -353,74 +268,17 @@ Validating final dataset:
 Shape: (26280, 25)
 Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
 Memory usage: 5.01 MB
-  Data loaded in 0.07 seconds: (26280, 25)
-  Creating features for Srinagar...
-    Creating features for dataframe with 26280 rows...
-      Adding time-based features...
-      Adding GHI lag features...
-        Added 6/24 GHI lag features
-        Added 12/24 GHI lag features
-        Added 18/24 GHI lag features
-        Added 24/24 GHI lag features
-      Adding meteorological lag features...
-        Added lag feature for Temperature (1/6)
-        Added lag feature for Relative Humidity (2/6)
-        Added lag feature for Pressure (3/6)
-        Added lag feature for Precipitable Water (4/6)
-        Added lag feature for Wind Direction (5/6)
-        Added lag feature for Wind Speed (6/6)
-      Adding target variable...
-      Dropping NaN values...
-      Dropped 48 rows with NaN values
-      Final shape: (26232, 60)
-  Features created in 0.02 seconds: (26232, 60)
-  ✓ Srinagar data processed
-Concatenating all city data...
-Combined data shape: (131160, 61) in 0.05 seconds
-Total memory usage: 76.25 MB
-
-Computing adjacency matrix (optimized)...
-    Computing weighted adjacency matrix (optimized)...
-      Computing geodesic distances for 5 cities...
-      Computing correlations for 5 cities...
-      Adjacency matrix computed: (5, 5)
-Adjacency matrix computed in 0.14 seconds: (5, 5)
-
-Building daily graphs (optimized)...
-    Starting to build daily graphs (optimized)...
-    Fitting scaler...
-    Pre-computing feature columns...
+  ✓ Srinagar processed
+Concatenating data...
+Combined shape: (131160, 61)
+Computing adjacency matrix...
+Building graphs...
+    Starting ultra-fast graph building...
     Found 35 feature columns
-    Processing 1093 unique dates
-    Pre-filtering valid dates...
-    Found 1093 valid dates out of 1093 total dates
-      Processing batch 1/22: dates 1-50
-      Processing batch 2/22: dates 51-100
-      Processing batch 3/22: dates 101-150
-      Processing batch 4/22: dates 151-200
-      Processing batch 5/22: dates 201-250
-      Processing batch 6/22: dates 251-300
-      Processing batch 7/22: dates 301-350
-      Processing batch 8/22: dates 351-400
-      Processing batch 9/22: dates 401-450
-      Processing batch 10/22: dates 451-500
-      Processing batch 11/22: dates 501-550
-      Processing batch 12/22: dates 551-600
-      Processing batch 13/22: dates 601-650
-      Processing batch 14/22: dates 651-700
-      Processing batch 15/22: dates 701-750
-      Processing batch 16/22: dates 751-800
-      Processing batch 17/22: dates 801-850
-      Processing batch 18/22: dates 851-900
-      Processing batch 19/22: dates 901-950
-      Processing batch 20/22: dates 951-1000
-      Processing batch 21/22: dates 1001-1050
-      Processing batch 22/22: dates 1051-1093
-    Total valid daily graphs: 1093
-Graphs built in 125.19 seconds: 1093 graphs
-
-✓ Optimized graph building test completed successfully!
-Total time: 125.47 seconds
-Final dataset: 1093 graphs with 1093 targets
-Graph building time: 125.19 seconds (should be much faster than 62.61 seconds)
+    Processing 1093 valid dates
+    Total graphs created: 1093
+✓ Ultra-fast graph building completed!
+Graph building time: 15.70 seconds
+Total graphs: 1093
+Target shape: (1093, 12)
 Test completed!
