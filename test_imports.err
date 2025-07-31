@@ -1,0 +1,11 @@
+
+The following have been reloaded with a version change:
+  1) cuda/12.9.1 => cuda/12.4.1
+
+
+Currently Loaded Modules:
+  1) cuda/12.4.1   2) tensorflow/2.18
+
+ 
+
+<frozen importlib._bootstrap>:219: RuntimeWarning: scipy._lib.messagestream.MessageStream size changed, may indicate binary incompatibility. Expected 56 from C header, got 64 from PyObject

@@ -1,0 +1,28 @@
+Date      = Thu Jul 31 03:20:33 PM EDT 2025
+host      = c0709a-s1
+Directory = /blue/azare/jruizmunoz/ghiforecasting
+Loaded modules:
+Testing imports...
+Python version: 3.8.13 | packaged by conda-forge | (default, Mar 25 2022, 06:04:18) 
+[GCC 10.3.0]
+Testing basic imports...
+✓ os imported
+✓ numpy imported
+✓ pandas imported
+✓ tensorflow imported
+  TensorFlow version: 2.6.0
+✓ tensorflow.keras imported
+✓ spektral.data imported
+✓ spektral.data.loaders imported
+✓ spektral.layers imported
+✓ sklearn.preprocessing imported
+✓ pickle imported
+✓ geopy.distance imported
+
+Testing utils import...
+✓ utils imported
+  CONFIG keys: ['random_seed', 'comet_api_key', 'project_name', 'data_locations', 'model_params', 'feature_ranges']
+
+All imports completed successfully!
+If you see this message, all imports are working correctly.
+Test completed!
