@@ -1,31 +1,11 @@
-Date      = Thu Jul 31 03:28:02 PM EDT 2025
-host      = c0709a-s2
+Date      = Thu Jul 31 03:37:02 PM EDT 2025
+host      = c0709a-s1
 Directory = /blue/azare/jruizmunoz/ghiforecasting
 Loaded modules:
-Testing minimal GNN script...
-Starting minimal GNN script...
-Python version: 3.8.13 | packaged by conda-forge | (default, Mar 25 2022, 06:04:18) 
-[GCC 10.3.0]
-
-Step 1: Basic imports...
-✓ Basic imports successful
-
-Step 2: TensorFlow imports...
-✓ TensorFlow imports successful
-
-Step 3: Spektral imports...
-✓ Spektral imports successful
-
-Step 4: Other imports...
-✓ Other imports successful
-
-Step 5: Utils import...
-✓ Utils import successful
-  CONFIG keys: ['random_seed', 'comet_api_key', 'project_name', 'data_locations', 'model_params', 'feature_ranges']
-
-Step 6: Testing data loading...
-  Cities: ['Jaisalmer', 'Jodhpur', 'New Delhi', 'Shimla', 'Srinagar']
-  Testing data loading for Jaisalmer...
+Testing feature creation...
+Testing create_features function...
+Testing with city: Jaisalmer
+Loading data...
 
 ============================================================
 Loading data for Jaisalmer
@@ -77,9 +57,29 @@ Validating final dataset:
 Shape: (26280, 25)
 Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
 Memory usage: 5.01 MB
-  ✓ Data loaded for Jaisalmer: (26280, 25)
-
-✓ All basic functionality working!
-The issue is likely in the feature creation or graph building phase.
-You can now run the full script with confidence that imports work.
+Data loaded in 0.06 seconds: (26280, 25)
+Creating features...
+    Creating features for dataframe with 26280 rows...
+      Adding time-based features...
+      Adding GHI lag features...
+        Added GHI lag 1
+        Added GHI lag 2
+        Added GHI lag 3
+        Added GHI lag 4
+        Added GHI lag 5
+        Added GHI lag 6
+      Adding meteorological lag features...
+        Added lag feature for Temperature (1/6)
+        Added lag feature for Relative Humidity (2/6)
+        Added lag feature for Pressure (3/6)
+        Added lag feature for Precipitable Water (4/6)
+        Added lag feature for Wind Direction (5/6)
+        Added lag feature for Wind Speed (6/6)
+      Adding target variable...
+      Dropping NaN values...
+      Dropped 48 rows with NaN values
+      Final shape: (26232, 42)
+Features created in 0.01 seconds: (26232, 42)
+✓ Feature creation test completed successfully!
+Total time: 0.08 seconds
 Test completed!
