@@ -1,10 +1,10 @@
-Date      = Thu Jul 31 04:07:03 PM EDT 2025
+Date      = Thu Jul 31 04:35:42 PM EDT 2025
 host      = c0709a-s1
 Directory = /blue/azare/jruizmunoz/ghiforecasting
 Loaded modules:
-Testing graph building phase...
-Testing graph building phase...
-Testing with all cities: ['Jaisalmer', 'Jodhpur', 'New Delhi', 'Shimla', 'Srinagar']
+Testing optimized graph building...
+Testing optimized graph building functions...
+Testing optimized functions with all cities: ['Jaisalmer', 'Jodhpur', 'New Delhi', 'Shimla', 'Srinagar']
 Loading data for city 1/5: Jaisalmer
 
 ============================================================
@@ -57,7 +57,7 @@ Validating final dataset:
 Shape: (26280, 25)
 Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
 Memory usage: 5.01 MB
-  Data loaded in 0.06 seconds: (26280, 25)
+  Data loaded in 0.08 seconds: (26280, 25)
   Creating features for Jaisalmer...
     Creating features for dataframe with 26280 rows...
       Adding time-based features...
@@ -77,7 +77,7 @@ Memory usage: 5.01 MB
       Dropping NaN values...
       Dropped 48 rows with NaN values
       Final shape: (26232, 60)
-  Features created in 0.02 seconds: (26232, 60)
+  Features created in 0.03 seconds: (26232, 60)
   ✓ Jaisalmer data processed
 Loading data for city 2/5: Jodhpur
 
@@ -131,7 +131,7 @@ Validating final dataset:
 Shape: (26280, 25)
 Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
 Memory usage: 5.01 MB
-  Data loaded in 0.05 seconds: (26280, 25)
+  Data loaded in 0.06 seconds: (26280, 25)
   Creating features for Jodhpur...
     Creating features for dataframe with 26280 rows...
       Adding time-based features...
@@ -205,7 +205,7 @@ Validating final dataset:
 Shape: (26280, 25)
 Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
 Memory usage: 5.01 MB
-  Data loaded in 0.05 seconds: (26280, 25)
+  Data loaded in 0.06 seconds: (26280, 25)
   Creating features for New Delhi...
     Creating features for dataframe with 26280 rows...
       Adding time-based features...
@@ -353,7 +353,7 @@ Validating final dataset:
 Shape: (26280, 25)
 Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
 Memory usage: 5.01 MB
-  Data loaded in 0.05 seconds: (26280, 25)
+  Data loaded in 0.07 seconds: (26280, 25)
   Creating features for Srinagar...
     Creating features for dataframe with 26280 rows...
       Adding time-based features...
@@ -376,47 +376,51 @@ Memory usage: 5.01 MB
   Features created in 0.02 seconds: (26232, 60)
   ✓ Srinagar data processed
 Concatenating all city data...
-Combined data shape: (131160, 61) in 0.04 seconds
+Combined data shape: (131160, 61) in 0.05 seconds
 Total memory usage: 76.25 MB
 
-Computing adjacency matrix...
-    Computing weighted adjacency matrix...
+Computing adjacency matrix (optimized)...
+    Computing weighted adjacency matrix (optimized)...
       Computing geodesic distances for 5 cities...
       Computing correlations for 5 cities...
       Adjacency matrix computed: (5, 5)
-Adjacency matrix computed in 0.43 seconds: (5, 5)
+Adjacency matrix computed in 0.14 seconds: (5, 5)
 
-Building daily graphs...
-    Starting to build daily graphs...
+Building daily graphs (optimized)...
+    Starting to build daily graphs (optimized)...
     Fitting scaler...
+    Pre-computing feature columns...
+    Found 35 feature columns
     Processing 1093 unique dates
-      Processing date 1/1093: 2017-01-02
-      Processing date 51/1093: 2017-02-21
-      Processing date 101/1093: 2017-04-12
-      Processing date 151/1093: 2017-06-01
-      Processing date 201/1093: 2017-07-21
-      Processing date 251/1093: 2017-09-09
-      Processing date 301/1093: 2017-10-29
-      Processing date 351/1093: 2017-12-18
-      Processing date 401/1093: 2018-02-06
-      Processing date 451/1093: 2018-03-28
-      Processing date 501/1093: 2018-05-17
-      Processing date 551/1093: 2018-07-06
-      Processing date 601/1093: 2018-08-25
-      Processing date 651/1093: 2018-10-14
-      Processing date 701/1093: 2018-12-03
-      Processing date 751/1093: 2019-01-22
-      Processing date 801/1093: 2019-03-13
-      Processing date 851/1093: 2019-05-02
-      Processing date 901/1093: 2019-06-21
-      Processing date 951/1093: 2019-08-10
-      Processing date 1001/1093: 2019-09-29
-      Processing date 1051/1093: 2019-11-18
+    Pre-filtering valid dates...
+    Found 1093 valid dates out of 1093 total dates
+      Processing batch 1/22: dates 1-50
+      Processing batch 2/22: dates 51-100
+      Processing batch 3/22: dates 101-150
+      Processing batch 4/22: dates 151-200
+      Processing batch 5/22: dates 201-250
+      Processing batch 6/22: dates 251-300
+      Processing batch 7/22: dates 301-350
+      Processing batch 8/22: dates 351-400
+      Processing batch 9/22: dates 401-450
+      Processing batch 10/22: dates 451-500
+      Processing batch 11/22: dates 501-550
+      Processing batch 12/22: dates 551-600
+      Processing batch 13/22: dates 601-650
+      Processing batch 14/22: dates 651-700
+      Processing batch 15/22: dates 701-750
+      Processing batch 16/22: dates 751-800
+      Processing batch 17/22: dates 801-850
+      Processing batch 18/22: dates 851-900
+      Processing batch 19/22: dates 901-950
+      Processing batch 20/22: dates 951-1000
+      Processing batch 21/22: dates 1001-1050
+      Processing batch 22/22: dates 1051-1093
     Total valid daily graphs: 1093
-    Skipped dates by reason:
-Graphs built in 62.61 seconds: 1093 graphs
+Graphs built in 125.19 seconds: 1093 graphs
 
-✓ Graph building test completed successfully!
-Total time: 63.15 seconds
+✓ Optimized graph building test completed successfully!
+Total time: 125.47 seconds
 Final dataset: 1093 graphs with 1093 targets
+Graph building time: 125.19 seconds (should be much faster than 62.61 seconds)
 Test completed!
