@@ -27,7 +27,7 @@ module list
 source ~/.bashrc
 source activate ghifo_py38
 
-echo "Testing minimal GNN script..."
-python train_gnn_minimal.py
+echo "Testing feature creation..."
+python test_features.py
 
 echo "Test completed!" 
