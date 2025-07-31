@@ -27,7 +27,7 @@ module list
 source ~/.bashrc
 source activate ghifo_py38
 
-echo "Testing full feature creation (24 lags)..."
-python test_full_features.py
+echo "Testing graph building phase..."
+python test_graph_building.py
 
 echo "Test completed!" 
