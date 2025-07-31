@@ -1,28 +1,85 @@
-Date      = Thu Jul 31 03:20:33 PM EDT 2025
-host      = c0709a-s1
+Date      = Thu Jul 31 03:28:02 PM EDT 2025
+host      = c0709a-s2
 Directory = /blue/azare/jruizmunoz/ghiforecasting
 Loaded modules:
-Testing imports...
+Testing minimal GNN script...
+Starting minimal GNN script...
 Python version: 3.8.13 | packaged by conda-forge | (default, Mar 25 2022, 06:04:18) 
 [GCC 10.3.0]
-Testing basic imports...
-✓ os imported
-✓ numpy imported
-✓ pandas imported
-✓ tensorflow imported
-  TensorFlow version: 2.6.0
-✓ tensorflow.keras imported
-✓ spektral.data imported
-✓ spektral.data.loaders imported
-✓ spektral.layers imported
-✓ sklearn.preprocessing imported
-✓ pickle imported
-✓ geopy.distance imported
 
-Testing utils import...
-✓ utils imported
+Step 1: Basic imports...
+✓ Basic imports successful
+
+Step 2: TensorFlow imports...
+✓ TensorFlow imports successful
+
+Step 3: Spektral imports...
+✓ Spektral imports successful
+
+Step 4: Other imports...
+✓ Other imports successful
+
+Step 5: Utils import...
+✓ Utils import successful
   CONFIG keys: ['random_seed', 'comet_api_key', 'project_name', 'data_locations', 'model_params', 'feature_ranges']
 
-All imports completed successfully!
-If you see this message, all imports are working correctly.
+Step 6: Testing data loading...
+  Cities: ['Jaisalmer', 'Jodhpur', 'New Delhi', 'Shimla', 'Srinagar']
+  Testing data loading for Jaisalmer...
+
+============================================================
+Loading data for Jaisalmer
+============================================================
+
+Processing 2017 data...
+✓ Found local file: data_Jaisalmer_2017.csv (953.56 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3015970,-,-,-,26.93,70.9,5,245,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2017,1,1,0,30,12.700000000000001,0,0,0,0,-8.8,0,0,0,0,0.275,21.5,175.45000000000002,0.27,987,0.4,32,1.2000000000000002
+Line 5: 2017,1,1,1,30,12.200000000000001,0,0,0,0,-8.9,0,0,0,0,0.274,22.12,163.61,0.27,987,0.4,30,1.2000000000000002
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Processing 2018 data...
+✓ Found local file: data_Jaisalmer_2018.csv (962.40 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3015970,-,-,-,26.93,70.9,5,245,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2018,1,1,0,30,10,0,0,0,0,-10.200000000000001,0,0,0,0,0.225,23.1,175.45000000000002,0.27,993,0.6000000000000001,70,1.7000000000000002
+Line 5: 2018,1,1,1,30,9.600000000000001,0,0,0,0,-10.100000000000001,0,0,0,0,0.225,23.89,163.58,0.27,993,0.7000000000000001,68,1.6
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Processing 2019 data...
+✓ Found local file: data_Jaisalmer_2019.csv (950.01 KB)
+Reading data file...
+First few lines of the file:
+Line 1: Source,Location ID,City,State,Country,Latitude,Longitude,Time Zone,Elevation,Local Time Zone,Clearsky DHI Units,Clearsky DNI Units,Clearsky GHI Units,Dew Point Units,DHI Units,DNI Units,GHI Units,Solar Zenith Angle Units,Temperature Units,Pressure Units,Relative Humidity Units,Precipitable Water Units,Wind Direction Units,Wind Speed Units,Cloud Type -15,Cloud Type 0,Cloud Type 1,Cloud Type 2,Cloud Type 3,Cloud Type 4,Cloud Type 5,Cloud Type 6,Cloud Type 7,Cloud Type 8,Cloud Type 9,Cloud Type 10,Cloud Type 11,Cloud Type 12,Fill Flag 0,Fill Flag 1,Fill Flag 2,Fill Flag 3,Fill Flag 4,Fill Flag 5,Surface Albedo Units,Version
+Line 2: NSRDB,3015970,-,-,-,26.93,70.9,5,245,5,w/m2,w/m2,w/m2,c,w/m2,w/m2,w/m2,Degree,c,mbar,%,cm,Degrees,m/s,N/A,Clear,Probably Clear,Fog,Water,Super-Cooled Water,Mixed,Opaque Ice,Cirrus,Overlapping,Overshooting,Unknown,Dust,Smoke,N/A,Missing Image,Low Irradiance,Exceeds Clearsky,Missing CLoud Properties,Rayleigh Violation,N/A,unknown
+Line 3: Year,Month,Day,Hour,Minute,Temperature,Clearsky DHI,Clearsky DNI,Clearsky GHI,Cloud Type,Dew Point,DHI,DNI,Fill Flag,GHI,Ozone,Relative Humidity,Solar Zenith Angle,Surface Albedo,Pressure,Precipitable Water,Wind Direction,Wind Speed
+Line 4: 2019,1,1,0,30,5.4,0,0,0,4,-2.9000000000000004,0,0,0,0,0.314,55.21,175.46,0.27,991,0.7000000000000001,56,2.6
+Line 5: 2019,1,1,1,30,4.9,0,0,0,4,-2.9000000000000004,0,0,0,0,0.314,56.980000000000004,163.56,0.27,991,0.7000000000000001,55,2.7
+✓ Successfully loaded 8760 rows
+Columns: ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Temperature', 'Clearsky DHI', 'Clearsky DNI', 'Clearsky GHI', 'Cloud Type', 'Dew Point', 'DHI', 'DNI', 'Fill Flag', 'GHI', 'Ozone', 'Relative Humidity', 'Solar Zenith Angle', 'Surface Albedo', 'Pressure', 'Precipitable Water', 'Wind Direction', 'Wind Speed']
+
+Combining data from all years...
+✓ Combined dataset: 26280 total rows
+
+Processing datetime...
+✓ Datetime processing complete
+
+Validating final dataset:
+Shape: (26280, 25)
+Date range: 2017-01-01 00:30:00 to 2019-12-31 23:30:00
+Memory usage: 5.01 MB
+  ✓ Data loaded for Jaisalmer: (26280, 25)
+
+✓ All basic functionality working!
+The issue is likely in the feature creation or graph building phase.
+You can now run the full script with confidence that imports work.
 Test completed!
