@@ -25,21 +25,38 @@ CITY_IDX = {city: i for i, city in enumerate(CITIES)}
 # Data loading and sequence preparation
 # ----------------------------------------------
 def create_features(df):
+    print(f"    Creating features for dataframe with {len(df)} rows...")
+    
+    print(f"      Adding time-based features...")
     df["hour_sin"] = np.sin(2 * np.pi * df["Hour"] / 24)
     df["hour_cos"] = np.cos(2 * np.pi * df["Hour"] / 24)
     df["month_sin"] = np.sin(2 * np.pi * df["Month"] / 12)
     df["month_cos"] = np.cos(2 * np.pi * df["Month"] / 12)
 
+    print(f"      Adding GHI lag features...")
     for lag in range(1, 25):
         df[f"GHI_lag_{lag}"] = df["GHI"].shift(lag)
+        if lag % 6 == 0:
+            print(f"        Added {lag}/24 GHI lag features")
 
+    print(f"      Adding meteorological lag features...")
     met_vars = ["Temperature", "Relative Humidity", "Pressure",
                 "Precipitable Water", "Wind Direction", "Wind Speed"]
-    for var in met_vars:
+    for i, var in enumerate(met_vars):
         df[f"{var}_lag_24"] = df[var].shift(24)
+        print(f"        Added lag feature for {var} ({i+1}/{len(met_vars)})")
 
+    print(f"      Adding target variable...")
     df["target"] = df["GHI"].shift(-24)  # forecast 24 hours ahead
-    return df.dropna().reset_index(drop=True)
+    
+    print(f"      Dropping NaN values...")
+    original_len = len(df)
+    df = df.dropna().reset_index(drop=True)
+    final_len = len(df)
+    print(f"      Dropped {original_len - final_len} rows with NaN values")
+    print(f"      Final shape: {df.shape}")
+    
+    return df
 
 def compute_weighted_adjacency(df_all, alpha=0.5):
     city_coords = {
@@ -79,9 +96,11 @@ def compute_weighted_adjacency(df_all, alpha=0.5):
     return adj
 
 def build_daily_graphs(df_all, adj_matrix):
+    print("    Starting to build daily graphs...")
     graphs = []
     targets = []
 
+    print("    Fitting scaler...")
     scaler = MinMaxScaler()
     df_all['GHI_scaled'] = scaler.fit_transform(df_all[["GHI"]])
 
@@ -89,12 +108,15 @@ def build_daily_graphs(df_all, adj_matrix):
     df_all['date'] = pd.to_datetime(df_all["datetime"]).dt.date
     dates = df_all['date'].unique()
     
-    print(f"Processing {len(dates)} unique dates")
+    print(f"    Processing {len(dates)} unique dates")
     
     # Count how many dates are skipped and why
     skipped_reasons = {}
     
-    for date in dates:
+    for i, date in enumerate(dates):
+        if i % 50 == 0:
+            print(f"      Processing date {i+1}/{len(dates)}: {date}")
+        
         node_features = []
         node_targets = []
         valid = True
@@ -170,29 +192,29 @@ def build_daily_graphs(df_all, adj_matrix):
                 skipped_reasons[skip_reason] = 0
             skipped_reasons[skip_reason] += 1
 
-    print(f"Total valid daily graphs: {len(graphs)}")
-    print(f"Skipped dates by reason:")
+    print(f"    Total valid daily graphs: {len(graphs)}")
+    print(f"    Skipped dates by reason:")
     for reason, count in skipped_reasons.items():
-        print(f"  {reason}: {count} dates")
+        print(f"      {reason}: {count} dates")
     
     if len(graphs) == 0:
-        print("\nWARNING: No valid graphs created!")
-        print("This could be due to:")
-        print("1. Insufficient data per day")
-        print("2. Missing feature columns")
-        print("3. NaN values in data")
-        print("4. All target values being zero")
+        print("\n    WARNING: No valid graphs created!")
+        print("    This could be due to:")
+        print("    1. Insufficient data per day")
+        print("    2. Missing feature columns")
+        print("    3. NaN values in data")
+        print("    4. All target values being zero")
         
         # Let's check a sample date to debug
         if len(dates) > 0:
             sample_date = dates[0]
-            print(f"\nDebugging sample date: {sample_date}")
+            print(f"\n    Debugging sample date: {sample_date}")
             for city in CITIES:
                 df_city = df_all[(df_all["location"] == city) & (df_all['date'] == sample_date)]
-                print(f"  {city}: {len(df_city)} rows")
+                print(f"      {city}: {len(df_city)} rows")
                 if len(df_city) > 0:
-                    print(f"    Columns: {df_city.columns.tolist()}")
-                    print(f"    Feature cols: {[col for col in df_city.columns if 'lag' in col or 'sin' in col or 'cos' in col]}")
+                    print(f"        Columns: {df_city.columns.tolist()}")
+                    print(f"        Feature cols: {[col for col in df_city.columns if 'lag' in col or 'sin' in col or 'cos' in col]}")
     
     return graphs, np.array(targets), scaler
 
@@ -264,13 +286,24 @@ def build_gnn_model(input_shape, output_units):
 def main():
     os.makedirs("models", exist_ok=True)
     print("\nLoading and preparing data...")
+    
     all_dfs = []
-    for city in CITIES:
+    for i, city in enumerate(CITIES):
+        print(f"Loading data for city {i+1}/{len(CITIES)}: {city}")
         df = load_data(CONFIG["data_locations"], city)
+        print(f"  Raw data shape: {df.shape}")
+        
+        print(f"  Creating features for {city}...")
         df = create_features(df)
+        print(f"  After feature creation: {df.shape}")
+        
         df['location'] = city
         all_dfs.append(df)
+        print(f"  ✓ {city} data processed")
+    
+    print("Concatenating all city data...")
     df_all = pd.concat(all_dfs).sort_values("datetime")
+    print(f"Combined data shape: {df_all.shape}")
 
     print(f"\nData statistics:")
     print(f"Total rows: {len(df_all)}")
@@ -281,9 +314,10 @@ def main():
         print(f"  {city}: {len(city_data)} rows")
     
     # Check data per day
+    print("Computing daily data counts...")
     df_all['date'] = pd.to_datetime(df_all["datetime"]).dt.date
     daily_counts = df_all.groupby(['date', 'location']).size().reset_index(name='count')
-    print(f"\nDaily data counts (sample):")
+    print(f"Daily data counts (sample):")
     print(daily_counts.head(20))
     
     # Check for missing values
@@ -297,12 +331,14 @@ def main():
     print(f"Adjacency matrix type: {type(adj_matrix)}")
     print(f"Adjacency matrix sample values:\n{adj_matrix}")
 
+    print("\nBuilding daily graphs...")
     graphs, targets, ghi_scaler = build_daily_graphs(df_all, adj_matrix)
     
     if len(graphs) == 0:
         print("ERROR: No valid graphs created. Exiting.")
         return
     
+    print(f"\nCreating dataset...")
     dataset = GHIDataset(graphs, targets)
     print(f"Dataset size: {len(dataset)}")
     
@@ -314,7 +350,9 @@ def main():
         print(f"First graph y shape: {first_graph.y.shape}")
         print(f"First graph a type: {type(first_graph.a)}")
     
+    print("\nCreating data loader...")
     loader = DisjointLoader(dataset, batch_size=8, shuffle=True)
+    print("✓ Data loader created")
 
     print("\nBuilding model...")
     if len(dataset) > 0:
@@ -351,6 +389,7 @@ def main():
 
     print("\nTraining model...")
     # Test the model with a sample batch to check shapes
+    print("Getting sample batch...")
     sample_batch = next(iter(loader))
     print(f"Sample batch type: {type(sample_batch)}")
     print(f"Sample batch length: {len(sample_batch)}")
@@ -388,11 +427,14 @@ def main():
     mae_metric = tf.keras.metrics.MeanAbsoluteError()
     
     for epoch in range(20):
+        print(f"\nStarting epoch {epoch+1}/20...")
         epoch_loss = 0.0
         epoch_mae = 0.0
         num_batches = 0
         
-        for batch in loader:
+        for batch_idx, batch in enumerate(loader):
+            if batch_idx == 0:
+                print(f"  Processing first batch of epoch {epoch+1}...")
             inputs, y_true = batch
             x, a, i = inputs
             y_true = tf.cast(y_true, tf.float32)
@@ -404,16 +446,21 @@ def main():
             mae_metric.update_state(y_true, y_pred)
             epoch_loss += loss.numpy()
             num_batches += 1
+            
+            if batch_idx % 10 == 0 and batch_idx > 0:
+                print(f"    Processed {batch_idx} batches in epoch {epoch+1}")
+        
         if num_batches > 0:
             epoch_loss /= num_batches
             epoch_mae = mae_metric.result().numpy()
             mae_metric.reset_states()
-            print(f"Epoch {epoch+1}/20 - Loss: {epoch_loss:.4f} - MAE: {epoch_mae:.4f}")
+            print(f"Epoch {epoch+1}/20 - Loss: {epoch_loss:.4f} - MAE: {epoch_mae:.4f} - Batches: {num_batches}")
         else:
             print(f"Epoch {epoch+1}/20 - No valid batches processed")
     
     print("Training completed!")
 
+    print("\nSaving model and scaler...")
     model.save("models/gnn_ghi_forecast.h5")
     with open("models/ghi_scaler_gnn.pkl", "wb") as f:
         pickle.dump(ghi_scaler, f)
