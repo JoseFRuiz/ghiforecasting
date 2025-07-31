@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-# test_features.py - Test the create_features function specifically
+# test_full_features.py - Test the full create_features function with 24 lags
 
 import sys
 import time
-print("Testing create_features function...")
+print("Testing full create_features function with 24 lags...")
 
 # Import what we need
 from utils import CONFIG, load_data
 import pandas as pd
 import numpy as np
 
-def create_features_simple(df):
-    """Simplified version of create_features to test"""
+def create_features_full(df):
+    """Full version of create_features with 24 lags"""
     print(f"    Creating features for dataframe with {len(df)} rows...")
     
     print(f"      Adding time-based features...")
@@ -21,10 +21,10 @@ def create_features_simple(df):
     df["month_cos"] = np.cos(2 * np.pi * df["Month"] / 12)
 
     print(f"      Adding GHI lag features...")
-    # Test with fewer lags first
-    for lag in range(1, 7):  # Only 6 lags instead of 24
+    for lag in range(1, 25):
         df[f"GHI_lag_{lag}"] = df["GHI"].shift(lag)
-        print(f"        Added GHI lag {lag}")
+        if lag % 6 == 0:
+            print(f"        Added {lag}/24 GHI lag features")
 
     print(f"      Adding meteorological lag features...")
     met_vars = ["Temperature", "Relative Humidity", "Pressure",
@@ -57,11 +57,12 @@ df = load_data(CONFIG["data_locations"], test_city)
 load_time = time.time() - start_time
 print(f"Data loaded in {load_time:.2f} seconds: {df.shape}")
 
-print("Creating features...")
+print("Creating full features (24 lags)...")
 start_time = time.time()
-df_features = create_features_simple(df)
+df_features = create_features_full(df)
 feature_time = time.time() - start_time
-print(f"Features created in {feature_time:.2f} seconds: {df_features.shape}")
+print(f"Full features created in {feature_time:.2f} seconds: {df_features.shape}")
 
-print("✓ Feature creation test completed successfully!")
-print(f"Total time: {load_time + feature_time:.2f} seconds") 
+print("✓ Full feature creation test completed successfully!")
+print(f"Total time: {load_time + feature_time:.2f} seconds")
+print(f"Memory usage: {df_features.memory_usage(deep=True).sum() / 1024 / 1024:.2f} MB") 
