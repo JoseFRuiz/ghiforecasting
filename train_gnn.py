@@ -110,7 +110,7 @@ def compute_weighted_adjacency(df_all, alpha=0.5):
     return adj
 
 def build_daily_graphs(df_all, adj_matrix):
-    print("    Starting to build daily graphs (optimized)...")
+    print("    Starting to build daily graphs (highly optimized)...")
     graphs = []
     targets = []
 
@@ -124,21 +124,34 @@ def build_daily_graphs(df_all, adj_matrix):
     feature_cols = [col for col in sample_data.columns if 'lag' in col or 'sin' in col or 'cos' in col]
     print(f"    Found {len(feature_cols)} feature columns")
 
-    # Group by date and process each day more efficiently
+    # Pre-process data more efficiently
+    print("    Pre-processing data...")
     df_all['date'] = pd.to_datetime(df_all["datetime"]).dt.date
-    dates = df_all['date'].unique()
+    
+    # Create a more efficient data structure
+    city_data = {}
+    for city in CITIES:
+        city_df = df_all[df_all['location'] == city].copy()
+        city_df = city_df.sort_values('datetime')
+        city_data[city] = city_df
+    
+    # Get all unique dates
+    all_dates = set()
+    for city_df in city_data.values():
+        all_dates.update(city_df['date'].unique())
+    dates = sorted(list(all_dates))
     
     print(f"    Processing {len(dates)} unique dates")
     
-    # Pre-filter data to only include dates with sufficient data
+    # Pre-filter valid dates more efficiently
     print("    Pre-filtering valid dates...")
     valid_dates = []
     for date in dates:
         # Check if all cities have at least 24 hours of data for this date
         all_cities_valid = True
-        for city in CITIES:
-            city_data = df_all[(df_all["location"] == city) & (df_all['date'] == date)]
-            if len(city_data) < 24:
+        for city_df in city_data.values():
+            date_data = city_df[city_df['date'] == date]
+            if len(date_data) < 24:
                 all_cities_valid = False
                 break
         if all_cities_valid:
@@ -146,8 +159,8 @@ def build_daily_graphs(df_all, adj_matrix):
     
     print(f"    Found {len(valid_dates)} valid dates out of {len(dates)} total dates")
     
-    # Process valid dates in batches for better performance
-    batch_size = 50
+    # Process dates in larger batches for better performance
+    batch_size = 100  # Increased batch size
     for batch_start in range(0, len(valid_dates), batch_size):
         batch_end = min(batch_start + batch_size, len(valid_dates))
         batch_dates = valid_dates[batch_start:batch_end]
@@ -160,30 +173,33 @@ def build_daily_graphs(df_all, adj_matrix):
             
             # Process all cities for this date
             for city in CITIES:
-                # Get data for this city and date
-                df_city = df_all[(df_all["location"] == city) & (df_all['date'] == date)].sort_values('datetime')
+                city_df = city_data[city]
+                date_data = city_df[city_df['date'] == date]
+                
+                if len(date_data) < 24:
+                    continue
                 
                 # Use first 12 hours for sequence, next 12 hours for target
-                sequence_data = df_city.iloc[:12]
-                target_data = df_city.iloc[12:24]
+                sequence_data = date_data.iloc[:12]
+                target_data = date_data.iloc[12:24]
                 
-                # Check if target has any non-zero values (but be less strict)
-                if (target_data['GHI'] <= 0).sum() >= 11:  # Allow at least 1 non-zero value
-                    continue  # Skip this city for this date
+                # Quick check for valid target data
+                if target_data['GHI'].sum() <= 0:
+                    continue
                 
-                # Extract features more efficiently
+                # Extract features efficiently
                 X = sequence_data[feature_cols].values.flatten()
                 
-                # Check for NaN values in features
+                # Quick NaN check
                 if np.isnan(X).any():
-                    continue  # Skip this city for this date
+                    continue
                 
                 # Target is the GHI values for the next 12 hours
                 y = target_data['GHI'].values
                 
-                # Check for NaN values in targets
+                # Quick NaN check
                 if np.isnan(y).any():
-                    continue  # Skip this city for this date
+                    continue
                 
                 node_features.append(X)
                 node_targets.append(y)
@@ -212,11 +228,12 @@ def build_daily_graphs(df_all, adj_matrix):
             sample_date = dates[0]
             print(f"\n    Debugging sample date: {sample_date}")
             for city in CITIES:
-                df_city = df_all[(df_all["location"] == city) & (df_all['date'] == sample_date)]
-                print(f"      {city}: {len(df_city)} rows")
-                if len(df_city) > 0:
-                    print(f"        Columns: {df_city.columns.tolist()}")
-                    print(f"        Feature cols: {[col for col in df_city.columns if 'lag' in col or 'sin' in col or 'cos' in col]}")
+                city_df = city_data[city]
+                date_data = city_df[city_df['date'] == sample_date]
+                print(f"      {city}: {len(date_data)} rows")
+                if len(date_data) > 0:
+                    print(f"        Columns: {date_data.columns.tolist()}")
+                    print(f"        Feature cols: {[col for col in date_data.columns if 'lag' in col or 'sin' in col or 'cos' in col]}")
     
     return graphs, np.array(targets), scaler
 
