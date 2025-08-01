@@ -348,6 +348,35 @@ def main():
     loader = DisjointLoader(dataset, batch_size=8, shuffle=True)
     print("✓ Data loader created")
 
+    # Debug dataset information
+    print(f"\nDataset debugging information:")
+    print(f"Dataset length: {len(dataset)}")
+    print(f"Dataset type: {type(dataset)}")
+    
+    # Check if dataset is empty
+    if len(dataset) == 0:
+        print("ERROR: Dataset is empty! Cannot proceed with training.")
+        return
+    
+    # Test the loader to make sure it works
+    print("\nTesting data loader...")
+    try:
+        test_batch = next(iter(loader))
+        print(f"✓ Loader test successful - batch type: {type(test_batch)}")
+        if len(test_batch) == 2:
+            inputs, targets = test_batch
+            print(f"  Inputs type: {type(inputs)}")
+            print(f"  Targets type: {type(targets)}")
+            if isinstance(inputs, (list, tuple)) and len(inputs) == 3:
+                x, a, i = inputs
+                print(f"  x shape: {x.shape}")
+                print(f"  a shape: {a.shape}")
+                print(f"  i shape: {i.shape}")
+                print(f"  targets shape: {targets.shape}")
+    except Exception as e:
+        print(f"✗ Loader test failed: {e}")
+        return
+
     print("\nBuilding model...")
     if len(dataset) > 0:
         num_features = dataset[0].x.shape[1]
@@ -420,29 +449,65 @@ def main():
     loss_fn = tf.keras.losses.MeanSquaredError()
     mae_metric = tf.keras.metrics.MeanAbsoluteError()
     
+    # Calculate expected number of batches per epoch
+    total_graphs = len(dataset)
+    batch_size = 8
+    steps_per_epoch = (total_graphs + batch_size - 1) // batch_size
+    print(f"Total graphs: {total_graphs}")
+    print(f"Batch size: {batch_size}")
+    print(f"Steps per epoch: {steps_per_epoch}")
+    
+    # Safety check to prevent infinite loops
+    max_batches_per_epoch = min(steps_per_epoch, 1000)  # Cap at 1000 batches max
+    if steps_per_epoch > 1000:
+        print(f"WARNING: Large dataset detected. Limiting to {max_batches_per_epoch} batches per epoch for safety.")
+        steps_per_epoch = max_batches_per_epoch
+    
     for epoch in range(20):
         print(f"\nStarting epoch {epoch+1}/20...")
         epoch_loss = 0.0
         epoch_mae = 0.0
         num_batches = 0
         
-        for batch_idx, batch in enumerate(loader):
-            if batch_idx == 0:
-                print(f"  Processing first batch of epoch {epoch+1}...")
-            inputs, y_true = batch
-            x, a, i = inputs
-            y_true = tf.cast(y_true, tf.float32)
-            with tf.GradientTape() as tape:
-                y_pred = model([x, a, i], training=True)
-                loss = loss_fn(y_true, y_pred)
-            gradients = tape.gradient(loss, model.trainable_variables)
-            optimizer.apply_gradients(zip(gradients, model.trainable_variables))
-            mae_metric.update_state(y_true, y_pred)
-            epoch_loss += loss.numpy()
-            num_batches += 1
-            
-            if batch_idx % 10 == 0 and batch_idx > 0:
-                print(f"    Processed {batch_idx} batches in epoch {epoch+1}")
+        # Create a new loader for each epoch to ensure proper iteration
+        epoch_loader = DisjointLoader(dataset, batch_size=batch_size, shuffle=True)
+        
+        # Use a counter to limit the number of batches per epoch
+        for batch_idx in range(steps_per_epoch):
+            try:
+                batch = next(epoch_loader)
+                if batch_idx == 0:
+                    print(f"  Processing first batch of epoch {epoch+1}...")
+                
+                inputs, y_true = batch
+                x, a, i = inputs
+                y_true = tf.cast(y_true, tf.float32)
+                
+                with tf.GradientTape() as tape:
+                    y_pred = model([x, a, i], training=True)
+                    loss = loss_fn(y_true, y_pred)
+                
+                gradients = tape.gradient(loss, model.trainable_variables)
+                optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+                mae_metric.update_state(y_true, y_pred)
+                epoch_loss += loss.numpy()
+                num_batches += 1
+                
+                if batch_idx % 10 == 0 and batch_idx > 0:
+                    progress = (batch_idx / steps_per_epoch) * 100
+                    print(f"    Processed {batch_idx}/{steps_per_epoch} batches ({progress:.1f}%) in epoch {epoch+1}")
+                    
+            except StopIteration:
+                print(f"    Reached end of dataset at batch {batch_idx}")
+                break
+            except Exception as e:
+                print(f"    Error processing batch {batch_idx}: {e}")
+                continue
+        
+        # Final progress report for the epoch
+        if num_batches > 0:
+            progress = (num_batches / steps_per_epoch) * 100
+            print(f"    Completed {num_batches}/{steps_per_epoch} batches ({progress:.1f}%) for epoch {epoch+1}")
         
         if num_batches > 0:
             epoch_loss /= num_batches
