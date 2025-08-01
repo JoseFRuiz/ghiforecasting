@@ -40,4 +40,12 @@ ENV/
 
 # OS
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+
+# Logs and outputs
+logs/
+
+# Model artifacts
+models/
+

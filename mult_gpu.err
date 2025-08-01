@@ -9,4 +9,12 @@ Currently Loaded Modules:
  
 
 <frozen importlib._bootstrap>:219: RuntimeWarning: scipy._lib.messagestream.MessageStream size changed, may indicate binary incompatibility. Expected 56 from C header, got 64 from PyObject
-slurmstepd: error: *** JOB 9102073 ON c0610a-s5 CANCELLED AT 2025-08-01T12:13:14 ***
+<frozen importlib._bootstrap>:219: RuntimeWarning: scipy._lib.messagestream.MessageStream size changed, may indicate binary incompatibility. Expected 56 from C header, got 64 from PyObject
+Traceback (most recent call last):
+  File "train_gnn.py", line 827, in <module>
+    main()
+  File "train_gnn.py", line 822, in main
+    all_metrics = evaluate_gnn_model(model, dataset, ghi_scaler, graph_dates, graph_cities, actual_cities)
+  File "train_gnn.py", line 347, in evaluate_gnn_model
+    y_true = y_true.numpy()
+AttributeError: 'numpy.ndarray' object has no attribute 'numpy'
