@@ -10,7 +10,10 @@ from spektral.data import Dataset, Graph
 from spektral.data.loaders import DisjointLoader
 from spektral.layers import GCNConv
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import pickle
+import matplotlib.pyplot as plt
+import datetime
 # from geopy.distance import geodesic  # No longer needed with pre-computed distances
 from utils import CONFIG, load_data
 
@@ -105,6 +108,8 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     print("    Starting to build daily graphs (highly optimized)...")
     graphs = []
     targets = []
+    graph_dates = []  # Store dates for each graph
+    graph_cities = []  # Store cities for each graph
 
     print("    Fitting scaler...")
     scaler = MinMaxScaler()
@@ -212,6 +217,8 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
                 
                 graphs.append(Graph(x=x, a=adj_subset))
                 targets.append(y)
+                graph_dates.append(date)
+                graph_cities.append(actual_cities[:len(node_features)])
 
     print(f"    Total valid daily graphs: {len(graphs)}")
     
@@ -235,7 +242,7 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
                     print(f"        Columns: {date_data.columns.tolist()}")
                     print(f"        Feature cols: {[col for col in date_data.columns if 'lag' in col or 'sin' in col or 'cos' in col]}")
     
-    return graphs, np.array(targets), scaler
+    return graphs, np.array(targets), scaler, graph_dates, graph_cities
 
 class GHIDataset(Dataset):
     def __init__(self, graphs, y, **kwargs):
@@ -300,6 +307,261 @@ def build_gnn_model(input_shape, output_units):
     return model
 
 # ----------------------------------------------
+# Evaluation functions
+# ----------------------------------------------
+def evaluate_gnn_model(model, dataset, ghi_scaler, graph_dates, graph_cities, actual_cities):
+    """
+    Evaluate the GNN model and generate metrics for each city.
+    
+    Args:
+        model: Trained GNN model
+        dataset: Graph dataset
+        ghi_scaler: Scaler used for GHI values
+        graph_dates: List of dates for each graph
+        graph_cities: List of cities for each graph
+        actual_cities: List of all cities
+    
+    Returns:
+        dict: Dictionary with evaluation results for each city
+    """
+    print("\nEvaluating GNN model...")
+    
+    # Create results directory
+    os.makedirs("results_gnn", exist_ok=True)
+    
+    # Make predictions on all graphs
+    predictions = []
+    actuals = []
+    dates = []
+    cities = []
+    
+    # Use a loader to get predictions
+    loader = DisjointLoader(dataset, batch_size=8, shuffle=False)
+    
+    for batch in loader:
+        inputs, y_true = batch
+        x, a, i = inputs
+        y_pred = model([x, a, i], training=False)
+        
+        # Convert to numpy arrays
+        y_true = y_true.numpy()
+        y_pred = y_pred.numpy()
+        
+        # Inverse transform predictions and actual values
+        y_true_original = ghi_scaler.inverse_transform(y_true.reshape(-1, 1)).reshape(y_true.shape)
+        y_pred_original = ghi_scaler.inverse_transform(y_pred.reshape(-1, 1)).reshape(y_pred.shape)
+        
+        predictions.extend(y_pred_original)
+        actuals.extend(y_true_original)
+    
+    # Organize results by city
+    city_results = {city: {'dates': [], 'actual': [], 'predicted': []} for city in actual_cities}
+    
+    for i, (date, city_list) in enumerate(zip(graph_dates, graph_cities)):
+        if i < len(predictions):
+            pred = predictions[i]
+            actual = actuals[i]
+            
+            # Distribute the graph-level prediction to individual cities
+            for city in city_list:
+                city_results[city]['dates'].append(date)
+                city_results[city]['actual'].append(actual)
+                city_results[city]['predicted'].append(pred)
+    
+    # Calculate metrics for each city
+    all_metrics = {}
+    
+    for city in actual_cities:
+        if len(city_results[city]['actual']) > 0:
+            print(f"\nProcessing results for {city}...")
+            
+            # Flatten the results
+            actual_flat = np.array(city_results[city]['actual']).flatten()
+            predicted_flat = np.array(city_results[city]['predicted']).flatten()
+            dates_flat = city_results[city]['dates']
+            
+            # Calculate daily metrics
+            daily_metrics = calculate_daily_metrics_gnn(dates_flat, actual_flat, predicted_flat)
+            
+            # Calculate overall metrics
+            mae = mean_absolute_error(actual_flat, predicted_flat)
+            rmse = np.sqrt(mean_squared_error(actual_flat, predicted_flat))
+            r2 = r2_score(actual_flat, predicted_flat)
+            correlation = np.corrcoef(actual_flat, predicted_flat)[0, 1]
+            
+            all_metrics[city] = {
+                'mae': mae,
+                'rmse': rmse,
+                'r2': r2,
+                'correlation': correlation,
+                'daily_metrics': daily_metrics,
+                'actual': actual_flat,
+                'predicted': predicted_flat,
+                'dates': dates_flat
+            }
+            
+            print(f"  MAE: {mae:.2f} W/m²")
+            print(f"  RMSE: {rmse:.2f} W/m²")
+            print(f"  R²: {r2:.4f}")
+            print(f"  Correlation: {correlation:.4f}")
+            
+            # Create plots for this city
+            plot_gnn_results(all_metrics[city], city)
+    
+    # Create summary table
+    create_gnn_summary_table(all_metrics)
+    
+    return all_metrics
+
+def calculate_daily_metrics_gnn(dates, actual, predicted):
+    """
+    Calculate daily metrics for GNN results.
+    
+    Args:
+        dates: List of dates
+        actual: Actual GHI values
+        predicted: Predicted GHI values
+    
+    Returns:
+        pd.DataFrame: Daily metrics
+    """
+    # Convert dates to pandas datetime
+    dates_pd = pd.to_datetime(dates)
+    
+    # Create DataFrame
+    df = pd.DataFrame({
+        'date': dates_pd,
+        'actual': actual,
+        'predicted': predicted
+    })
+    
+    # Group by date and calculate daily metrics
+    daily_stats = []
+    for date, group in df.groupby(df['date'].dt.date):
+        # Filter out zero values
+        non_zero_mask = group['actual'] > 0
+        if non_zero_mask.sum() > 0:
+            actual_nonzero = group.loc[non_zero_mask, 'actual']
+            predicted_nonzero = group.loc[non_zero_mask, 'predicted']
+            
+            # Calculate correlation
+            correlation = actual_nonzero.corr(predicted_nonzero)
+            if pd.isna(correlation):
+                correlation = 0
+            
+            # Calculate other metrics
+            mae = mean_absolute_error(actual_nonzero, predicted_nonzero)
+            rmse = np.sqrt(mean_squared_error(actual_nonzero, predicted_nonzero))
+            r2 = r2_score(actual_nonzero, predicted_nonzero)
+            
+            # Clamp R² to [0, 1]
+            r2 = max(0, min(1, r2))
+            
+            daily_stats.append({
+                'date': date,
+                'correlation': correlation,
+                'mae': mae,
+                'rmse': rmse,
+                'r2': r2,
+                'num_points': len(actual_nonzero),
+                'actual_max': actual_nonzero.max(),
+                'actual_mean': actual_nonzero.mean(),
+                'actual_std': actual_nonzero.std(),
+                'predicted_max': predicted_nonzero.max(),
+                'predicted_mean': predicted_nonzero.mean(),
+                'predicted_std': predicted_nonzero.std()
+            })
+    
+    return pd.DataFrame(daily_stats).sort_values('date')
+
+def plot_gnn_results(results, city):
+    """
+    Create plots for GNN results.
+    
+    Args:
+        results: Dictionary with evaluation results
+        city: City name
+    """
+    # Create directory for plots
+    plot_dir = f"results_gnn/{city}"
+    os.makedirs(plot_dir, exist_ok=True)
+    
+    # Create scatter plot
+    plt.figure(figsize=(10, 6))
+    plt.scatter(results['actual'], results['predicted'], alpha=0.5)
+    plt.plot([0, max(results['actual'])], [0, max(results['actual'])], 'r--')
+    plt.xlabel('Actual GHI (W/m²)')
+    plt.ylabel('Predicted GHI (W/m²)')
+    plt.title(f'Actual vs Predicted GHI - {city} (GNN)')
+    plt.savefig(f"{plot_dir}/scatter_plot.png")
+    plt.close()
+    
+    # Create time series plot
+    plt.figure(figsize=(15, 6))
+    plt.plot(results['actual'], label='Actual', alpha=0.7)
+    plt.plot(results['predicted'], label='Predicted', alpha=0.7)
+    plt.xlabel('Time')
+    plt.ylabel('GHI (W/m²)')
+    plt.title(f'GHI Time Series - {city} (GNN)')
+    plt.legend()
+    plt.savefig(f"{plot_dir}/time_series.png")
+    plt.close()
+    
+    # Create daily correlation plot
+    if 'daily_metrics' in results and len(results['daily_metrics']) > 0:
+        daily_metrics = results['daily_metrics']
+        
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 10))
+        
+        # Plot correlation and R²
+        ax1.plot(daily_metrics['date'], daily_metrics['correlation'], 'b-', label='Correlation')
+        ax1.plot(daily_metrics['date'], daily_metrics['r2'], 'r-', label='R²')
+        ax1.set_title(f'Daily Correlation and R² - {city} (GNN)')
+        ax1.set_xlabel('Date')
+        ax1.set_ylabel('Value')
+        ax1.legend()
+        ax1.grid(True, alpha=0.3)
+        
+        # Plot MAE and RMSE
+        ax2.plot(daily_metrics['date'], daily_metrics['mae'], 'g-', label='MAE')
+        ax2.plot(daily_metrics['date'], daily_metrics['rmse'], 'm-', label='RMSE')
+        ax2.set_title(f'Daily MAE and RMSE - {city} (GNN)')
+        ax2.set_xlabel('Date')
+        ax2.set_ylabel('Error (W/m²)')
+        ax2.legend()
+        ax2.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        plt.savefig(f"{plot_dir}/daily_metrics.png")
+        plt.close()
+        
+        # Save daily metrics to CSV
+        daily_metrics.to_csv(f"{plot_dir}/daily_metrics.csv", index=False)
+
+def create_gnn_summary_table(all_metrics):
+    """
+    Create a summary table for GNN results.
+    
+    Args:
+        all_metrics: Dictionary with metrics for all cities
+    """
+    # Create summary DataFrame
+    summary_data = []
+    for city, metrics in all_metrics.items():
+        summary_data.append({
+            'City': city,
+            'MAE': metrics['mae'],
+            'RMSE': metrics['rmse'],
+            'R²': metrics['r2'],
+            'Correlation': metrics['correlation']
+        })
+    
+    summary_df = pd.DataFrame(summary_data)
+    summary_df.to_csv("results_gnn/summary.csv", index=False)
+    print(f"\nSummary saved to results_gnn/summary.csv")
+    print(summary_df)
+
+# ----------------------------------------------
 # Main script
 # ----------------------------------------------
 def main():
@@ -356,7 +618,7 @@ def main():
     print(f"Adjacency matrix sample values:\n{adj_matrix}")
 
     print("\nBuilding daily graphs...")
-    graphs, targets, ghi_scaler = build_daily_graphs(df_all, adj_matrix, actual_cities)
+    graphs, targets, ghi_scaler, graph_dates, graph_cities = build_daily_graphs(df_all, adj_matrix, actual_cities)
     
     if len(graphs) == 0:
         print("ERROR: No valid graphs created. Exiting.")
@@ -554,6 +816,12 @@ def main():
     with open("models/ghi_scaler_gnn.pkl", "wb") as f:
         pickle.dump(ghi_scaler, f)
     print("\n✓ Model and scaler saved.")
+
+    # Evaluate the model
+    print("\nEvaluating model...")
+    all_metrics = evaluate_gnn_model(model, dataset, ghi_scaler, graph_dates, graph_cities, actual_cities)
+    
+    print("\nGNN training and evaluation completed!")
 
 if __name__ == "__main__":
     main()

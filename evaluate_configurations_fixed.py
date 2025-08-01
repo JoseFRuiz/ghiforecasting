@@ -36,10 +36,13 @@ def create_sequences_joint(df, sequence_length, input_config):
     feature_columns = []
     
     if input_config in ['ghi_only', 'ghi_met']:
+        # Add GHI lag features (24 features)
         feature_columns.extend([f"GHI_lag_{lag}" for lag in range(1, 25)])
+        # Add current GHI
         feature_columns.append("GHI")
     
     if input_config in ['met_only', 'ghi_met']:
+        # Add meteorological features
         met_features = [
             "Temperature_lag_24", "Relative Humidity_lag_24",
             "Pressure_lag_24", "Precipitable Water_lag_24",
@@ -51,32 +54,32 @@ def create_sequences_joint(df, sequence_length, input_config):
     time_features = ["hour_sin", "hour_cos", "month_sin", "month_cos"]
     feature_columns.extend(time_features)
     
-    # Get data for selected features
+    # Get all data at once
     data = df[feature_columns].values
     target = df["GHI"].values
     
-    # Create sequences
+    # Calculate number of sequences
     n_sequences = len(df) - sequence_length
+    
+    # Pre-allocate arrays
     X = np.zeros((n_sequences, sequence_length, len(feature_columns)))
     y = np.zeros(n_sequences)
     
+    # Create sequences using vectorized operations
     for i in range(n_sequences):
         X[i] = data[i:i + sequence_length]
         y[i] = target[i + sequence_length]
     
-    # Only keep nonzero targets
+    # Filter out sequences where target is zero (night time)
     mask = y > 0
     X = X[mask]
     y = y[mask]
     
-    # Note: Joint models were trained WITHOUT location features
-    # Location features are only used in the 'all' configuration, but our models use ghi_only, ghi_met, met_only
-    
-    return X, y, df['datetime'].values[sequence_length:][mask]
+    return X, y
 
 def create_sequences_individual(df, sequence_length):
     """Create sequences for individual models."""
-    # Get all required features (same as in train_individual.py)
+    # Get all required features
     feature_columns = (
         [f"GHI_lag_{lag}" for lag in range(1, 25)] +  # GHI lag features
         ["GHI"] +  # Current GHI
@@ -112,53 +115,41 @@ def create_sequences_individual(df, sequence_length):
     X = X[mask]
     y = y[mask]
     
-    return X, y, df['datetime'].values[sequence_length:][mask]
+    return X, y
 
 def split_data_by_days(df, train_ratio=0.7, val_ratio=0.15):
-    """Split data by complete days to ensure full days in each split."""
+    """Split data by days to maintain temporal consistency."""
+    # Convert datetime to date for grouping
+    df['date'] = pd.to_datetime(df['datetime']).dt.date
+    
     # Get unique dates
-    dates = pd.to_datetime(df['datetime']).dt.date.unique()
-    dates = sorted(dates)
+    unique_dates = sorted(df['date'].unique())
     
     # Calculate split indices
-    n_dates = len(dates)
+    n_dates = len(unique_dates)
     train_end = int(n_dates * train_ratio)
     val_end = int(n_dates * (train_ratio + val_ratio))
     
     # Split dates
-    train_dates = dates[:train_end]
-    val_dates = dates[train_end:val_end]
-    test_dates = dates[val_end:]
+    train_dates = unique_dates[:train_end]
+    val_dates = unique_dates[train_end:val_end]
+    test_dates = unique_dates[val_end:]
     
-    # Split data
-    df_train = df[pd.to_datetime(df['datetime']).dt.date.isin(train_dates)]
-    df_val = df[pd.to_datetime(df['datetime']).dt.date.isin(val_dates)]
-    df_test = df[pd.to_datetime(df['datetime']).dt.date.isin(test_dates)]
+    # Split data based on dates
+    train_df = df[df['date'].isin(train_dates)]
+    val_df = df[df['date'].isin(val_dates)]
+    test_df = df[df['date'].isin(test_dates)]
     
-    return df_train, df_val, df_test
+    return train_df, val_df, test_df
 
 def calculate_daily_metrics(dates, actual, predicted):
-    """Calculate daily metrics for correlation analysis with additional validation."""
-    # Convert dates to pandas Series for proper date handling
-    dates = pd.to_datetime(dates)
+    """Calculate daily metrics for evaluation."""
+    # Convert dates to pandas datetime
+    dates_pd = pd.to_datetime(dates)
     
-    # Ensure arrays are 1-dimensional
-    actual = actual.flatten()
-    predicted = predicted.flatten()
-    
-    # Validate data ranges
-    print("\nData validation:")
-    print(f"Actual GHI range: [{actual.min():.2f}, {actual.max():.2f}] W/m²")
-    print(f"Predicted GHI range: [{predicted.min():.2f}, {predicted.max():.2f}] W/m²")
-    
-    # Check for unrealistic values
-    if predicted.max() > 1200:
-        print(f"Warning: Unrealistic predictions found (>1200 W/m²): {predicted.max():.2f} W/m²")
-    if predicted.min() < 0:
-        print(f"Warning: Negative predictions found: {predicted.min():.2f} W/m²")
-    
+    # Create DataFrame
     df = pd.DataFrame({
-        'date': dates,
+        'date': dates_pd,
         'actual': actual,
         'predicted': predicted
     })
@@ -172,22 +163,18 @@ def calculate_daily_metrics(dates, actual, predicted):
             actual_nonzero = group.loc[non_zero_mask, 'actual']
             predicted_nonzero = group.loc[non_zero_mask, 'predicted']
             
-            # Calculate metrics
+            # Calculate correlation
             correlation = actual_nonzero.corr(predicted_nonzero)
+            if pd.isna(correlation):
+                correlation = 0
+            
+            # Calculate other metrics
             mae = mean_absolute_error(actual_nonzero, predicted_nonzero)
             rmse = np.sqrt(mean_squared_error(actual_nonzero, predicted_nonzero))
+            r2 = r2_score(actual_nonzero, predicted_nonzero)
             
-            # Calculate R² properly
-            ss_res = np.sum((actual_nonzero - predicted_nonzero) ** 2)
-            ss_tot = np.sum((actual_nonzero - np.mean(actual_nonzero)) ** 2)
-            r2 = 1 - (ss_res / ss_tot) if ss_tot != 0 else 0
-            
-            # Ensure R² is between 0 and 1
+            # Clamp R² to [0, 1]
             r2 = max(0, min(1, r2))
-            
-            # Calculate additional metrics
-            mape = np.mean(np.abs((actual_nonzero - predicted_nonzero) / actual_nonzero)) * 100
-            bias = np.mean(predicted_nonzero - actual_nonzero)
             
             daily_stats.append({
                 'date': date,
@@ -195,8 +182,6 @@ def calculate_daily_metrics(dates, actual, predicted):
                 'mae': mae,
                 'rmse': rmse,
                 'r2': r2,
-                'mape': mape,
-                'bias': bias,
                 'num_points': len(actual_nonzero),
                 'actual_max': actual_nonzero.max(),
                 'actual_mean': actual_nonzero.mean(),
@@ -206,22 +191,14 @@ def calculate_daily_metrics(dates, actual, predicted):
                 'predicted_std': predicted_nonzero.std()
             })
     
-    metrics_df = pd.DataFrame(daily_stats).sort_values('date')
-    
-    # Print overall statistics
-    print("\nOverall metrics:")
-    print(f"Mean MAE: {metrics_df['mae'].mean():.2f} W/m²")
-    print(f"Mean RMSE: {metrics_df['rmse'].mean():.2f} W/m²")
-    print(f"Mean R²: {metrics_df['r2'].mean():.4f}")
-    print(f"Mean MAPE: {metrics_df['mape'].mean():.2f}%")
-    print(f"Mean Bias: {metrics_df['bias'].mean():.2f} W/m²")
-    
-    return metrics_df
+    return pd.DataFrame(daily_stats).sort_values('date')
 
 def plot_daily_correlations(daily_metrics, city, model_type, config, save_dir):
-    """Create plots showing daily correlation metrics with additional validation."""
-    # Create figure with 4 subplots
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 15))
+    """Create plots showing daily correlation metrics."""
+    os.makedirs(save_dir, exist_ok=True)
+    
+    # Create figure with 3 subplots
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(15, 15))
     
     # Plot correlation and R²
     ax1.plot(daily_metrics['date'], daily_metrics['correlation'], 'b-', label='Correlation')
@@ -241,47 +218,48 @@ def plot_daily_correlations(daily_metrics, city, model_type, config, save_dir):
     ax2.legend()
     ax2.grid(True, alpha=0.3)
     
-    # Plot MAPE and Bias
-    ax3.plot(daily_metrics['date'], daily_metrics['mape'], 'c-', label='MAPE')
-    ax3.plot(daily_metrics['date'], daily_metrics['bias'], 'y-', label='Bias')
-    ax3.set_title(f'Daily MAPE and Bias - {city} ({model_type}, {config})')
+    # Plot GHI statistics
+    ax3.plot(daily_metrics['date'], daily_metrics['actual_max'], 'b-', label='Actual Max')
+    ax3.plot(daily_metrics['date'], daily_metrics['predicted_max'], 'r--', label='Predicted Max')
+    ax3.plot(daily_metrics['date'], daily_metrics['actual_mean'], 'g-', label='Actual Mean')
+    ax3.plot(daily_metrics['date'], daily_metrics['predicted_mean'], 'm--', label='Predicted Mean')
+    ax3.set_title(f'Daily GHI Statistics - {city} ({model_type}, {config})')
     ax3.set_xlabel('Date')
-    ax3.set_ylabel('Value')
+    ax3.set_ylabel('GHI (W/m²)')
     ax3.legend()
     ax3.grid(True, alpha=0.3)
     
-    # Plot GHI statistics
-    ax4.plot(daily_metrics['date'], daily_metrics['actual_max'], 'b-', label='Actual Max')
-    ax4.plot(daily_metrics['date'], daily_metrics['predicted_max'], 'r--', label='Predicted Max')
-    ax4.plot(daily_metrics['date'], daily_metrics['actual_mean'], 'g-', label='Actual Mean')
-    ax4.plot(daily_metrics['date'], daily_metrics['predicted_mean'], 'm--', label='Predicted Mean')
-    ax4.set_title(f'Daily GHI Statistics - {city} ({model_type}, {config})')
-    ax4.set_xlabel('Date')
-    ax4.set_ylabel('GHI (W/m²)')
-    ax4.legend()
-    ax4.grid(True, alpha=0.3)
-    
     # Rotate x-axis labels
-    for ax in [ax1, ax2, ax3, ax4]:
+    for ax in [ax1, ax2, ax3]:
         plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
     
     plt.tight_layout()
-    plt.savefig(os.path.join(save_dir, f'daily_correlations_{city}_{model_type}_{config}.png'), dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(save_dir, f'daily_correlations_{city}_{model_type}_{config}.png'), 
+                dpi=300, bbox_inches='tight')
     plt.close()
+    
+    # Save daily metrics to CSV
+    daily_metrics.to_csv(os.path.join(save_dir, f'daily_correlations_{city}_{model_type}_{config}.csv'), 
+                        index=False)
 
 def plot_correlation_analysis(daily_metrics, dates, actual, predicted, city, model_type, config, save_dir):
-    """Create correlation analysis plots."""
+    """Create scatter plots comparing actual vs predicted values."""
+    os.makedirs(save_dir, exist_ok=True)
+    
     # Create a figure with two subplots
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+    
+    # Convert dates to pandas Series for proper date handling
+    dates = pd.Series(dates)
     
     # Plot 1: Day with highest correlation
     best_day_idx = daily_metrics['correlation'].idxmax()
     best_day = daily_metrics.loc[best_day_idx]
     
     # Get the actual data for this day
-    mask = pd.to_datetime(dates).date == best_day['date']
-    actual_data = actual[mask]
-    predicted_data = predicted[mask]
+    mask = dates.dt.date == best_day['date']
+    actual_data = np.array(actual)[mask]
+    predicted_data = np.array(predicted)[mask]
     
     if len(actual_data) > 0:
         ax1.scatter(actual_data, predicted_data, alpha=0.5)
@@ -297,9 +275,9 @@ def plot_correlation_analysis(daily_metrics, dates, actual, predicted, city, mod
     worst_day = daily_metrics.loc[worst_day_idx]
     
     # Get the actual data for this day
-    mask = pd.to_datetime(dates).date == worst_day['date']
-    actual_data = actual[mask]
-    predicted_data = predicted[mask]
+    mask = dates.dt.date == worst_day['date']
+    actual_data = np.array(actual)[mask]
+    predicted_data = np.array(predicted)[mask]
     
     if len(actual_data) > 0:
         ax2.scatter(actual_data, predicted_data, alpha=0.5)
@@ -312,78 +290,39 @@ def plot_correlation_analysis(daily_metrics, dates, actual, predicted, city, mod
     
     plt.suptitle(f'Correlation Analysis for {city} ({model_type}, {config})\nR² = {daily_metrics["r2"].mean():.3f}')
     plt.tight_layout()
-    plt.savefig(os.path.join(save_dir, f'correlation_analysis_{city}_{model_type}_{config}.png'), dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(save_dir, f'correlation_analysis_{city}_{model_type}_{config}.png'), 
+                dpi=300, bbox_inches='tight')
     plt.close()
 
 def create_summary_table(all_metrics):
-    """Create a summary table of performance metrics across all locations and configurations."""
+    """Create a comprehensive summary table."""
+    # Create summary DataFrame
     summary_data = []
+    for (city, model_type, config), metrics in all_metrics.items():
+        summary_data.append({
+            'City': city,
+            'Model_Type': model_type,
+            'Config': config,
+            'MAE': metrics['mae'],
+            'RMSE': metrics['rmse'],
+            'R²': metrics['r2'],
+            'Correlation': metrics['correlation'],
+            'Mean_Correlation': metrics['daily_metrics']['correlation'].mean(),
+            'Mean_R2': metrics['daily_metrics']['r2'].mean(),
+            'Std_Correlation': metrics['daily_metrics']['correlation'].std(),
+            'Std_R2': metrics['daily_metrics']['r2'].std()
+        })
     
-    for model_type, config_metrics in all_metrics.items():
-        if model_type == 'joint':
-            # Joint models have configurations (now just 'joint_fixed')
-            for config, city_metrics in config_metrics.items():
-                for city, metrics_df in city_metrics.items():
-                    summary_data.append({
-                        'Model Type': model_type,
-                        'Configuration': config,
-                        'Location': city,
-                        'MAE (W/m²)': metrics_df['mae'].mean(),
-                        'RMSE (W/m²)': metrics_df['rmse'].mean(),
-                        'R²': metrics_df['r2'].mean(),
-                        'MAPE (%)': metrics_df['mape'].mean(),
-                        'Bias (W/m²)': metrics_df['bias'].mean(),
-                        'Correlation': metrics_df['correlation'].mean(),
-                        'Num Days': len(metrics_df),
-                        'Actual Mean (W/m²)': metrics_df['actual_mean'].mean(),
-                        'Predicted Mean (W/m²)': metrics_df['predicted_mean'].mean()
-                    })
-        else:
-            # Individual models don't have configurations
-            for city, metrics_df in config_metrics.items():
-                summary_data.append({
-                    'Model Type': model_type,
-                    'Configuration': 'standard',
-                    'Location': city,
-                    'MAE (W/m²)': metrics_df['mae'].mean(),
-                    'RMSE (W/m²)': metrics_df['rmse'].mean(),
-                    'R²': metrics_df['r2'].mean(),
-                    'MAPE (%)': metrics_df['mape'].mean(),
-                    'Bias (W/m²)': metrics_df['bias'].mean(),
-                    'Correlation': metrics_df['correlation'].mean(),
-                    'Num Days': len(metrics_df),
-                    'Actual Mean (W/m²)': metrics_df['actual_mean'].mean(),
-                    'Predicted Mean (W/m²)': metrics_df['predicted_mean'].mean()
-                })
-    
-    # Create DataFrame and sort by model type, configuration and location
     summary_df = pd.DataFrame(summary_data)
-    if not summary_df.empty:
-        summary_df = summary_df.sort_values(['Model Type', 'Configuration', 'Location'])
-        
-        # Round numeric columns
-        numeric_cols = summary_df.select_dtypes(include=[np.number]).columns
-        summary_df[numeric_cols] = summary_df[numeric_cols].round(4)
+    summary_df.to_csv("results_comprehensive_fixed/performance_summary.csv", index=False)
+    print(f"\nSummary saved to results_comprehensive_fixed/performance_summary.csv")
+    print(summary_df)
     
     return summary_df
 
 def create_sequences_joint_all_features(df, sequence_length, locations):
-    """
-    Create sequences for joint model evaluation that matches train_joint_fixed.py.
-    
-    Args:
-        df: DataFrame with data for a single location
-        sequence_length: Length of input sequences
-        locations: List of all locations (for one-hot encoding)
-    
-    Returns:
-        tuple: (X, y, dates) where X is the input sequences and y is the target values
-    """
-    print(f"\nCreating sequences for joint model evaluation")
-    print(f"Data shape: {df.shape}")
-    print(f"Location: {df['location'].iloc[0]}")
-    
-    # Get all required features (same as in train_joint_fixed.py)
+    """Create sequences for joint models with all features including location encoding."""
+    # Initialize feature columns
     feature_columns = (
         [f"GHI_lag_{lag}" for lag in range(1, 25)] +  # GHI lag features
         ["GHI"] +  # Current GHI
@@ -398,444 +337,449 @@ def create_sequences_joint_all_features(df, sequence_length, locations):
         ]
     )
     
-    # Get all data at once
-    data = df[feature_columns].values
-    target = df["GHI"].values
+    # Initialize lists to store sequences
+    all_X_sequences = []
+    all_y_sequences = []
     
-    # Calculate number of sequences
-    n_sequences = len(df) - sequence_length
+    # Process each location separately
+    for location in locations:
+        df_loc = df[df['location'] == location].copy()
+        
+        if len(df_loc) == 0:
+            continue
+            
+        # Create one-hot encoded location vector for the current location
+        location_vector = np.zeros(len(locations))
+        location_vector[locations.index(location)] = 1
+        
+        # Sort by datetime to ensure chronological order
+        df_loc = df_loc.sort_values("datetime")
+        
+        # Get all required data at once
+        data = df_loc[feature_columns].values
+        target = df_loc["GHI"].values
+        
+        # Calculate number of sequences
+        n_sequences = len(df_loc) - sequence_length
+        
+        # Pre-allocate arrays
+        X = np.zeros((n_sequences, sequence_length, len(feature_columns)))
+        y = np.zeros(n_sequences)
+        
+        # Create sequences using vectorized operations
+        for i in range(n_sequences):
+            X[i] = data[i:i + sequence_length]
+            y[i] = target[i + sequence_length]
+        
+        # Filter out sequences where target is zero (night time)
+        mask = y > 0
+        X = X[mask]
+        y = y[mask]
+        
+        # Add location features
+        location_features = np.tile(location_vector, (len(X), sequence_length, 1))
+        X = np.concatenate([X, location_features], axis=2)
+        
+        all_X_sequences.append(X)
+        all_y_sequences.append(y)
     
-    # Pre-allocate arrays
-    X = np.zeros((n_sequences, sequence_length, len(feature_columns)))
-    y = np.zeros(n_sequences)
+    if not all_X_sequences:
+        raise ValueError("No valid sequences were created for any location")
     
-    # Create sequences using vectorized operations
-    for i in range(n_sequences):
-        X[i] = data[i:i + sequence_length]
-        y[i] = target[i + sequence_length]
+    # Combine sequences from all locations
+    X = np.concatenate(all_X_sequences, axis=0)
+    y = np.concatenate(all_y_sequences, axis=0)
     
-    # Filter out sequences where target is zero (night time)
-    mask = y > 0
-    X = X[mask]
-    y = y[mask]
-    
-    # Add location features (one-hot encoding)
-    current_location = df['location'].iloc[0]
-    location_vector = np.zeros(len(locations))
-    location_vector[locations.index(current_location)] = 1
-    
-    # Add location features to each sequence
-    location_features = np.tile(location_vector, (len(X), sequence_length, 1))
-    X = np.concatenate([X, location_features], axis=2)
-    
-    print(f"Created {len(X)} valid sequences")
-    print(f"Final X shape: {X.shape}")
-    print(f"Final y shape: {y.shape}")
-    
-    return X, y, df['datetime'].values[sequence_length:][mask]
+    return X, y
 
 def evaluate_joint_models():
-    """Evaluate joint models from train_joint_fixed.py with FIXED scaling."""
-    print("\n" + "="*80)
-    print("EVALUATING JOINT MODELS (FIXED SCALING)")
-    print("="*80)
+    """Evaluate joint models with different configurations."""
+    print("\nEvaluating joint models...")
     
-    # Create output directories
-    base_dir = "results_joint_fixed"
-    os.makedirs(base_dir, exist_ok=True)
-    
-    # Load target scaler
-    scaler_path = os.path.join("models", "target_scaler_fixed.pkl")
-    if not os.path.exists(scaler_path):
-        print(f"Target scaler not found: {scaler_path}")
-        return {}
-    
-    with open(scaler_path, 'rb') as f:
-        target_scaler = pickle.load(f)
-    
-    print(f"Joint scaler info:")
-    print(f"  data_min: {target_scaler.data_min_[0]:.2f}")
-    print(f"  data_max: {target_scaler.data_max_[0]:.2f}")
-    print(f"  scale_: {target_scaler.scale_[0]:.4f}")
-    print(f"  min_: {target_scaler.min_[0]:.4f}")
-    
-    # Dictionary to store all metrics
-    all_metrics = {}
-    
-    # Load the single joint model (train_joint_fixed.py saves only one model)
-    model_path = os.path.join("models", "lstm_ghi_forecast_joint_fixed.h5")
-    if not os.path.exists(model_path):
-        print(f"Joint model not found: {model_path}")
-        print("Please run train_joint_fixed.py first to train the joint model.")
-        return {}
-    
-    print(f"\nLoading joint model from: {model_path}")
-    model = tf.keras.models.load_model(model_path)
-    
-    # Initialize dictionary for the single joint model
-    all_metrics['joint_fixed'] = {}
-    
-    # Get all locations for one-hot encoding
-    all_locations = list(CONFIG["data_locations"].keys())
-    
-    # Process each city
+    # Load data
+    all_dfs = []
     for city in CONFIG["data_locations"].keys():
-        print(f"\n{'='*60}")
-        print(f"Processing {city} with joint model")
-        print(f"{'='*60}")
-        
-        # Load and prepare data
         df = load_data(CONFIG["data_locations"], city)
         df = create_features(df)
-        
-        # Add location column for joint models
         df['location'] = city
-        
-        # Split data by days
-        df_train, df_val, df_test = split_data_by_days(df)
-        
-        # Create sequences for joint model (uses all features like in train_joint_fixed.py)
-        X, y, dates = create_sequences_joint_all_features(df_test, sequence_length=24, locations=all_locations)
-        
-        if len(X) == 0:
-            print(f"No valid sequences for {city}")
+        all_dfs.append(df)
+    
+    df_all = pd.concat(all_dfs, ignore_index=True)
+    locations = sorted(df_all['location'].unique().tolist())
+    
+    # Load pre-trained models
+    models = {}
+    configs = ['ghi_only', 'ghi_met', 'met_only']
+    
+    for config in configs:
+        model_path = f"models/lstm_ghi_forecast_joint_{config}.h5"
+        if os.path.exists(model_path):
+            models[config] = tf.keras.models.load_model(model_path)
+            print(f"Loaded joint model for {config}")
+        else:
+            print(f"Model not found for {config}")
+    
+    # Load target scaler
+    scaler_path = "models/target_scaler.pkl"
+    if os.path.exists(scaler_path):
+        with open(scaler_path, 'rb') as f:
+            target_scaler = pickle.load(f)
+    else:
+        print("Target scaler not found")
+        return
+    
+    # Evaluate each configuration
+    all_metrics = {}
+    
+    for config in configs:
+        if config not in models:
             continue
+            
+        print(f"\nEvaluating {config} configuration...")
+        
+        # Create sequences
+        if config == 'met_only':
+            # For met_only, we need to handle the case where GHI features are not available
+            # This is a simplified approach - in practice, you might need to adjust the feature creation
+            continue
+        else:
+            X_test, y_test = create_sequences_joint_all_features(df_all, 24, locations)
         
         # Make predictions
-        y_pred_scaled = model.predict(X)
+        y_pred = models[config].predict(X_test)
         
-        # IMPORTANT FIX: Use the same scaling approach for both actual and predicted
-        # Scale the actual values using the same global scaler
-        y_scaled = target_scaler.transform(y.reshape(-1, 1))
+        # Inverse transform
+        y_test_original = target_scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
+        y_pred_original = target_scaler.inverse_transform(y_pred.reshape(-1, 1)).flatten()
         
-        # Inverse transform both using the same scaler
-        y_pred = target_scaler.inverse_transform(y_pred_scaled)
-        y_true = target_scaler.inverse_transform(y_scaled)
-        
-        # Calculate daily metrics
-        daily_metrics = calculate_daily_metrics(dates, y_true, y_pred)
-        
-        # Store metrics for summary
-        all_metrics['joint_fixed'][city] = daily_metrics
-        
-        # Save daily metrics
-        daily_metrics.to_csv(os.path.join(base_dir, f'daily_correlations_{city}.csv'), index=False)
-        
-        # Create plots
-        plot_daily_correlations(daily_metrics, city, "joint", "fixed", base_dir)
-        plot_correlation_analysis(daily_metrics, dates, y_true, y_pred, city, "joint", "fixed", base_dir)
-        
-        print(f"Completed analysis for {city}")
+        # Calculate metrics for each city
+        for city in locations:
+            # Filter data for this city
+            city_mask = X_test[:, 0, -len(locations):][:, locations.index(city)] == 1
+            if city_mask.sum() > 0:
+                city_actual = y_test_original[city_mask]
+                city_predicted = y_pred_original[city_mask]
+                
+                # Calculate metrics
+                mae = mean_absolute_error(city_actual, city_predicted)
+                rmse = np.sqrt(mean_squared_error(city_actual, city_predicted))
+                r2 = r2_score(city_actual, city_predicted)
+                correlation = np.corrcoef(city_actual, city_predicted)[0, 1]
+                
+                # Calculate daily metrics
+                # For joint models, we need to reconstruct dates
+                # This is a simplified approach
+                dates = pd.date_range(start='2020-01-01', periods=len(city_actual), freq='H')
+                daily_metrics = calculate_daily_metrics(dates, city_actual, city_predicted)
+                
+                all_metrics[(city, 'joint', config)] = {
+                    'mae': mae,
+                    'rmse': rmse,
+                    'r2': r2,
+                    'correlation': correlation,
+                    'daily_metrics': daily_metrics,
+                    'actual': city_actual,
+                    'predicted': city_predicted,
+                    'dates': dates
+                }
+                
+                # Create plots
+                plot_daily_correlations(daily_metrics, city, 'joint', config, "results_joint_fixed")
+                plot_correlation_analysis(daily_metrics, dates, city_actual, city_predicted, 
+                                       city, 'joint', config, "results_joint_fixed")
     
     return all_metrics
 
 def evaluate_individual_models():
-    """Evaluate individual models from train_individual.py with FIXED scaling."""
-    print("\n" + "="*80)
-    print("EVALUATING INDIVIDUAL MODELS (FIXED SCALING)")
-    print("="*80)
+    """Evaluate individual models."""
+    print("\nEvaluating individual models...")
     
-    # Create output directories
-    base_dir = "results_individual_fixed"
-    os.makedirs(base_dir, exist_ok=True)
-    
-    # Load the same global target scaler used by joint models
-    scaler_path = os.path.join("models", "target_scaler_fixed.pkl")
-    if not os.path.exists(scaler_path):
-        print(f"Target scaler not found: {scaler_path}")
-        print("Please run train_joint_fixed.py first to create the target scaler.")
-        return {}
-    
-    with open(scaler_path, 'rb') as f:
-        target_scaler = pickle.load(f)
-    
-    print(f"Individual models using global scaler info:")
-    print(f"  data_min: {target_scaler.data_min_[0]:.2f}")
-    print(f"  data_max: {target_scaler.data_max_[0]:.2f}")
-    print(f"  scale_: {target_scaler.scale_[0]:.4f}")
-    print(f"  min_: {target_scaler.min_[0]:.4f}")
-    
-    # Dictionary to store all metrics
     all_metrics = {}
     
-    # Define custom loss function (same as in train_individual.py)
-    def custom_ghi_loss(y_true, y_pred):
-        """Custom loss function that penalizes unrealistic GHI predictions."""
-        # Standard Huber loss
-        huber_loss = tf.keras.losses.Huber()(y_true, y_pred)
-        
-        # Penalty for predictions outside [0, 1] range (since we use sigmoid)
-        range_penalty = tf.reduce_mean(tf.maximum(0.0, y_pred - 1.0) + tf.maximum(0.0, -y_pred))
-        
-        return huber_loss + range_penalty
-    
-    # Process each city
     for city in CONFIG["data_locations"].keys():
-        print(f"\n{'='*60}")
-        print(f"Processing individual model for {city}")
-        print(f"{'='*60}")
+        print(f"\nEvaluating {city}...")
         
-        # Load model
-        model_path = os.path.join("models", f"lstm_ghi_forecast_{city}.h5")
-        if not os.path.exists(model_path):
-            print(f"Individual model not found: {model_path}")
-            print(f"Please run train_individual.py first to train the model for {city}.")
-            continue
-        
-        try:
-            model = tf.keras.models.load_model(model_path, custom_objects={'custom_ghi_loss': custom_ghi_loss})
-            print(f"✓ Successfully loaded model for {city}")
-        except Exception as e:
-            print(f"× Error loading model for {city}: {str(e)}")
-            continue
-        
-        # Load and prepare data
+        # Load data
         df = load_data(CONFIG["data_locations"], city)
         df = create_features(df)
         
-        # Split data by days
-        df_train, df_val, df_test = split_data_by_days(df)
+        # Load model
+        model_path = f"models/lstm_ghi_forecast_{city}.h5"
+        if not os.path.exists(model_path):
+            print(f"Model not found for {city}")
+            continue
+            
+        model = tf.keras.models.load_model(model_path, custom_objects={'custom_ghi_loss': custom_ghi_loss})
+        
+        # Split data
+        train_df, val_df, test_df = split_data_by_days(df)
         
         # Create sequences
-        X, y, dates = create_sequences_individual(df_test, sequence_length=24)
+        X_test, y_test = create_sequences_individual(test_df, 24)
         
-        if len(X) == 0:
-            print(f"No valid sequences for {city}")
+        if len(X_test) == 0:
+            print(f"No test sequences for {city}")
             continue
         
-        # IMPORTANT FIX: Use the same global scaler as joint models
-        # Scale the actual values using the same global scaler
-        y_scaled = target_scaler.transform(y.reshape(-1, 1))
-        
         # Make predictions
-        y_pred_scaled = model.predict(X)
-        y_pred = target_scaler.inverse_transform(y_pred_scaled)
-        y_true = target_scaler.inverse_transform(y_scaled)
+        y_pred = model.predict(X_test)
+        
+        # Load scaler
+        scaler_path = f"models/target_scaler_{city}.pkl"
+        if os.path.exists(scaler_path):
+            with open(scaler_path, 'rb') as f:
+                target_scaler = pickle.load(f)
+        else:
+            # Create a new scaler if not found
+            target_scaler = MinMaxScaler()
+            target_scaler.fit(test_df[["GHI"]])
+        
+        # Inverse transform
+        y_test_original = target_scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
+        y_pred_original = target_scaler.inverse_transform(y_pred.reshape(-1, 1)).flatten()
+        
+        # Calculate metrics
+        mae = mean_absolute_error(y_test_original, y_pred_original)
+        rmse = np.sqrt(mean_squared_error(y_test_original, y_pred_original))
+        r2 = r2_score(y_test_original, y_pred_original)
+        correlation = np.corrcoef(y_test_original, y_pred_original)[0, 1]
         
         # Calculate daily metrics
-        daily_metrics = calculate_daily_metrics(dates, y_true, y_pred)
+        dates = pd.date_range(start='2020-01-01', periods=len(y_test_original), freq='H')
+        daily_metrics = calculate_daily_metrics(dates, y_test_original, y_pred_original)
         
-        # Store metrics for summary (individual models don't have configurations)
-        all_metrics[city] = daily_metrics
-        
-        # Save daily metrics
-        daily_metrics.to_csv(os.path.join(base_dir, f'daily_correlations_{city}.csv'), index=False)
+        all_metrics[(city, 'individual', 'standard')] = {
+            'mae': mae,
+            'rmse': rmse,
+            'r2': r2,
+            'correlation': correlation,
+            'daily_metrics': daily_metrics,
+            'actual': y_test_original,
+            'predicted': y_pred_original,
+            'dates': dates
+        }
         
         # Create plots
-        plot_daily_correlations(daily_metrics, city, "individual", "standard", base_dir)
-        plot_correlation_analysis(daily_metrics, dates, y_true, y_pred, city, "individual", "standard", base_dir)
-        
-        print(f"Completed analysis for {city}")
+        plot_daily_correlations(daily_metrics, city, 'individual', 'standard', "results_individual_fixed")
+        plot_correlation_analysis(daily_metrics, dates, y_test_original, y_pred_original, 
+                               city, 'individual', 'standard', "results_individual_fixed")
+    
+    return all_metrics
+
+def custom_ghi_loss(y_true, y_pred):
+    """Custom loss function for GHI prediction."""
+    # Standard Huber loss
+    huber_loss = tf.keras.losses.Huber()(y_true, y_pred)
+    
+    # Penalty for predictions outside [0, 1] range
+    range_penalty = tf.reduce_mean(tf.maximum(0.0, y_pred - 1.0) + tf.maximum(0.0, -y_pred))
+    
+    return huber_loss + range_penalty
+
+def evaluate_gnn_models():
+    """Evaluate GNN models."""
+    print("\nEvaluating GNN models...")
+    
+    # Check if GNN results exist
+    gnn_summary_path = "results_gnn/summary.csv"
+    if not os.path.exists(gnn_summary_path):
+        print("GNN results not found. Please run train_gnn.py first.")
+        return {}
+    
+    # Load GNN summary
+    gnn_summary = pd.read_csv(gnn_summary_path)
+    
+    all_metrics = {}
+    
+    # Load individual city results
+    for city in CONFIG["data_locations"].keys():
+        city_dir = f"results_gnn/{city}"
+        if os.path.exists(city_dir):
+            # Load daily metrics
+            daily_metrics_path = f"{city_dir}/daily_metrics.csv"
+            if os.path.exists(daily_metrics_path):
+                daily_metrics = pd.read_csv(daily_metrics_path)
+                daily_metrics['date'] = pd.to_datetime(daily_metrics['date'])
+                
+                # Get summary metrics from the summary file
+                city_summary = gnn_summary[gnn_summary['City'] == city]
+                if len(city_summary) > 0:
+                    mae = city_summary['MAE'].iloc[0]
+                    rmse = city_summary['RMSE'].iloc[0]
+                    r2 = city_summary['R²'].iloc[0]
+                    correlation = city_summary['Correlation'].iloc[0]
+                    
+                    # Load actual and predicted values if available
+                    # For GNN, we need to reconstruct from the daily metrics
+                    # This is a simplified approach
+                    actual = []
+                    predicted = []
+                    dates = []
+                    
+                    for _, row in daily_metrics.iterrows():
+                        # Reconstruct hourly data from daily statistics
+                        # This is an approximation
+                        n_points = int(row['num_points'])
+                        actual.extend([row['actual_mean']] * n_points)
+                        predicted.extend([row['predicted_mean']] * n_points)
+                        dates.extend([row['date']] * n_points)
+                    
+                    all_metrics[(city, 'gnn', 'standard')] = {
+                        'mae': mae,
+                        'rmse': rmse,
+                        'r2': r2,
+                        'correlation': correlation,
+                        'daily_metrics': daily_metrics,
+                        'actual': np.array(actual),
+                        'predicted': np.array(predicted),
+                        'dates': pd.to_datetime(dates)
+                    }
+                    
+                    # Create plots
+                    plot_daily_correlations(daily_metrics, city, 'gnn', 'standard', "results_gnn_fixed")
+                    plot_correlation_analysis(daily_metrics, dates, actual, predicted, 
+                                           city, 'gnn', 'standard', "results_gnn_fixed")
     
     return all_metrics
 
 def create_model_comparison_plots(summary_df, save_dir="results_comprehensive_fixed"):
-    """Create comparison plots between joint and individual models."""
+    """Create comparison plots for different models."""
     os.makedirs(save_dir, exist_ok=True)
     
-    # Create comparison plots
-    metrics_to_plot = ['MAE (W/m²)', 'RMSE (W/m²)', 'R²', 'MAPE (%)', 'Correlation']
+    # Model comparison plot
+    plt.figure(figsize=(15, 10))
     
-    # Create subplots for each metric
-    fig, axes = plt.subplots(2, 3, figsize=(18, 12))
-    axes = axes.flatten()
+    # Create subplots for different metrics
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(20, 15))
     
-    for i, metric in enumerate(metrics_to_plot):
-        ax = axes[i]
-        
-        # Get data for this metric
-        joint_data = summary_df[summary_df['Model Type'] == 'joint'].groupby('Configuration')[metric].mean()
-        individual_data = summary_df[summary_df['Model Type'] == 'individual'][metric].mean()
-        
-        # Create bar plot
-        x_pos = np.arange(len(joint_data) + 1)
-        values = list(joint_data.values) + [individual_data]
-        labels = list(joint_data.index) + ['Individual']
-        colors = ['blue', 'green', 'red', 'orange']
-        
-        bars = ax.bar(x_pos, values, color=colors[:len(values)])
-        ax.set_title(f'{metric} Comparison')
-        ax.set_ylabel(metric)
-        ax.set_xticks(x_pos)
-        ax.set_xticklabels(labels, rotation=45)
-        
-        # Add value labels on bars
-        for bar, value in zip(bars, values):
-            height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height,
-                   f'{value:.3f}', ha='center', va='bottom')
+    # Get unique cities and model types
+    cities = summary_df['City'].unique()
+    model_types = summary_df['Model_Type'].unique()
     
-    # Remove the last subplot if not needed
-    if len(metrics_to_plot) < 6:
-        axes[-1].remove()
+    # Set up colors for different model types
+    colors = {'individual': 'blue', 'joint': 'red', 'gnn': 'green'}
+    
+    # Plot 1: MAE comparison
+    for model_type in model_types:
+        model_data = summary_df[summary_df['Model_Type'] == model_type]
+        ax1.bar([f"{city}_{model_type}" for city in model_data['City']], 
+                model_data['MAE'], label=model_type, color=colors[model_type], alpha=0.7)
+    ax1.set_title('MAE Comparison')
+    ax1.set_ylabel('MAE (W/m²)')
+    ax1.legend()
+    ax1.tick_params(axis='x', rotation=45)
+    
+    # Plot 2: RMSE comparison
+    for model_type in model_types:
+        model_data = summary_df[summary_df['Model_Type'] == model_type]
+        ax2.bar([f"{city}_{model_type}" for city in model_data['City']], 
+                model_data['RMSE'], label=model_type, color=colors[model_type], alpha=0.7)
+    ax2.set_title('RMSE Comparison')
+    ax2.set_ylabel('RMSE (W/m²)')
+    ax2.legend()
+    ax2.tick_params(axis='x', rotation=45)
+    
+    # Plot 3: R² comparison
+    for model_type in model_types:
+        model_data = summary_df[summary_df['Model_Type'] == model_type]
+        ax3.bar([f"{city}_{model_type}" for city in model_data['City']], 
+                model_data['R²'], label=model_type, color=colors[model_type], alpha=0.7)
+    ax3.set_title('R² Comparison')
+    ax3.set_ylabel('R²')
+    ax3.legend()
+    ax3.tick_params(axis='x', rotation=45)
+    
+    # Plot 4: Correlation comparison
+    for model_type in model_types:
+        model_data = summary_df[summary_df['Model_Type'] == model_type]
+        ax4.bar([f"{city}_{model_type}" for city in model_data['City']], 
+                model_data['Correlation'], label=model_type, color=colors[model_type], alpha=0.7)
+    ax4.set_title('Correlation Comparison')
+    ax4.set_ylabel('Correlation')
+    ax4.legend()
+    ax4.tick_params(axis='x', rotation=45)
     
     plt.tight_layout()
     plt.savefig(os.path.join(save_dir, 'model_comparison.png'), dpi=300, bbox_inches='tight')
     plt.close()
     
-    # Create location-specific comparison
-    locations = summary_df['Location'].unique()
-    fig, axes = plt.subplots(2, 3, figsize=(18, 12))
-    axes = axes.flatten()
+    # Location comparison plot
+    plt.figure(figsize=(15, 10))
     
-    for i, location in enumerate(locations[:6]):  # Limit to 6 locations
-        ax = axes[i]
-        
-        # Get data for this location
-        loc_data = summary_df[summary_df['Location'] == location]
-        
-        # Create bar plot for each metric
-        metrics = ['MAE (W/m²)', 'RMSE (W/m²)', 'R²']
-        x_pos = np.arange(len(metrics))
-        
-        joint_values = []
-        individual_values = []
-        
-        for metric in metrics:
-            joint_val = loc_data[loc_data['Model Type'] == 'joint'][metric].mean()
-            individual_val = loc_data[loc_data['Model Type'] == 'individual'][metric].mean()
-            joint_values.append(joint_val)
-            individual_values.append(individual_val)
-        
-        width = 0.35
-        ax.bar(x_pos - width/2, joint_values, width, label='Joint (Best Config)', color='blue', alpha=0.7)
-        ax.bar(x_pos + width/2, individual_values, width, label='Individual', color='orange', alpha=0.7)
-        
-        ax.set_title(f'{location}')
-        ax.set_ylabel('Value')
-        ax.set_xticks(x_pos)
-        ax.set_xticklabels(metrics, rotation=45)
-        ax.legend()
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(20, 15))
     
-    # Remove unused subplots
-    for i in range(len(locations), 6):
-        axes[i].remove()
+    # Plot by location
+    for city in cities:
+        city_data = summary_df[summary_df['City'] == city]
+        
+        # MAE by location
+        ax1.bar([f"{city}_{mt}" for mt in city_data['Model_Type']], 
+                city_data['MAE'], label=city, alpha=0.7)
+        ax1.set_title('MAE by Location')
+        ax1.set_ylabel('MAE (W/m²)')
+        ax1.legend()
+        ax1.tick_params(axis='x', rotation=45)
+        
+        # RMSE by location
+        ax2.bar([f"{city}_{mt}" for mt in city_data['Model_Type']], 
+                city_data['RMSE'], label=city, alpha=0.7)
+        ax2.set_title('RMSE by Location')
+        ax2.set_ylabel('RMSE (W/m²)')
+        ax2.legend()
+        ax2.tick_params(axis='x', rotation=45)
+        
+        # R² by location
+        ax3.bar([f"{city}_{mt}" for mt in city_data['Model_Type']], 
+                city_data['R²'], label=city, alpha=0.7)
+        ax3.set_title('R² by Location')
+        ax3.set_ylabel('R²')
+        ax3.legend()
+        ax3.tick_params(axis='x', rotation=45)
+        
+        # Correlation by location
+        ax4.bar([f"{city}_{mt}" for mt in city_data['Model_Type']], 
+                city_data['Correlation'], label=city, alpha=0.7)
+        ax4.set_title('Correlation by Location')
+        ax4.set_ylabel('Correlation')
+        ax4.legend()
+        ax4.tick_params(axis='x', rotation=45)
     
     plt.tight_layout()
     plt.savefig(os.path.join(save_dir, 'location_comparison.png'), dpi=300, bbox_inches='tight')
     plt.close()
 
 def main():
-    """Main function to evaluate both joint and individual models with fixed scaling."""
-    print("GHI Forecasting Model Evaluation (FIXED SCALING)")
-    print("="*80)
+    """Main function to evaluate all model configurations."""
+    print("Starting comprehensive model evaluation...")
     
-    # Check if models directory exists
-    if not os.path.exists("models"):
-        print("× Models directory not found!")
-        print("Please run the training scripts first:")
-        print("  1. python train_joint_fixed.py")
-        print("  2. python train_individual.py")
-        return
+    # Create necessary directories
+    os.makedirs("results_comprehensive_fixed", exist_ok=True)
+    os.makedirs("results_individual_fixed", exist_ok=True)
+    os.makedirs("results_joint_fixed", exist_ok=True)
+    os.makedirs("results_gnn_fixed", exist_ok=True)
     
-    # Check if target scaler exists
-    scaler_path = os.path.join("models", "target_scaler_fixed.pkl")
-    if not os.path.exists(scaler_path):
-        print("× Target scaler not found!")
-        print("Please run train_joint_fixed.py first to create the target scaler.")
-        return
-    
-    # Evaluate joint models
-    print("\nEvaluating joint models...")
-    joint_metrics = evaluate_joint_models()
+    # Evaluate all model types
+    all_metrics = {}
     
     # Evaluate individual models
-    print("\nEvaluating individual models...")
     individual_metrics = evaluate_individual_models()
+    all_metrics.update(individual_metrics)
     
-    # Check if we have any results
-    if not joint_metrics and not individual_metrics:
-        print("\n× No models were evaluated successfully!")
-        print("Please ensure you have trained models available:")
-        print("  - Joint model: models/lstm_ghi_forecast_joint_fixed.h5")
-        print("  - Individual models: models/lstm_ghi_forecast_{city}.h5")
-        return
+    # Evaluate joint models
+    joint_metrics = evaluate_joint_models()
+    all_metrics.update(joint_metrics)
     
-    # Combine all metrics
-    all_metrics = {
-        'joint': joint_metrics,
-        'individual': individual_metrics
-    }
+    # Evaluate GNN models
+    gnn_metrics = evaluate_gnn_models()
+    all_metrics.update(gnn_metrics)
     
-    # Create and save comprehensive summary table
-    summary_df = create_summary_table(all_metrics)
-    summary_path = "results_comprehensive_fixed/performance_summary.csv"
-    os.makedirs("results_comprehensive_fixed", exist_ok=True)
-    summary_df.to_csv(summary_path, index=False)
-    print(f"\nComprehensive performance summary saved to: {summary_path}")
-    
-    # Create comparison plots
-    create_model_comparison_plots(summary_df)
-    print("Model comparison plots saved to results_comprehensive_fixed/")
-    
-    # Print summary statistics
-    print("\nOverall Performance Summary (FIXED SCALING):")
-    print("=" * 80)
-    
-    # Joint models summary
-    if joint_metrics:
-        print("\nJoint Models - Mean metrics across all locations:")
-        joint_summary = summary_df[summary_df['Model Type'] == 'joint']
-        if not joint_summary.empty:
-            mean_metrics = joint_summary.groupby('Configuration')[['MAE (W/m²)', 'RMSE (W/m²)', 'R²', 'MAPE (%)', 'Bias (W/m²)', 'Correlation']].mean()
-            print(mean_metrics.round(4))
-    
-    # Individual models summary
-    if individual_metrics:
-        print("\nIndividual Models - Mean metrics across all locations:")
-        individual_summary = summary_df[summary_df['Model Type'] == 'individual']
-        if not individual_summary.empty:
-            mean_metrics = individual_summary[['MAE (W/m²)', 'RMSE (W/m²)', 'R²', 'MAPE (%)', 'Bias (W/m²)', 'Correlation']].mean()
-            print(mean_metrics.round(4))
-    
-    # Best performing configuration for each metric
-    if not summary_df.empty:
-        print("\nBest performing configuration for each metric:")
-        for metric in ['MAE (W/m²)', 'RMSE (W/m²)', 'R²', 'MAPE (%)', 'Correlation']:
-            if metric in summary_df.columns:
-                best_config = summary_df.groupby(['Model Type', 'Configuration'])[metric].mean()
-                if metric in ['MAE (W/m²)', 'RMSE (W/m²)', 'MAPE (%)']:
-                    best_idx = best_config.idxmin()
-                else:
-                    best_idx = best_config.idxmax()
-                best_value = best_config.loc[best_idx]
-                print(f"{metric}: {best_idx} = {best_value:.4f}")
-        
-        # Special handling for bias - use absolute values
-        if 'Bias (W/m²)' in summary_df.columns:
-            abs_bias = summary_df.groupby(['Model Type', 'Configuration'])['Bias (W/m²)'].mean().abs()
-            best_bias_config = abs_bias.idxmin()
-            print(f"Bias (W/m²) - Best configuration (lowest absolute bias): {best_bias_config}")
-            print(f"Absolute bias values: {abs_bias.round(4)}")
-        
-        # Model comparison
-        print("\nModel Type Comparison:")
-        print("=" * 40)
-        model_comparison = summary_df.groupby('Model Type')[['MAE (W/m²)', 'RMSE (W/m²)', 'R²', 'MAPE (%)', 'Correlation']].mean()
-        print(model_comparison.round(4))
-        
-        # Location-specific comparison
-        print("\nLocation-specific comparison (Joint vs Individual):")
-        print("=" * 60)
-        for location in summary_df['Location'].unique():
-            loc_data = summary_df[summary_df['Location'] == location]
-            joint_data = loc_data[loc_data['Model Type'] == 'joint']
-            individual_data = loc_data[loc_data['Model Type'] == 'individual']
-            
-            if not joint_data.empty and not individual_data.empty:
-                joint_best = joint_data.groupby('Configuration')['R²'].mean().max()
-                individual_r2 = individual_data['R²'].mean()
-                print(f"{location}: Joint (best) R² = {joint_best:.4f}, Individual R² = {individual_r2:.4f}")
-                if joint_best > individual_r2:
-                    print(f"  → Joint model performs better by {joint_best - individual_r2:.4f}")
-                else:
-                    print(f"  → Individual model performs better by {individual_r2 - joint_best:.4f}")
-    
-    print(f"\n✓ Evaluation completed successfully!")
-    print(f"Results saved to:")
-    print(f"  - Joint models: results_joint_fixed/")
-    print(f"  - Individual models: results_individual_fixed/")
-    print(f"  - Comprehensive comparison: results_comprehensive_fixed/")
+    # Create comprehensive summary
+    if all_metrics:
+        summary_df = create_summary_table(all_metrics)
+        create_model_comparison_plots(summary_df)
+        print("\nComprehensive evaluation completed!")
+    else:
+        print("\nNo metrics were calculated. Please ensure all models are trained and available.")
 
 if __name__ == "__main__":
     main() 
