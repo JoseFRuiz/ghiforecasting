@@ -61,30 +61,47 @@ def create_features(df):
 def compute_weighted_adjacency(df_all, alpha=0.5):
     print("    Computing weighted adjacency matrix (ultra-fast)...")
     
-    # Pre-computed geodesic distances based on actual city coordinates
-    geo_weights = np.array([
-        [1.0, 0.8, 0.6, 0.4, 0.3],
-        [0.8, 1.0, 0.9, 0.5, 0.4],
-        [0.6, 0.9, 1.0, 0.7, 0.6],
-        [0.4, 0.5, 0.7, 1.0, 0.8],
-        [0.3, 0.4, 0.6, 0.8, 1.0]
-    ], dtype=np.float32)
+    # Get the actual cities present in the data
+    actual_cities = df_all['location'].unique()
+    num_cities = len(actual_cities)
+    print(f"    Found {num_cities} cities in data: {actual_cities}")
+    
+    # Create adjacency matrix based on actual cities
+    if num_cities == 5:
+        # Use the pre-computed matrix for all 5 cities
+        geo_weights = np.array([
+            [1.0, 0.8, 0.6, 0.4, 0.3],
+            [0.8, 1.0, 0.9, 0.5, 0.4],
+            [0.6, 0.9, 1.0, 0.7, 0.6],
+            [0.4, 0.5, 0.7, 1.0, 0.8],
+            [0.3, 0.4, 0.6, 0.8, 1.0]
+        ], dtype=np.float32)
 
-    # Pre-computed correlation weights based on actual GHI data analysis
-    corr_weights = np.array([
-        [1.0, 0.7, 0.6, 0.5, 0.4],
-        [0.7, 1.0, 0.8, 0.6, 0.5],
-        [0.6, 0.8, 1.0, 0.7, 0.6],
-        [0.5, 0.6, 0.7, 1.0, 0.8],
-        [0.4, 0.5, 0.6, 0.8, 1.0]
-    ], dtype=np.float32)
+        corr_weights = np.array([
+            [1.0, 0.7, 0.6, 0.5, 0.4],
+            [0.7, 1.0, 0.8, 0.6, 0.5],
+            [0.6, 0.8, 1.0, 0.7, 0.6],
+            [0.5, 0.6, 0.7, 1.0, 0.8],
+            [0.4, 0.5, 0.6, 0.8, 1.0]
+        ], dtype=np.float32)
+    else:
+        # Create a simple adjacency matrix for fewer cities
+        geo_weights = np.eye(num_cities, dtype=np.float32)
+        corr_weights = np.eye(num_cities, dtype=np.float32)
+        
+        # Add some connectivity for adjacent cities
+        for i in range(num_cities - 1):
+            geo_weights[i, i+1] = 0.8
+            geo_weights[i+1, i] = 0.8
+            corr_weights[i, i+1] = 0.7
+            corr_weights[i+1, i] = 0.7
 
     # Combine geodesic and correlation weights
     adj = alpha * geo_weights + (1 - alpha) * corr_weights
     print(f"      Adjacency matrix computed: {adj.shape}")
     return adj
 
-def build_daily_graphs(df_all, adj_matrix):
+def build_daily_graphs(df_all, adj_matrix, actual_cities):
     print("    Starting to build daily graphs (highly optimized)...")
     graphs = []
     targets = []
@@ -95,7 +112,7 @@ def build_daily_graphs(df_all, adj_matrix):
 
     # Pre-compute feature columns once
     print("    Pre-computing feature columns...")
-    sample_data = df_all[df_all['location'] == CITIES[0]].iloc[:12]
+    sample_data = df_all[df_all['location'] == actual_cities[0]].iloc[:12]
     feature_cols = [col for col in sample_data.columns if 'lag' in col or 'sin' in col or 'cos' in col]
     print(f"    Found {len(feature_cols)} feature columns")
 
@@ -105,7 +122,7 @@ def build_daily_graphs(df_all, adj_matrix):
     
     # Create a more efficient data structure
     city_data = {}
-    for city in CITIES:
+    for city in actual_cities:
         city_df = df_all[df_all['location'] == city].copy()
         city_df = city_df.sort_values('datetime')
         city_data[city] = city_df
@@ -147,7 +164,7 @@ def build_daily_graphs(df_all, adj_matrix):
             node_targets = []
             
             # Process all cities for this date
-            for city in CITIES:
+            for city in actual_cities:
                 city_df = city_data[city]
                 date_data = city_df[city_df['date'] == date]
                 
@@ -179,13 +196,21 @@ def build_daily_graphs(df_all, adj_matrix):
                 node_features.append(X)
                 node_targets.append(y)
             
-            # Only create graph if we have data from all cities
-            if len(node_features) == len(CITIES):
+            # Only create graph if we have data from at least 2 cities
+            min_cities_required = min(2, len(actual_cities))  # Require at least 2 cities or all cities if less than 2
+            if len(node_features) >= min_cities_required:
                 x = np.stack(node_features, axis=0)
                 # Create a single target per graph by averaging across cities
                 y = np.mean(node_targets, axis=0)
                 
-                graphs.append(Graph(x=x, a=adj_matrix))
+                # Adjust adjacency matrix to match the number of cities we have
+                if len(node_features) < len(actual_cities):
+                    # Use only the cities that have data
+                    adj_subset = adj_matrix[:len(node_features), :len(node_features)]
+                else:
+                    adj_subset = adj_matrix
+                
+                graphs.append(Graph(x=x, a=adj_subset))
                 targets.append(y)
 
     print(f"    Total valid daily graphs: {len(graphs)}")
@@ -202,7 +227,7 @@ def build_daily_graphs(df_all, adj_matrix):
         if len(dates) > 0:
             sample_date = dates[0]
             print(f"\n    Debugging sample date: {sample_date}")
-            for city in CITIES:
+            for city in actual_cities:
                 city_df = city_data[city]
                 date_data = city_df[city_df['date'] == sample_date]
                 print(f"      {city}: {len(date_data)} rows")
@@ -299,11 +324,16 @@ def main():
     df_all = pd.concat(all_dfs).sort_values("datetime")
     print(f"Combined data shape: {df_all.shape}")
 
+    # Get the actual cities present in the data
+    actual_cities = df_all['location'].unique()
+    print(f"\nActual cities in data: {actual_cities}")
+    print(f"Number of cities: {len(actual_cities)}")
+
     print(f"\nData statistics:")
     print(f"Total rows: {len(df_all)}")
     print(f"Date range: {df_all['datetime'].min()} to {df_all['datetime'].max()}")
     print(f"Rows per city:")
-    for city in CITIES:
+    for city in actual_cities:
         city_data = df_all[df_all['location'] == city]
         print(f"  {city}: {len(city_data)} rows")
     
@@ -326,7 +356,7 @@ def main():
     print(f"Adjacency matrix sample values:\n{adj_matrix}")
 
     print("\nBuilding daily graphs...")
-    graphs, targets, ghi_scaler = build_daily_graphs(df_all, adj_matrix)
+    graphs, targets, ghi_scaler = build_daily_graphs(df_all, adj_matrix, actual_cities)
     
     if len(graphs) == 0:
         print("ERROR: No valid graphs created. Exiting.")
