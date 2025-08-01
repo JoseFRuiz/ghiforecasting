@@ -343,9 +343,11 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, graph_dates, graph_cities, ac
         x, a, i = inputs
         y_pred = model([x, a, i], training=False)
         
-        # Convert to numpy arrays
-        y_true = y_true.numpy()
-        y_pred = y_pred.numpy()
+        # Convert to numpy arrays (handle both tensor and numpy cases)
+        if hasattr(y_true, 'numpy'):
+            y_true = y_true.numpy()
+        if hasattr(y_pred, 'numpy'):
+            y_pred = y_pred.numpy()
         
         # Inverse transform predictions and actual values
         y_true_original = ghi_scaler.inverse_transform(y_true.reshape(-1, 1)).reshape(y_true.shape)
