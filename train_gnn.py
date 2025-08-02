@@ -267,10 +267,10 @@ def build_gnn_model(input_shape, output_units):
     a_in = layers.Input(shape=(None,), sparse=True, name='a_in')
     i_in = layers.Input(shape=(), dtype=tf.int64, name='i_in')
     
-    # GNN layers
-    x = GCNConv(64, activation='relu')([x_in, a_in])
+    # GNN layers (reduced for memory efficiency)
+    x = GCNConv(32, activation='relu')([x_in, a_in])
     x = layers.Dropout(0.2)(x)
-    x = GCNConv(64, activation='relu')([x, a_in])
+    x = GCNConv(32, activation='relu')([x, a_in])
     x = layers.Dropout(0.2)(x)
     
     # Custom aggregation layer to group nodes by graph
@@ -294,10 +294,10 @@ def build_gnn_model(input_shape, output_units):
     # Apply the aggregation
     x = layers.Lambda(aggregate_nodes)([x, i_in])
     
-    # Dense layers for final prediction
-    x = layers.Dense(128, activation='relu')(x)
-    x = layers.Dropout(0.3)(x)
+    # Dense layers for final prediction (reduced for memory efficiency)
     x = layers.Dense(64, activation='relu')(x)
+    x = layers.Dropout(0.3)(x)
+    x = layers.Dense(32, activation='relu')(x)
     # Ensure output has the correct shape for 12-hour forecast
     # The output should be (batch_size, output_units) where output_units=12
     outputs = layers.Dense(output_units, name='output')(x)
@@ -336,7 +336,7 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, graph_dates, graph_cities, ac
     cities = []
     
     # Use a loader to get predictions
-    loader = DisjointLoader(dataset, batch_size=8, shuffle=False)
+    loader = DisjointLoader(dataset, batch_size=4, shuffle=False)  # Reduced batch size for memory efficiency
     
     for batch in loader:
         inputs, y_true = batch
@@ -745,20 +745,20 @@ def main():
     
     # Calculate expected number of batches per epoch
     total_graphs = len(dataset)
-    batch_size = 8
+    batch_size = 4  # Reduced batch size for memory efficiency
     steps_per_epoch = (total_graphs + batch_size - 1) // batch_size
     print(f"Total graphs: {total_graphs}")
     print(f"Batch size: {batch_size}")
     print(f"Steps per epoch: {steps_per_epoch}")
     
-    # Safety check to prevent infinite loops
-    max_batches_per_epoch = min(steps_per_epoch, 1000)  # Cap at 1000 batches max
-    if steps_per_epoch > 1000:
-        print(f"WARNING: Large dataset detected. Limiting to {max_batches_per_epoch} batches per epoch for safety.")
+    # Safety check to prevent infinite loops and memory issues
+    max_batches_per_epoch = min(steps_per_epoch, 500)  # Reduced cap for memory efficiency
+    if steps_per_epoch > 500:
+        print(f"WARNING: Large dataset detected. Limiting to {max_batches_per_epoch} batches per epoch for memory safety.")
         steps_per_epoch = max_batches_per_epoch
     
-    for epoch in range(20):
-        print(f"\nStarting epoch {epoch+1}/20...")
+    for epoch in range(10):  # Reduced number of epochs for memory efficiency
+        print(f"\nStarting epoch {epoch+1}/10...")
         epoch_loss = 0.0
         epoch_mae = 0.0
         num_batches = 0
@@ -790,6 +790,8 @@ def main():
                 if batch_idx % 10 == 0 and batch_idx > 0:
                     progress = (batch_idx / steps_per_epoch) * 100
                     print(f"    Processed {batch_idx}/{steps_per_epoch} batches ({progress:.1f}%) in epoch {epoch+1}")
+                    # Clear memory periodically
+                    tf.keras.backend.clear_session()
                     
             except StopIteration:
                 print(f"    Reached end of dataset at batch {batch_idx}")
@@ -807,9 +809,9 @@ def main():
             epoch_loss /= num_batches
             epoch_mae = mae_metric.result().numpy()
             mae_metric.reset_states()
-            print(f"Epoch {epoch+1}/20 - Loss: {epoch_loss:.4f} - MAE: {epoch_mae:.4f} - Batches: {num_batches}")
+            print(f"Epoch {epoch+1}/10 - Loss: {epoch_loss:.4f} - MAE: {epoch_mae:.4f} - Batches: {num_batches}")
         else:
-            print(f"Epoch {epoch+1}/20 - No valid batches processed")
+            print(f"Epoch {epoch+1}/10 - No valid batches processed")
     
     print("Training completed!")
 
