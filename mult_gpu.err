@@ -9,12 +9,5 @@ Currently Loaded Modules:
  
 
 <frozen importlib._bootstrap>:219: RuntimeWarning: scipy._lib.messagestream.MessageStream size changed, may indicate binary incompatibility. Expected 56 from C header, got 64 from PyObject
-<frozen importlib._bootstrap>:219: RuntimeWarning: scipy._lib.messagestream.MessageStream size changed, may indicate binary incompatibility. Expected 56 from C header, got 64 from PyObject
-Traceback (most recent call last):
-  File "train_gnn.py", line 827, in <module>
-    main()
-  File "train_gnn.py", line 822, in main
-    all_metrics = evaluate_gnn_model(model, dataset, ghi_scaler, graph_dates, graph_cities, actual_cities)
-  File "train_gnn.py", line 347, in evaluate_gnn_model
-    y_true = y_true.numpy()
-AttributeError: 'numpy.ndarray' object has no attribute 'numpy'
+/var/spool/slurmd/job9180184/slurm_script: line 70: 698328 Killed                  python train_gnn.py
+slurmstepd: error: Detected 1 oom_kill event in StepId=9180184.batch. Some of the step tasks have been OOM Killed.
