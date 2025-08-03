@@ -299,7 +299,7 @@ def create_summary_table(all_metrics):
     # Create summary DataFrame
     summary_data = []
     for (city, model_type, config), metrics in all_metrics.items():
-        summary_data.append({
+                    summary_data.append({
             'City': city,
             'Model_Type': model_type,
             'Config': config,
@@ -358,28 +358,28 @@ def create_sequences_joint_all_features(df, sequence_length, locations):
         # Get all required data at once
         data = df_loc[feature_columns].values
         target = df_loc["GHI"].values
-        
-        # Calculate number of sequences
+    
+    # Calculate number of sequences
         n_sequences = len(df_loc) - sequence_length
-        
-        # Pre-allocate arrays
-        X = np.zeros((n_sequences, sequence_length, len(feature_columns)))
-        y = np.zeros(n_sequences)
-        
-        # Create sequences using vectorized operations
-        for i in range(n_sequences):
-            X[i] = data[i:i + sequence_length]
-            y[i] = target[i + sequence_length]
-        
-        # Filter out sequences where target is zero (night time)
-        mask = y > 0
-        X = X[mask]
-        y = y[mask]
-        
+    
+    # Pre-allocate arrays
+    X = np.zeros((n_sequences, sequence_length, len(feature_columns)))
+    y = np.zeros(n_sequences)
+    
+    # Create sequences using vectorized operations
+    for i in range(n_sequences):
+        X[i] = data[i:i + sequence_length]
+        y[i] = target[i + sequence_length]
+    
+    # Filter out sequences where target is zero (night time)
+    mask = y > 0
+    X = X[mask]
+    y = y[mask]
+    
         # Add location features
-        location_features = np.tile(location_vector, (len(X), sequence_length, 1))
-        X = np.concatenate([X, location_features], axis=2)
-        
+    location_features = np.tile(location_vector, (len(X), sequence_length, 1))
+    X = np.concatenate([X, location_features], axis=2)
+    
         all_X_sequences.append(X)
         all_y_sequences.append(y)
     
@@ -465,8 +465,8 @@ def evaluate_joint_models():
                 rmse = np.sqrt(mean_squared_error(city_actual, city_predicted))
                 r2 = r2_score(city_actual, city_predicted)
                 correlation = np.corrcoef(city_actual, city_predicted)[0, 1]
-                
-                # Calculate daily metrics
+        
+        # Calculate daily metrics
                 # For joint models, we need to reconstruct dates
                 # This is a simplified approach
                 dates = pd.date_range(start='2020-01-01', periods=len(city_actual), freq='H')
@@ -482,8 +482,8 @@ def evaluate_joint_models():
                     'predicted': city_predicted,
                     'dates': dates
                 }
-                
-                # Create plots
+        
+        # Create plots
                 plot_daily_correlations(daily_metrics, city, 'joint', config, "results_joint_fixed")
                 plot_correlation_analysis(daily_metrics, dates, city_actual, city_predicted, 
                                        city, 'joint', config, "results_joint_fixed")
@@ -508,8 +508,8 @@ def evaluate_individual_models():
         if not os.path.exists(model_path):
             print(f"Model not found for {city}")
             continue
-            
-        model = tf.keras.models.load_model(model_path, custom_objects={'custom_ghi_loss': custom_ghi_loss})
+        
+            model = tf.keras.models.load_model(model_path, custom_objects={'custom_ghi_loss': custom_ghi_loss})
         
         # Split data
         train_df, val_df, test_df = split_data_by_days(df)
@@ -775,10 +775,10 @@ def main():
     
     # Create comprehensive summary
     if all_metrics:
-        summary_df = create_summary_table(all_metrics)
-        create_model_comparison_plots(summary_df)
+    summary_df = create_summary_table(all_metrics)
+    create_model_comparison_plots(summary_df)
         print("\nComprehensive evaluation completed!")
-    else:
+                else:
         print("\nNo metrics were calculated. Please ensure all models are trained and available.")
 
 if __name__ == "__main__":
