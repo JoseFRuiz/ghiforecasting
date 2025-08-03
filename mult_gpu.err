@@ -9,5 +9,3 @@ Currently Loaded Modules:
  
 
 <frozen importlib._bootstrap>:219: RuntimeWarning: scipy._lib.messagestream.MessageStream size changed, may indicate binary incompatibility. Expected 56 from C header, got 64 from PyObject
-/var/spool/slurmd/job9180184/slurm_script: line 70: 698328 Killed                  python train_gnn.py
-slurmstepd: error: Detected 1 oom_kill event in StepId=9180184.batch. Some of the step tasks have been OOM Killed.
