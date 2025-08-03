@@ -775,10 +775,10 @@ def main():
     
     # Create comprehensive summary
     if all_metrics:
-    summary_df = create_summary_table(all_metrics)
-    create_model_comparison_plots(summary_df)
+        summary_df = create_summary_table(all_metrics)
+        create_model_comparison_plots(summary_df)
         print("\nComprehensive evaluation completed!")
-                else:
+    else:
         print("\nNo metrics were calculated. Please ensure all models are trained and available.")
 
 if __name__ == "__main__":
