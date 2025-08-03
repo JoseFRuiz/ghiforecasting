@@ -380,8 +380,8 @@ def create_sequences_joint_all_features(df, sequence_length, locations):
     location_features = np.tile(location_vector, (len(X), sequence_length, 1))
     X = np.concatenate([X, location_features], axis=2)
     
-        all_X_sequences.append(X)
-        all_y_sequences.append(y)
+    all_X_sequences.append(X)
+    all_y_sequences.append(y)
     
     if not all_X_sequences:
         raise ValueError("No valid sequences were created for any location")
