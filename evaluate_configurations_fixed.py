@@ -509,7 +509,7 @@ def evaluate_individual_models():
             print(f"Model not found for {city}")
             continue
         
-            model = tf.keras.models.load_model(model_path, custom_objects={'custom_ghi_loss': custom_ghi_loss})
+        model = tf.keras.models.load_model(model_path, custom_objects={'custom_ghi_loss': custom_ghi_loss})
         
         # Split data
         train_df, val_df, test_df = split_data_by_days(df)
