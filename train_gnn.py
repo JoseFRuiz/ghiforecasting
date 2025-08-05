@@ -135,6 +135,7 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     feature_columns = [col for col in sample_data.columns if col not in 
                       ['datetime', 'date', 'location', 'target', 'Year', 'Month', 'Day', 'Hour', 'Minute']]
     print(f"Found {len(feature_columns)} feature columns")
+    print(f"Feature columns: {feature_columns}")
     
     ghi_scaler = MinMaxScaler()
     ghi_scaler.fit(sample_data[['GHI']])
