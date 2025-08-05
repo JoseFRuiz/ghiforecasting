@@ -407,86 +407,156 @@ def evaluate_joint_models():
     df_all = pd.concat(all_dfs, ignore_index=True)
     locations = sorted(df_all['location'].unique().tolist())
     
-    # Load pre-trained models
-    models = {}
-    configs = ['ghi_only', 'ghi_met', 'met_only']
-    
-    for config in configs:
-        model_path = f"models/lstm_ghi_forecast_joint_{config}.h5"
-        if os.path.exists(model_path):
-            models[config] = tf.keras.models.load_model(model_path)
-            print(f"Loaded joint model for {config}")
-        else:
-            print(f"Model not found for {config}")
-    
-    # Load target scaler
-    scaler_path = "models/target_scaler.pkl"
-    if os.path.exists(scaler_path):
-        with open(scaler_path, 'rb') as f:
-            target_scaler = pickle.load(f)
-    else:
-        print("Target scaler not found")
+    # Load the fixed joint model
+    model_path = "models/lstm_ghi_forecast_joint_fixed.h5"
+    if not os.path.exists(model_path):
+        print(f"Joint model not found: {model_path}")
         return {}
     
-    # Evaluate each configuration
+    print(f"Loading joint model from {model_path}...")
+    try:
+        model = tf.keras.models.load_model(model_path)
+        print(f"✓ Joint model loaded successfully")
+        print(f"Model summary:")
+        model.summary()
+    except Exception as e:
+        print(f"✗ Error loading joint model: {e}")
+        return {}
+    
+    # Load target scaler
+    scaler_path = "models/target_scaler_fixed.pkl"
+    if not os.path.exists(scaler_path):
+        print(f"Target scaler not found: {scaler_path}")
+        return {}
+    
+    print(f"Loading target scaler from {scaler_path}...")
+    try:
+        with open(scaler_path, 'rb') as f:
+            target_scaler = pickle.load(f)
+        print(f"✓ Target scaler loaded successfully")
+        print(f"Scaler range: [{target_scaler.data_min_[0]:.2f}, {target_scaler.data_max_[0]:.2f}]")
+    except Exception as e:
+        print(f"✗ Error loading target scaler: {e}")
+        return {}
+    
+    # Evaluate the joint model
     all_metrics = {}
     
-    for config in configs:
-        if config not in models:
-            continue
+    print(f"\nEvaluating joint model...")
+    
+    # Create sequences using the same approach as train_joint_fixed.py
+    # First, we need to create features similar to train_joint_fixed.py
+    print("Creating joint features...")
+    
+    # Add time-based features
+    df_all["hour_sin"] = np.sin(2 * np.pi * df_all["Hour"] / 24)
+    df_all["hour_cos"] = np.cos(2 * np.pi * df_all["Hour"] / 24)
+    df_all["month_sin"] = np.sin(2 * np.pi * df_all["Month"] / 12)
+    df_all["month_cos"] = np.cos(2 * np.pi * df_all["Month"] / 12)
+    
+    # Create target: GHI for next day at the same hour
+    df_all["target_GHI"] = df_all["GHI"].shift(-24)
+    
+    # Create lag features for previous 24 hours of GHI
+    for lag in range(1, 25):
+        df_all[f"GHI_lag_{lag}"] = df_all["GHI"].shift(lag)
+    
+    # Create lag features for meteorological variables
+    meteorological_features = [
+        "Temperature", "Relative Humidity", "Pressure",
+        "Precipitable Water", "Wind Direction", "Wind Speed"
+    ]
+    
+    for feature in meteorological_features:
+        df_all[f"{feature}_lag_24"] = df_all[feature].shift(24)
+    
+    # Create location-specific features (one-hot encoding)
+    from sklearn.preprocessing import OneHotEncoder
+    encoder = OneHotEncoder(sparse=False)
+    location_encoded = encoder.fit_transform(df_all[['location']])
+    location_df = pd.DataFrame(location_encoded, 
+                             columns=[f"location_{loc}" for loc in encoder.categories_[0]])
+    
+    # Combine with original data
+    df_all = pd.concat([df_all, location_df], axis=1)
+    
+    # Clean data
+    df_all = df_all.dropna().reset_index(drop=True)
+    
+    # Split data by days (same as individual models)
+    train_df, val_df, test_df = split_data_by_days(df_all)
+    
+    # Scale the test data using the same scaler
+    test_df_scaled = test_df.copy()
+    test_df_scaled["GHI"] = target_scaler.transform(test_df[["GHI"]])
+    test_df_scaled["target_GHI"] = target_scaler.transform(test_df[["target_GHI"]])
+    
+    # Create sequences for test data
+    X_test, y_test = create_sequences_joint_all_features(test_df_scaled, 24, locations)
+    
+    if len(X_test) == 0:
+        print("No test sequences created for joint model")
+        return {}
+    
+    print(f"Created {len(X_test)} test sequences for joint model")
+    
+    # Make predictions
+    print(f"Making predictions on {len(X_test)} test sequences...")
+    y_pred = model.predict(X_test)
+    print(f"Predictions shape: {y_pred.shape}")
+    print(f"Predictions range: [{np.min(y_pred):.4f}, {np.max(y_pred):.4f}]")
+    
+    # Inverse transform
+    y_test_original = target_scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
+    y_pred_original = target_scaler.inverse_transform(y_pred.reshape(-1, 1)).flatten()
+    
+    print(f"Original test range: [{np.min(y_test_original):.2f}, {np.max(y_test_original):.2f}]")
+    print(f"Original pred range: [{np.min(y_pred_original):.2f}, {np.max(y_pred_original):.2f}]")
+    
+    # Calculate metrics for each city
+    for city in locations:
+        print(f"\nEvaluating {city}...")
+        
+        # Filter data for this city
+        city_mask = X_test[:, 0, -len(locations):][:, locations.index(city)] == 1
+        if city_mask.sum() > 0:
+            city_actual = y_test_original[city_mask]
+            city_predicted = y_pred_original[city_mask]
             
-        print(f"\nEvaluating {config} configuration...")
-        
-        # Create sequences
-        if config == 'met_only':
-            # For met_only, we need to handle the case where GHI features are not available
-            # This is a simplified approach - in practice, you might need to adjust the feature creation
-            continue
+            print(f"  {city}: {len(city_actual)} samples")
+            
+            # Calculate metrics
+            mae = mean_absolute_error(city_actual, city_predicted)
+            rmse = np.sqrt(mean_squared_error(city_actual, city_predicted))
+            r2 = r2_score(city_actual, city_predicted)
+            correlation = np.corrcoef(city_actual, city_predicted)[0, 1]
+            
+            print(f"  MAE: {mae:.2f} W/m²")
+            print(f"  RMSE: {rmse:.2f} W/m²")
+            print(f"  R²: {r2:.4f}")
+            print(f"  Correlation: {correlation:.4f}")
+            
+            # Calculate daily metrics
+            dates = pd.date_range(start='2020-01-01', periods=len(city_actual), freq='H')
+            daily_metrics = calculate_daily_metrics(dates, city_actual, city_predicted)
+            
+            all_metrics[(city, 'joint', 'standard')] = {
+                'mae': mae,
+                'rmse': rmse,
+                'r2': r2,
+                'correlation': correlation,
+                'daily_metrics': daily_metrics,
+                'actual': city_actual,
+                'predicted': city_predicted,
+                'dates': dates
+            }
+            
+            # Create plots
+            plot_daily_correlations(daily_metrics, city, 'joint', 'standard', "results_joint_fixed")
+            plot_correlation_analysis(daily_metrics, dates, city_actual, city_predicted, 
+                                   city, 'joint', 'standard', "results_joint_fixed")
         else:
-            X_test, y_test = create_sequences_joint_all_features(df_all, 24, locations)
-        
-        # Make predictions
-        y_pred = models[config].predict(X_test)
-        
-        # Inverse transform
-        y_test_original = target_scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
-        y_pred_original = target_scaler.inverse_transform(y_pred.reshape(-1, 1)).flatten()
-        
-        # Calculate metrics for each city
-        for city in locations:
-            # Filter data for this city
-            city_mask = X_test[:, 0, -len(locations):][:, locations.index(city)] == 1
-            if city_mask.sum() > 0:
-                city_actual = y_test_original[city_mask]
-                city_predicted = y_pred_original[city_mask]
-                
-                # Calculate metrics
-                mae = mean_absolute_error(city_actual, city_predicted)
-                rmse = np.sqrt(mean_squared_error(city_actual, city_predicted))
-                r2 = r2_score(city_actual, city_predicted)
-                correlation = np.corrcoef(city_actual, city_predicted)[0, 1]
-        
-        # Calculate daily metrics
-                # For joint models, we need to reconstruct dates
-                # This is a simplified approach
-                dates = pd.date_range(start='2020-01-01', periods=len(city_actual), freq='H')
-                daily_metrics = calculate_daily_metrics(dates, city_actual, city_predicted)
-                
-                all_metrics[(city, 'joint', config)] = {
-                    'mae': mae,
-                    'rmse': rmse,
-                    'r2': r2,
-                    'correlation': correlation,
-                    'daily_metrics': daily_metrics,
-                    'actual': city_actual,
-                    'predicted': city_predicted,
-                    'dates': dates
-                }
-        
-        # Create plots
-                plot_daily_correlations(daily_metrics, city, 'joint', config, "results_joint_fixed")
-                plot_correlation_analysis(daily_metrics, dates, city_actual, city_predicted, 
-                                       city, 'joint', config, "results_joint_fixed")
+            print(f"  No data found for {city}")
     
     return all_metrics
 
