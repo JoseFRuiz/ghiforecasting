@@ -9,4 +9,4 @@ Currently Loaded Modules:
  
 
 <frozen importlib._bootstrap>:219: RuntimeWarning: scipy._lib.messagestream.MessageStream size changed, may indicate binary incompatibility. Expected 56 from C header, got 64 from PyObject
-slurmstepd: error: *** JOB 9228176 ON c0608a-s18 CANCELLED AT 2025-08-03T11:36:55 ***
+slurmstepd: error: *** JOB 9450457 ON c0603a-s13 CANCELLED AT 2025-08-05T18:43:07 ***
