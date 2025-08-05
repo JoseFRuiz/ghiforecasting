@@ -498,6 +498,7 @@ def evaluate_individual_models():
     
     for city in CONFIG["data_locations"].keys():
         print(f"\nEvaluating {city}...")
+        print(f"  Checking for model file: models/lstm_ghi_forecast_{city}.h5")
         
         # Load data
         df = load_data(CONFIG["data_locations"], city)
@@ -506,10 +507,18 @@ def evaluate_individual_models():
         # Load model
         model_path = f"models/lstm_ghi_forecast_{city}.h5"
         if not os.path.exists(model_path):
-            print(f"Model not found for {city}")
+            print(f"  Model not found for {city}")
             continue
         
-        model = tf.keras.models.load_model(model_path, custom_objects={'custom_ghi_loss': custom_ghi_loss})
+        print(f"  Loading model from {model_path}...")
+        try:
+            model = tf.keras.models.load_model(model_path, custom_objects={'custom_ghi_loss': custom_ghi_loss})
+            print(f"  ✓ Model loaded successfully")
+            print(f"  Model summary:")
+            model.summary()
+        except Exception as e:
+            print(f"  ✗ Error loading model: {e}")
+            continue
         
         # Split data
         train_df, val_df, test_df = split_data_by_days(df)
