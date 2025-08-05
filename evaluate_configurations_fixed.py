@@ -521,14 +521,24 @@ def evaluate_individual_models():
             print(f"  ✗ Error loading model: {e}")
             continue
         
-        # Split data
+        # Split data (same as training)
         train_df, val_df, test_df = split_data_by_days(df)
         
-        # Create sequences
-        X_test, y_test = create_sequences_individual(test_df, 24)
+        # Create scaler fitted on ALL data (same as training)
+        print(f"  Creating scaler for {city} (fitted on all data)...")
+        target_scaler = MinMaxScaler()
+        target_scaler.fit(df[["GHI"]])
+        print(f"  Scaler fitted on all data range: [{target_scaler.data_min_[0]:.2f}, {target_scaler.data_max_[0]:.2f}]")
+        
+        # Transform test data using the same scaler
+        test_df_scaled = test_df.copy()
+        test_df_scaled["GHI"] = target_scaler.transform(test_df[["GHI"]])
+        
+        # Create sequences from scaled test data
+        X_test, y_test = create_sequences_individual(test_df_scaled, 24)
         
         if len(X_test) == 0:
-            print(f"No test sequences for {city}")
+            print(f"  No test sequences for {city}")
             continue
         
         # Make predictions
@@ -537,14 +547,7 @@ def evaluate_individual_models():
         print(f"  Predictions shape: {y_pred.shape}")
         print(f"  Predictions range: [{np.min(y_pred):.4f}, {np.max(y_pred):.4f}]")
         
-        # Load scaler - individual models don't save scalers, so we need to create one
-        # that matches the training data
-        print(f"  Creating scaler for {city}...")
-        target_scaler = MinMaxScaler()
-        target_scaler.fit(test_df[["GHI"]])
-        print(f"  Scaler fitted on test data range: [{target_scaler.data_min_[0]:.2f}, {target_scaler.data_max_[0]:.2f}]")
-        
-        # Inverse transform
+        # Inverse transform using the same scaler
         y_test_original = target_scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
         y_pred_original = target_scaler.inverse_transform(y_pred.reshape(-1, 1)).flatten()
         
