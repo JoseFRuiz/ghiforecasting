@@ -258,36 +258,59 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, graph_dates, graph_cities, ac
     
     # Use a loader to get predictions
     loader = DisjointLoader(dataset, batch_size=2, shuffle=False)  # Further reduced batch size
+    total_batches = len(dataset) // 2 + (1 if len(dataset) % 2 else 0)
+    print(f"Making predictions on {len(dataset)} graphs in {total_batches} batches...")
     
+    batch_count = 0
     for batch in loader:
-        inputs, y_true = batch
-        x, a, i = inputs
-        y_pred = model([x, a, i], training=False)
+        batch_count += 1
+        if batch_count % 10 == 0:
+            print(f"  Processed {batch_count}/{total_batches} batches...")
         
-        # Convert to numpy arrays (handle both tensor and numpy cases)
-        if hasattr(y_true, 'numpy'):
-            y_true = y_true.numpy()
-        if hasattr(y_pred, 'numpy'):
-            y_pred = y_pred.numpy()
-        
-        # Inverse transform predictions and actual values
-        y_true_original = ghi_scaler.inverse_transform(y_true.reshape(-1, 1)).reshape(y_true.shape)
-        y_pred_original = ghi_scaler.inverse_transform(y_pred.reshape(-1, 1)).reshape(y_pred.shape)
-        
-        predictions.extend(y_pred_original)
-        actuals.extend(y_true_original)
+        try:
+            inputs, y_true = batch
+            x, a, i = inputs
+            y_pred = model([x, a, i], training=False)
+            
+            # Convert to numpy arrays (handle both tensor and numpy cases)
+            if hasattr(y_true, 'numpy'):
+                y_true = y_true.numpy()
+            if hasattr(y_pred, 'numpy'):
+                y_pred = y_pred.numpy()
+            
+            # Inverse transform predictions and actual values
+            y_true_original = ghi_scaler.inverse_transform(y_true.reshape(-1, 1)).reshape(y_true.shape)
+            y_pred_original = ghi_scaler.inverse_transform(y_pred.reshape(-1, 1)).reshape(y_pred.shape)
+            
+            predictions.extend(y_pred_original)
+            actuals.extend(y_true_original)
+            
+        except Exception as e:
+            print(f"  Error processing batch {batch_count}: {e}")
+            continue
+    
+    print(f"Completed predictions. Processing results...")
     
     # Organize results by city
     city_results = {city: {'dates': [], 'actual': [], 'predicted': []} for city in actual_cities}
     
+    print(f"Organizing results for {len(actual_cities)} cities...")
+    print(f"Number of predictions: {len(predictions)}")
+    print(f"Number of actuals: {len(actuals)}")
+    print(f"Number of graph dates: {len(graph_dates)}")
+    
     # Process results by city
     for i, (date, city_list) in enumerate(zip(graph_dates, graph_cities)):
+        if i % 20 == 0:
+            print(f"  Processing result {i+1}/{len(graph_dates)}...")
         if i < len(predictions):
             for j, city in enumerate(city_list):
                 if j < len(predictions[i]):
                     city_results[city]['dates'].append(date)
                     city_results[city]['actual'].append(predictions[i][j])
                     city_results[city]['predicted'].append(actuals[i][j])
+    
+    print("Results organized. Calculating metrics...")
     
     # Calculate metrics for each city
     all_metrics = {}
