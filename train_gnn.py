@@ -179,7 +179,9 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
         if len(node_features) > 0:
             x = np.array(node_features, dtype=np.float32)
             a = adj_matrix.astype(np.float32)
-            y = np.array(city_targets, dtype=np.float32)
+            
+            # Create a single target per graph (average across cities)
+            y = np.mean(city_targets, axis=0, dtype=np.float32)
             
             # Create Spektral Graph
             graph = Graph(x=x, a=a, y=y)
