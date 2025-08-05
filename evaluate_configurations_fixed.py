@@ -493,6 +493,7 @@ def evaluate_joint_models():
 def evaluate_individual_models():
     """Evaluate individual models."""
     print("\nEvaluating individual models...")
+    print(f"Available cities: {list(CONFIG['data_locations'].keys())}")
     
     all_metrics = {}
     
@@ -774,7 +775,11 @@ def main():
     all_metrics = {}
     
     # Evaluate individual models
+    print("\n" + "="*60)
+    print("EVALUATING INDIVIDUAL MODELS")
+    print("="*60)
     individual_metrics = evaluate_individual_models()
+    print(f"Individual metrics returned: {len(individual_metrics)} entries")
     all_metrics.update(individual_metrics)
     
     # Evaluate joint models
