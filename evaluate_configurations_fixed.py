@@ -522,21 +522,24 @@ def evaluate_individual_models():
             continue
         
         # Make predictions
+        print(f"  Making predictions on {len(X_test)} test sequences...")
         y_pred = model.predict(X_test)
+        print(f"  Predictions shape: {y_pred.shape}")
+        print(f"  Predictions range: [{np.min(y_pred):.4f}, {np.max(y_pred):.4f}]")
         
-        # Load scaler
-        scaler_path = f"models/target_scaler_{city}.pkl"
-        if os.path.exists(scaler_path):
-            with open(scaler_path, 'rb') as f:
-                target_scaler = pickle.load(f)
-        else:
-            # Create a new scaler if not found
-            target_scaler = MinMaxScaler()
-            target_scaler.fit(test_df[["GHI"]])
+        # Load scaler - individual models don't save scalers, so we need to create one
+        # that matches the training data
+        print(f"  Creating scaler for {city}...")
+        target_scaler = MinMaxScaler()
+        target_scaler.fit(test_df[["GHI"]])
+        print(f"  Scaler fitted on test data range: [{target_scaler.data_min_[0]:.2f}, {target_scaler.data_max_[0]:.2f}]")
         
         # Inverse transform
         y_test_original = target_scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
         y_pred_original = target_scaler.inverse_transform(y_pred.reshape(-1, 1)).flatten()
+        
+        print(f"  Original test range: [{np.min(y_test_original):.2f}, {np.max(y_test_original):.2f}]")
+        print(f"  Original pred range: [{np.min(y_pred_original):.2f}, {np.max(y_pred_original):.2f}]")
         
         # Calculate metrics
         mae = mean_absolute_error(y_test_original, y_pred_original)
