@@ -133,7 +133,7 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     print("Fitting scaler...")
     sample_data = df_all.sample(min(10000, len(df_all)), random_state=42)
     feature_columns = [col for col in sample_data.columns if col not in 
-                      ['datetime', 'date', 'location', 'target', 'Year', 'Month', 'Day', 'Hour', 'Minute']]
+                      ['datetime', 'date', 'location', 'target', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'City']]
     print(f"Found {len(feature_columns)} feature columns")
     print(f"Feature columns: {feature_columns}")
     
