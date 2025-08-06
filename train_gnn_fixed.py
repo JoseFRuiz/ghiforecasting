@@ -136,8 +136,16 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     print(f"Found {len(feature_columns)} feature columns")
     print(f"Feature columns: {feature_columns}")
     
+    # Scale both GHI and target_GHI
     ghi_scaler = MinMaxScaler()
     ghi_scaler.fit(sample_data[['GHI']])
+    
+    # Also scale the target values
+    target_scaler = MinMaxScaler()
+    target_scaler.fit(sample_data[['target_GHI']])
+    
+    print(f"GHI scaler range: [{ghi_scaler.data_min_[0]:.2f}, {ghi_scaler.data_max_[0]:.2f}]")
+    print(f"Target scaler range: [{target_scaler.data_min_[0]:.2f}, {target_scaler.data_max_[0]:.2f}]")
     
     print(f"Processing {len(unique_dates)} unique dates (limited to {max_graphs} graphs)")
     
@@ -147,6 +155,13 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     print(f"  Target range: [{sample_targets.min():.2f}, {sample_targets.max():.2f}]")
     print(f"  Target mean: {sample_targets.mean():.2f}")
     print(f"  Non-zero targets: {(sample_targets > 0).sum()} out of {len(sample_targets)}")
+    print(f"  Target std: {sample_targets.std():.2f}")
+    
+    # Check if targets are all the same
+    if sample_targets.std() == 0:
+        print("  WARNING: All target values are the same! This will cause training issues.")
+    else:
+        print(f"  Target variance: {sample_targets.var():.2f}")
     
     for i, date in enumerate(unique_dates):
         if i % 10 == 0:
@@ -179,7 +194,10 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
                 target = city_row['target_GHI']
                 if pd.isna(target):
                     target = 0.0
-                city_targets.append(target)
+                
+                # Scale the target value
+                target_scaled = target_scaler.transform([[target]])[0, 0]
+                city_targets.append(target_scaled)
         
         # Create graph if we have any valid data (relaxed condition)
         if len(node_features) > 0:
@@ -201,7 +219,7 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
             graph_cities.append(actual_cities)
     
     print(f"Created {len(graphs)} daily graphs (limited to {max_graphs})")
-    return graphs, targets, ghi_scaler, graph_dates, graph_cities
+    return graphs, targets, ghi_scaler, target_scaler, graph_dates, graph_cities
 
 class GHIDataset(Dataset):
     def __init__(self, graphs, y, **kwargs):
@@ -268,7 +286,7 @@ def build_gnn_model(input_shape, output_units=1):
 # ----------------------------------------------
 # Evaluation functions
 # ----------------------------------------------
-def evaluate_gnn_model(model, dataset, ghi_scaler, graph_dates, graph_cities, actual_cities):
+def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, graph_cities, actual_cities):
     """Evaluate the GNN model and generate metrics for each city."""
     print("\nEvaluating GNN model...")
     
@@ -304,9 +322,9 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, graph_dates, graph_cities, ac
             if hasattr(y_pred, 'numpy'):
                 y_pred = y_pred.numpy()
             
-            # Inverse transform
-            y_true_original = ghi_scaler.inverse_transform(y_true.reshape(-1, 1)).flatten()
-            y_pred_original = ghi_scaler.inverse_transform(y_pred.reshape(-1, 1)).flatten()
+            # Inverse transform using target scaler
+            y_true_original = target_scaler.inverse_transform(y_true.reshape(-1, 1)).flatten()
+            y_pred_original = target_scaler.inverse_transform(y_pred.reshape(-1, 1)).flatten()
             
             all_predictions.extend(y_pred_original)
             all_actuals.extend(y_true_original)
@@ -531,7 +549,7 @@ def main():
         print(f"Adjacency matrix computed: {adj_matrix.shape}")
 
         print("\nBuilding daily graphs...")
-        graphs, targets, ghi_scaler, graph_dates, graph_cities = build_daily_graphs(df_all, adj_matrix, actual_cities)
+        graphs, targets, ghi_scaler, target_scaler, graph_dates, graph_cities = build_daily_graphs(df_all, adj_matrix, actual_cities)
         
         if len(graphs) == 0:
             print("ERROR: No valid graphs created. Exiting.")
@@ -698,15 +716,17 @@ def main():
         
         print("Training completed!")
 
-        print("\nSaving model and scaler...")
+        print("\nSaving model and scalers...")
         model.save("models/gnn_ghi_forecast_fixed.h5")
         with open("models/ghi_scaler_gnn_fixed.pkl", "wb") as f:
             pickle.dump(ghi_scaler, f)
-        print("✓ Model and scaler saved.")
+        with open("models/target_scaler_gnn_fixed.pkl", "wb") as f:
+            pickle.dump(target_scaler, f)
+        print("✓ Model and scalers saved.")
 
         # Evaluate the model
         print("\nEvaluating model...")
-        all_metrics = evaluate_gnn_model(model, dataset, ghi_scaler, graph_dates, graph_cities, actual_cities)
+        all_metrics = evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, graph_cities, actual_cities)
         
         total_time = time.time() - start_time
         print(f"\nGNN training and evaluation completed in {total_time:.1f} seconds!")
