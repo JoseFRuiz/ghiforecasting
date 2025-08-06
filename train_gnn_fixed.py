@@ -53,6 +53,12 @@ def create_features(df):
     print(f"      Adding target variable...")
     df["target_GHI"] = df["GHI"].shift(-24)  # forecast 24 hours ahead (single value)
     
+    # Debug: Check target values after creation
+    print(f"      Target GHI stats after creation:")
+    print(f"        Range: [{df['target_GHI'].min():.2f}, {df['target_GHI'].max():.2f}]")
+    print(f"        Mean: {df['target_GHI'].mean():.2f}")
+    print(f"        Non-zero: {(df['target_GHI'] > 0).sum()} out of {len(df)}")
+    
     print(f"      Dropping NaN values...")
     original_len = len(df)
     df = df.dropna().reset_index(drop=True)
@@ -146,6 +152,14 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     
     print(f"GHI scaler range: [{ghi_scaler.data_min_[0]:.2f}, {ghi_scaler.data_max_[0]:.2f}]")
     print(f"Target scaler range: [{target_scaler.data_min_[0]:.2f}, {target_scaler.data_max_[0]:.2f}]")
+    
+    # Debug: Test target scaler
+    test_targets = sample_data['target_GHI'].head(5).values
+    test_scaled = target_scaler.transform(test_targets.reshape(-1, 1)).flatten()
+    print(f"Target scaler test:")
+    print(f"  Original: {test_targets}")
+    print(f"  Scaled: {test_scaled}")
+    print(f"  Inverse: {target_scaler.inverse_transform(test_scaled.reshape(-1, 1)).flatten()}")
     
     print(f"Processing {len(unique_dates)} unique dates (limited to {max_graphs} graphs)")
     
