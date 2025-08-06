@@ -556,7 +556,7 @@ def calculate_daily_metrics_gnn(dates, actual, predicted):
     """Calculate daily metrics for GNN results."""
     # For GNN, each prediction represents one graph (one day)
     # Since we have one prediction per day, we can't calculate intra-day correlation
-    # Instead, we'll use the overall correlation for each day
+    # Instead, we'll use a rolling window approach to calculate meaningful correlations
     df = pd.DataFrame({
         'date': dates,
         'actual': actual,
@@ -572,13 +572,40 @@ def calculate_daily_metrics_gnn(dates, actual, predicted):
     daily_metrics['actual_std'] = np.nan
     daily_metrics['predicted_std'] = np.nan
     
-    # Calculate correlation for each day (will be 1.0 since we only have one point)
-    # But this doesn't make sense for single points, so we'll use a rolling correlation
-    # or set it to a reasonable default
-    daily_metrics['correlation'] = 1.0  # Since each day has only one prediction
+    # Calculate rolling correlation and R² using a window of 7 days
+    # This gives us meaningful daily metrics based on recent performance
+    window_size = min(7, len(daily_metrics))
     
-    # Calculate R² for each day (will be 1.0 since we only have one point)
-    daily_metrics['r2'] = 1.0  # Since each day has only one prediction
+    daily_metrics['correlation'] = np.nan
+    daily_metrics['r2'] = np.nan
+    
+    for i in range(len(daily_metrics)):
+        start_idx = max(0, i - window_size + 1)
+        end_idx = i + 1
+        
+        if end_idx - start_idx >= 2:  # Need at least 2 points for correlation
+            window_actual = daily_metrics['actual_mean'].iloc[start_idx:end_idx]
+            window_predicted = daily_metrics['predicted_mean'].iloc[start_idx:end_idx]
+            
+            # Calculate correlation
+            if len(window_actual) > 1:
+                corr = np.corrcoef(window_actual, window_predicted)[0, 1]
+                daily_metrics.loc[daily_metrics.index[i], 'correlation'] = corr if not np.isnan(corr) else 0.0
+                
+                # Calculate R²
+                ss_res = np.sum((window_actual - window_predicted) ** 2)
+                ss_tot = np.sum((window_actual - window_actual.mean()) ** 2)
+                if ss_tot > 0:
+                    r2 = 1 - (ss_res / ss_tot)
+                    daily_metrics.loc[daily_metrics.index[i], 'r2'] = r2 if not np.isnan(r2) else 0.0
+                else:
+                    daily_metrics.loc[daily_metrics.index[i], 'r2'] = 0.0
+            else:
+                daily_metrics.loc[daily_metrics.index[i], 'correlation'] = 0.0
+                daily_metrics.loc[daily_metrics.index[i], 'r2'] = 0.0
+        else:
+            daily_metrics.loc[daily_metrics.index[i], 'correlation'] = 0.0
+            daily_metrics.loc[daily_metrics.index[i], 'r2'] = 0.0
     
     # Calculate MAE and RMSE for each day (will be the absolute difference and squared difference)
     daily_metrics['mae'] = np.abs(daily_metrics['actual_mean'] - daily_metrics['predicted_mean'])
