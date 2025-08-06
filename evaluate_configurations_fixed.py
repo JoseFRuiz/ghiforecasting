@@ -477,6 +477,13 @@ def evaluate_joint_models():
     location_df = pd.DataFrame(location_encoded, 
                              columns=[f"location_{loc}" for loc in encoder.categories_[0]])
     
+    print(f"Location encoding created:")
+    print(f"  Categories: {encoder.categories_[0]}")
+    print(f"  Location columns: {location_df.columns.tolist()}")
+    print(f"  Sample location encoding:")
+    for i, loc in enumerate(locations):
+        print(f"    {loc}: {location_df.iloc[i].values}")
+    
     # Combine with original data
     df_all = pd.concat([df_all, location_df], axis=1)
     
@@ -514,16 +521,24 @@ def evaluate_joint_models():
     print(f"Original pred range: [{np.min(y_pred_original):.2f}, {np.max(y_pred_original):.2f}]")
     
     # Calculate metrics for each city
+    print(f"\nEvaluating joint model for each city...")
+    print(f"Total predictions: {len(y_pred_original)}")
+    print(f"Location features shape: {X_test[:, 0, -len(locations):].shape}")
+    
     for city in locations:
         print(f"\nEvaluating {city}...")
         
         # Filter data for this city
         city_mask = X_test[:, 0, -len(locations):][:, locations.index(city)] == 1
+        print(f"  City mask for {city}: {city_mask.sum()} samples out of {len(city_mask)}")
+        
         if city_mask.sum() > 0:
             city_actual = y_test_original[city_mask]
             city_predicted = y_pred_original[city_mask]
             
             print(f"  {city}: {len(city_actual)} samples")
+            print(f"  Actual range: [{np.min(city_actual):.2f}, {np.max(city_actual):.2f}]")
+            print(f"  Predicted range: [{np.min(city_predicted):.2f}, {np.max(city_predicted):.2f}]")
             
             # Calculate metrics
             mae = mean_absolute_error(city_actual, city_predicted)
@@ -557,6 +572,7 @@ def evaluate_joint_models():
                                    city, 'joint', 'standard', "results_joint_fixed")
         else:
             print(f"  No data found for {city}")
+            print(f"  This might indicate an issue with the location encoding")
     
     return all_metrics
 
