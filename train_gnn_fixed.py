@@ -51,13 +51,15 @@ def create_features(df):
         df[f"{var}_lag_24"] = df[var].shift(24)
 
     print(f"      Adding target variable...")
-    df["target_GHI"] = df["GHI"].shift(-24)  # forecast 24 hours ahead (single value)
+    # FIXED: Create target as next hour's GHI (not 24 hours ahead)
+    df["target_GHI"] = df["GHI"].shift(-1)  # forecast next 1 hour (single value)
     
     # Debug: Check target values after creation
     print(f"      Target GHI stats after creation:")
     print(f"        Range: [{df['target_GHI'].min():.2f}, {df['target_GHI'].max():.2f}]")
     print(f"        Mean: {df['target_GHI'].mean():.2f}")
     print(f"        Non-zero: {(df['target_GHI'] > 0).sum()} out of {len(df)}")
+    print(f"        Sample targets: {df['target_GHI'].head(10).tolist()}")
     
     print(f"      Dropping NaN values...")
     original_len = len(df)
@@ -65,6 +67,12 @@ def create_features(df):
     final_len = len(df)
     print(f"      Dropped {original_len - final_len} rows with NaN values")
     print(f"      Final shape: {df.shape}")
+    
+    # Debug: Check targets after dropping NaN
+    print(f"      Target GHI stats after dropping NaN:")
+    print(f"        Range: [{df['target_GHI'].min():.2f}, {df['target_GHI'].max():.2f}]")
+    print(f"        Mean: {df['target_GHI'].mean():.2f}")
+    print(f"        Non-zero: {(df['target_GHI'] > 0).sum()} out of {len(df)}")
     
     return df
 
@@ -207,7 +215,7 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
                 features = city_row[feature_columns].values.astype(np.float32)
                 node_features.append(features)
                 
-                # Get target (single GHI value 24 hours ahead)
+                # Get target (single GHI value next hour)
                 target = city_row['target_GHI']
                 if pd.isna(target):
                     target = 0.0
@@ -228,6 +236,7 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
             if i < 5:
                 print(f"    Date {date}: targets = {city_targets}, mean = {y:.4f}")
                 print(f"      Original target range: [{min(city_targets):.4f}, {max(city_targets):.4f}]")
+                print(f"      Original target values: {[target_scaler.inverse_transform(np.array([[t]]))[0, 0] for t in city_targets]}")
             
             # Create Spektral Graph
             graph = Graph(x=x, a=a, y=y)
