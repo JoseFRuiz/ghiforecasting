@@ -577,6 +577,13 @@ def calculate_daily_metrics_gnn(dates, actual, predicted):
     # or set it to a reasonable default
     daily_metrics['correlation'] = 1.0  # Since each day has only one prediction
     
+    # Calculate R² for each day (will be 1.0 since we only have one point)
+    daily_metrics['r2'] = 1.0  # Since each day has only one prediction
+    
+    # Calculate MAE and RMSE for each day (will be the absolute difference and squared difference)
+    daily_metrics['mae'] = np.abs(daily_metrics['actual_mean'] - daily_metrics['predicted_mean'])
+    daily_metrics['rmse'] = np.sqrt((daily_metrics['actual_mean'] - daily_metrics['predicted_mean'])**2)
+    
     return daily_metrics
 
 def create_gnn_summary_table(all_metrics):
