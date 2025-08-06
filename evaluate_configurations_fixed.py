@@ -357,7 +357,7 @@ def create_sequences_joint_all_features(df, sequence_length, locations):
         
         # Get all required data at once
         data = df_loc[feature_columns].values
-        target = df_loc["GHI"].values
+        target = df_loc["target_GHI"].values  # Use target_GHI instead of GHI
     
     # Calculate number of sequences
         n_sequences = len(df_loc) - sequence_length
