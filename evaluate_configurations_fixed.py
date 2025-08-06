@@ -352,7 +352,16 @@ def create_summary_table(all_metrics):
     # Create summary DataFrame
     summary_data = []
     for (city, model_type, config), metrics in all_metrics.items():
-                    summary_data.append({
+        # Check if R² is available in daily metrics
+        daily_metrics = metrics['daily_metrics']
+        if 'r2' in daily_metrics.columns:
+            mean_r2 = daily_metrics['r2'].mean()
+            std_r2 = daily_metrics['r2'].std()
+        else:
+            mean_r2 = np.nan
+            std_r2 = np.nan
+        
+        summary_data.append({
             'City': city,
             'Model_Type': model_type,
             'Config': config,
@@ -361,9 +370,9 @@ def create_summary_table(all_metrics):
             'R²': metrics['r2'],
             'Correlation': metrics['correlation'],
             'Mean_Correlation': metrics['daily_metrics']['correlation'].mean(),
-            'Mean_R2': metrics['daily_metrics']['r2'].mean(),
+            'Mean_R2': mean_r2,
             'Std_Correlation': metrics['daily_metrics']['correlation'].std(),
-            'Std_R2': metrics['daily_metrics']['r2'].std()
+            'Std_R2': std_r2
         })
     
     summary_df = pd.DataFrame(summary_data)
