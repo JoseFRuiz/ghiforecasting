@@ -473,16 +473,28 @@ def evaluate_joint_models():
     # Create location-specific features (one-hot encoding)
     from sklearn.preprocessing import OneHotEncoder
     encoder = OneHotEncoder(sparse=False)
-    location_encoded = encoder.fit_transform(df_all[['location']])
+    
+    # Ensure encoder sees all unique locations
+    unique_locations = df_all['location'].unique()
+    print(f"Unique locations in data: {unique_locations}")
+    
+    # Fit encoder on all unique locations
+    encoder.fit(df_all[['location']])
+    location_encoded = encoder.transform(df_all[['location']])
     location_df = pd.DataFrame(location_encoded, 
                              columns=[f"location_{loc}" for loc in encoder.categories_[0]])
     
     print(f"Location encoding created:")
     print(f"  Categories: {encoder.categories_[0]}")
     print(f"  Location columns: {location_df.columns.tolist()}")
-    print(f"  Sample location encoding:")
-    for i, loc in enumerate(locations):
-        print(f"    {loc}: {location_df.iloc[i].values}")
+    
+    # Check encoding for each location
+    print(f"  Location encoding verification:")
+    for loc in unique_locations:
+        loc_mask = df_all['location'] == loc
+        if loc_mask.sum() > 0:
+            sample_encoding = location_df.loc[loc_mask].iloc[0].values
+            print(f"    {loc}: {sample_encoding}")
     
     # Combine with original data
     df_all = pd.concat([df_all, location_df], axis=1)
