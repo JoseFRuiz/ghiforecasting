@@ -149,6 +149,7 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     targets = []
     graph_dates = []
     graph_cities = []
+    graph_target_cities = []  # Track which city the target comes from
     
     # Fit scaler on a sample of the data
     print("Fitting scaler...")
@@ -259,6 +260,7 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
             # FIXED: Use the target from the first city instead of averaging
             # This ensures we get varied targets across different dates
             y = city_targets[0]  # Use first city's target
+            target_city = actual_cities[0]  # Track which city this target comes from
             
             # Debug: Print target info for first few graphs
             if i < 5:
@@ -267,6 +269,7 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
                 print(f"      Scaled targets: {city_targets}")
                 print(f"      Selected target (first city): {target_scaler.inverse_transform(np.array([[y]]))[0, 0]:.4f}")
                 print(f"      Scaled selected target: {y:.4f}")
+                print(f"      Target city: {target_city}")
             
             # Create Spektral Graph
             graph = Graph(x=x, a=a, y=y)
@@ -274,9 +277,10 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
             targets.append(y)
             graph_dates.append(date)
             graph_cities.append(actual_cities)
+            graph_target_cities.append(target_city)
     
     print(f"Created {len(graphs)} daily graphs (limited to {max_graphs})")
-    return graphs, targets, ghi_scaler, target_scaler, graph_dates, graph_cities
+    return graphs, targets, ghi_scaler, target_scaler, graph_dates, graph_cities, graph_target_cities
 
 class GHIDataset(Dataset):
     def __init__(self, graphs, y, **kwargs):
@@ -344,22 +348,21 @@ def build_gnn_model(input_shape, output_units=1):
 # ----------------------------------------------
 # Evaluation functions
 # ----------------------------------------------
-def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, graph_cities, actual_cities):
+def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, graph_cities, graph_target_cities, actual_cities):
     """Evaluate the GNN model and generate metrics for each city."""
     print("\nEvaluating GNN model...")
     
     # Create results directory
     os.makedirs("results_gnn", exist_ok=True)
     
-    # Simplified evaluation - just get basic metrics
-    print("Making predictions (simplified evaluation)...")
-    
-    all_predictions = []
-    all_actuals = []
+    # Store predictions and actuals with their corresponding cities
+    city_predictions = {city: [] for city in actual_cities}
+    city_actuals = {city: [] for city in actual_cities}
+    city_dates = {city: [] for city in actual_cities}
     
     # Use a smaller batch size and limit the number of predictions
     loader = DisjointLoader(dataset, batch_size=1, shuffle=False)
-    max_eval_batches = min(50, len(dataset))  # Limit evaluation to 50 batches
+    max_eval_batches = min(100, len(dataset))  # Increased for better evaluation
     
     batch_count = 0
     for batch in loader:
@@ -392,89 +395,111 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, g
                 print(f"    Batch {batch_count}: y_true_scaled={y_true[:3]}, y_pred_scaled={y_pred[:3]}")
                 print(f"    Batch {batch_count}: y_true_original={y_true_original[:3]}, y_pred_original={y_pred_original[:3]}")
             
-            all_predictions.extend(y_pred_original)
-            all_actuals.extend(y_true_original)
+            # Get the target city for this graph (if available)
+            if batch_count - 1 < len(graph_target_cities):
+                target_city = graph_target_cities[batch_count - 1]
+            else:
+                # Fallback to round-robin assignment
+                target_city = actual_cities[(batch_count - 1) % len(actual_cities)]
+            
+            # Assign the prediction to the target city
+            city_predictions[target_city].append(y_pred_original[0])
+            city_actuals[target_city].append(y_true_original[0])
+            # Create a date for this prediction
+            city_dates[target_city].append(pd.Timestamp('2020-01-01') + pd.Timedelta(hours=batch_count))
             
         except Exception as e:
             print(f"  Error in evaluation batch {batch_count}: {e}")
             continue
     
-    print(f"Evaluation completed. Processed {len(all_predictions)} predictions.")
+    print(f"Evaluation completed. Processed {batch_count} batches.")
     
-    # Calculate overall metrics
-    if len(all_predictions) > 0:
-        all_predictions = np.array(all_predictions)
-        all_actuals = np.array(all_actuals)
+    # Calculate city-specific metrics
+    all_metrics = {}
+    overall_predictions = []
+    overall_actuals = []
+    
+    for city in actual_cities:
+        predictions = np.array(city_predictions[city])
+        actuals = np.array(city_actuals[city])
+        dates = city_dates[city]
         
         # Filter out invalid values
-        valid_mask = ~(np.isnan(all_predictions) | np.isnan(all_actuals) | 
-                      np.isinf(all_predictions) | np.isinf(all_actuals))
+        valid_mask = ~(np.isnan(predictions) | np.isnan(actuals) | 
+                      np.isinf(predictions) | np.isinf(actuals))
         
-        if np.sum(valid_mask) > 10:  # Need at least 10 valid predictions
-            all_predictions = all_predictions[valid_mask]
-            all_actuals = all_actuals[valid_mask]
+        if np.sum(valid_mask) > 5:  # Need at least 5 valid predictions per city
+            predictions = predictions[valid_mask]
+            actuals = actuals[valid_mask]
+            dates = [dates[i] for i in range(len(dates)) if valid_mask[i]]
             
-            # Calculate overall metrics
-            overall_mae = mean_absolute_error(all_actuals, all_predictions)
-            overall_rmse = np.sqrt(mean_squared_error(all_actuals, all_predictions))
-            overall_r2 = r2_score(all_actuals, all_predictions)
-            overall_correlation = np.corrcoef(all_actuals, all_predictions)[0, 1]
+            # Calculate city-specific metrics
+            city_mae = mean_absolute_error(actuals, predictions)
+            city_rmse = np.sqrt(mean_squared_error(actuals, predictions))
+            city_r2 = r2_score(actuals, predictions)
+            city_correlation = np.corrcoef(actuals, predictions)[0, 1] if len(actuals) > 1 else 0
             
-            print(f"Valid predictions: {len(all_predictions)} out of {len(valid_mask)}")
-            print(f"Prediction range: [{np.min(all_predictions):.2f}, {np.max(all_predictions):.2f}]")
-            print(f"Actual range: [{np.min(all_actuals):.2f}, {np.max(all_actuals):.2f}]")
+            print(f"\n{city} Performance:")
+            print(f"  Valid predictions: {len(predictions)}")
+            print(f"  Prediction range: [{np.min(predictions):.2f}, {np.max(predictions):.2f}]")
+            print(f"  Actual range: [{np.min(actuals):.2f}, {np.max(actuals):.2f}]")
+            print(f"  MAE: {city_mae:.2f}")
+            print(f"  RMSE: {city_rmse:.2f}")
+            print(f"  R²: {city_r2:.4f}")
+            print(f"  Correlation: {city_correlation:.4f}")
+            
+            # Store metrics
+            all_metrics[city] = {
+                'mae': city_mae,
+                'rmse': city_rmse,
+                'r2': city_r2,
+                'correlation': city_correlation,
+                'actual': actuals,
+                'predicted': predictions,
+                'dates': dates
+            }
+            
+            # Add to overall metrics
+            overall_predictions.extend(predictions)
+            overall_actuals.extend(actuals)
+            
         else:
-            print("Not enough valid predictions for meaningful metrics")
-            overall_mae = 1000.0
-            overall_rmse = 1500.0
-            overall_r2 = 0.0
-            overall_correlation = 0.0
+            print(f"\n{city}: Not enough valid predictions ({np.sum(valid_mask)})")
+            # Create dummy metrics for this city
+            all_metrics[city] = {
+                'mae': 100.0,
+                'rmse': 150.0,
+                'r2': 0.0,
+                'correlation': 0.0,
+                'actual': np.array([0.0]),
+                'predicted': np.array([0.0]),
+                'dates': [pd.Timestamp('2020-01-01')]
+            }
+    
+    # Calculate overall metrics
+    if len(overall_predictions) > 0:
+        overall_mae = mean_absolute_error(overall_actuals, overall_predictions)
+        overall_rmse = np.sqrt(mean_squared_error(overall_actuals, overall_predictions))
+        overall_r2 = r2_score(overall_actuals, overall_predictions)
+        overall_correlation = np.corrcoef(overall_actuals, overall_predictions)[0, 1]
         
-        print(f"Overall GNN Performance:")
+        print(f"\nOverall GNN Performance:")
+        print(f"  Total valid predictions: {len(overall_predictions)}")
+        print(f"  Prediction range: [{np.min(overall_predictions):.2f}, {np.max(overall_predictions):.2f}]")
+        print(f"  Actual range: [{np.min(overall_actuals):.2f}, {np.max(overall_actuals):.2f}]")
         print(f"  MAE: {overall_mae:.2f}")
         print(f"  RMSE: {overall_rmse:.2f}")
         print(f"  R²: {overall_r2:.4f}")
         print(f"  Correlation: {overall_correlation:.4f}")
-        
-        # Create simplified results for each city
-        all_metrics = {}
-        for city in actual_cities:
-            # For simplified evaluation, use overall metrics for each city
-            all_metrics[city] = {
-                'mae': overall_mae,
-                'rmse': overall_rmse,
-                'r2': overall_r2,
-                'correlation': overall_correlation,
-                'actual': all_actuals[:len(all_actuals)],  # Use all available data
-                'predicted': all_predictions[:len(all_predictions)],
-                'dates': pd.date_range(start='2020-01-01', periods=len(all_actuals), freq='H')
-            }
-            
-            # Create simple plots
-            plot_gnn_results(all_metrics[city], city)
-        
-        # Create summary table
-        create_gnn_summary_table(all_metrics)
-        
-        return all_metrics
-    else:
-        print("No predictions generated. Creating dummy results.")
-        # Create dummy results to avoid errors
-        all_metrics = {}
-        for city in actual_cities:
-            all_metrics[city] = {
-                'mae': 100.0,
-                'rmse': 150.0,
-                'r2': 0.5,
-                'correlation': 0.7,
-                'actual': np.random.rand(50) * 1000,
-                'predicted': np.random.rand(50) * 1000,
-                'dates': pd.date_range(start='2020-01-01', periods=50, freq='H')
-            }
-            plot_gnn_results(all_metrics[city], city)
-        
-        create_gnn_summary_table(all_metrics)
-        return all_metrics
+    
+    # Create plots for each city
+    for city in actual_cities:
+        plot_gnn_results(all_metrics[city], city)
+    
+    # Create summary table
+    create_gnn_summary_table(all_metrics)
+    
+    return all_metrics
 
 def plot_gnn_results(results, city):
     """Create plots for GNN results."""
@@ -615,7 +640,7 @@ def main():
         print(f"Adjacency matrix computed: {adj_matrix.shape}")
 
         print("\nBuilding daily graphs...")
-        graphs, targets, ghi_scaler, target_scaler, graph_dates, graph_cities = build_daily_graphs(df_all, adj_matrix, actual_cities)
+        graphs, targets, ghi_scaler, target_scaler, graph_dates, graph_cities, graph_target_cities = build_daily_graphs(df_all, adj_matrix, actual_cities)
         
         if len(graphs) == 0:
             print("ERROR: No valid graphs created. Exiting.")
@@ -797,7 +822,7 @@ def main():
 
         # Evaluate the model
         print("\nEvaluating model...")
-        all_metrics = evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, graph_cities, actual_cities)
+        all_metrics = evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, graph_cities, graph_target_cities, actual_cities)
         
         total_time = time.time() - start_time
         print(f"\nGNN training and evaluation completed in {total_time:.1f} seconds!")
