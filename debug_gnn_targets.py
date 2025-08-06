@@ -559,8 +559,8 @@ def main():
                 y_pred_original = target_scaler.inverse_transform(y_pred_reshaped).flatten()
                 
                 print(f"  Sample {batch_idx + 1}:")
-                print(f"    Scaled - True: {y_true[0]:.4f}, Pred: {y_pred[0]:.4f}")
-                print(f"    Original - True: {y_true_original[0]:.4f}, Pred: {y_pred_original[0]:.4f}")
+                print(f"    Scaled - True: {float(y_true[0]):.4f}, Pred: {float(y_pred[0]):.4f}")
+                print(f"    Original - True: {float(y_true_original[0]):.4f}, Pred: {float(y_pred_original[0]):.4f}")
                 print(f"    Original target from dataset: {original_targets[batch_idx]:.4f}")
                 
             except Exception as e:
