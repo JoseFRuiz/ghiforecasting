@@ -718,7 +718,7 @@ def evaluate_gnn_models():
     # Check if GNN results exist
     gnn_summary_path = "results_gnn/summary.csv"
     if not os.path.exists(gnn_summary_path):
-        print("GNN results not found. Please run train_gnn.py first.")
+        print("GNN results not found. Please run train_gnn_fixed.py first.")
         return {}
     
     # Load GNN summary
