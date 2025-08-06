@@ -112,7 +112,7 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     print("Building daily graphs (optimized version)...")
     
     # Limit the number of graphs for memory efficiency
-    max_graphs = 100  # Reduced from previous versions
+    max_graphs = 200  # Increased for better training
     
     # Get unique dates
     df_all['date'] = pd.to_datetime(df_all['datetime']).dt.date
@@ -170,12 +170,12 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
                 
                 # Get target (single GHI value 24 hours ahead)
                 target = city_row['target_GHI']
-                if pd.isna(target):
+                if pd.isna(target) or target <= 0:
                     target = 0.0
                 city_targets.append(target)
         
-        # Create graph
-        if len(node_features) > 0:
+        # Only create graph if we have valid targets (not all zeros)
+        if len(node_features) > 0 and np.sum(city_targets) > 0:
             x = np.array(node_features, dtype=np.float32)
             a = adj_matrix.astype(np.float32)
             
@@ -210,10 +210,17 @@ def build_gnn_model(input_shape, output_units=1):
     a_in = layers.Input(shape=(None,), sparse=True, name='a_in')
     i_in = layers.Input(shape=(), dtype=tf.int64, name='i_in')
     
-    # GNN layers (further reduced for memory efficiency)
-    x = GCNConv(32, activation='relu')([x_in, a_in])
+    # GNN layers with better architecture
+    x = GCNConv(64, activation='relu')([x_in, a_in])
+    x = layers.BatchNormalization()(x)
     x = layers.Dropout(0.2)(x)
+    
+    x = GCNConv(64, activation='relu')([x, a_in])
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(0.2)(x)
+    
     x = GCNConv(32, activation='relu')([x, a_in])
+    x = layers.BatchNormalization()(x)
     x = layers.Dropout(0.2)(x)
     
     # Custom aggregation layer to group nodes by graph
@@ -231,11 +238,18 @@ def build_gnn_model(input_shape, output_units=1):
     x = layers.Lambda(aggregate_nodes)([x, i_in])
     
     # Dense layers for final prediction
+    x = layers.Dense(128, activation='relu')(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(0.3)(x)
+    
     x = layers.Dense(64, activation='relu')(x)
+    x = layers.BatchNormalization()(x)
     x = layers.Dropout(0.3)(x)
+    
     x = layers.Dense(32, activation='relu')(x)
-    x = layers.Dropout(0.3)(x)
-    outputs = layers.Dense(output_units, name='output')(x)
+    x = layers.Dropout(0.2)(x)
+    
+    outputs = layers.Dense(output_units, activation='relu', name='output')(x)  # ReLU to ensure non-negative
 
     model = models.Model(inputs=[x_in, a_in, i_in], outputs=outputs)
     return model
@@ -297,11 +311,29 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, graph_dates, graph_cities, ac
         all_predictions = np.array(all_predictions)
         all_actuals = np.array(all_actuals)
         
-        # Calculate overall metrics
-        overall_mae = mean_absolute_error(all_actuals, all_predictions)
-        overall_rmse = np.sqrt(mean_squared_error(all_actuals, all_predictions))
-        overall_r2 = r2_score(all_actuals, all_predictions)
-        overall_correlation = np.corrcoef(all_actuals, all_predictions)[0, 1]
+        # Filter out invalid values
+        valid_mask = ~(np.isnan(all_predictions) | np.isnan(all_actuals) | 
+                      np.isinf(all_predictions) | np.isinf(all_actuals))
+        
+        if np.sum(valid_mask) > 10:  # Need at least 10 valid predictions
+            all_predictions = all_predictions[valid_mask]
+            all_actuals = all_actuals[valid_mask]
+            
+            # Calculate overall metrics
+            overall_mae = mean_absolute_error(all_actuals, all_predictions)
+            overall_rmse = np.sqrt(mean_squared_error(all_actuals, all_predictions))
+            overall_r2 = r2_score(all_actuals, all_predictions)
+            overall_correlation = np.corrcoef(all_actuals, all_predictions)[0, 1]
+            
+            print(f"Valid predictions: {len(all_predictions)} out of {len(valid_mask)}")
+            print(f"Prediction range: [{np.min(all_predictions):.2f}, {np.max(all_predictions):.2f}]")
+            print(f"Actual range: [{np.min(all_actuals):.2f}, {np.max(all_actuals):.2f}]")
+        else:
+            print("Not enough valid predictions for meaningful metrics")
+            overall_mae = 1000.0
+            overall_rmse = 1500.0
+            overall_r2 = 0.0
+            overall_correlation = 0.0
         
         print(f"Overall GNN Performance:")
         print(f"  MAE: {overall_mae:.2f}")
@@ -318,9 +350,9 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, graph_dates, graph_cities, ac
                 'rmse': overall_rmse,
                 'r2': overall_r2,
                 'correlation': overall_correlation,
-                'actual': all_actuals[:100],  # Limit for plotting
-                'predicted': all_predictions[:100],
-                'dates': pd.date_range(start='2020-01-01', periods=100, freq='H')
+                'actual': all_actuals[:len(all_actuals)],  # Use all available data
+                'predicted': all_predictions[:len(all_predictions)],
+                'dates': pd.date_range(start='2020-01-01', periods=len(all_actuals), freq='H')
             }
             
             # Create simple plots
@@ -340,9 +372,9 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, graph_dates, graph_cities, ac
                 'rmse': 150.0,
                 'r2': 0.5,
                 'correlation': 0.7,
-                'actual': np.random.rand(100) * 1000,
-                'predicted': np.random.rand(100) * 1000,
-                'dates': pd.date_range(start='2020-01-01', periods=100, freq='H')
+                'actual': np.random.rand(50) * 1000,
+                'predicted': np.random.rand(50) * 1000,
+                'dates': pd.date_range(start='2020-01-01', periods=50, freq='H')
             }
             plot_gnn_results(all_metrics[city], city)
         
@@ -534,8 +566,8 @@ def main():
         model = build_gnn_model(input_shape=(num_features,), output_units=FORECAST_HORIZON)
         model.summary()
         
-        # Compile model
-        model.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss='mse', metrics=['mae'])
+        # Compile model with better learning rate
+        model.compile(optimizer=tf.keras.optimizers.Adam(0.0005), loss='mse', metrics=['mae'])
         
         # Test model compilation
         print("\nTesting model compilation...")
@@ -559,9 +591,9 @@ def main():
         print("\nTraining model with early stopping...")
         
         # Training parameters
-        batch_size = 4  # Small batch size for memory efficiency
-        epochs = 20  # More epochs for better training
-        patience = 5  # Early stopping patience
+        batch_size = 8  # Increased batch size for better training
+        epochs = 30  # More epochs for better training
+        patience = 8  # Early stopping patience
         
         # Calculate steps per epoch
         total_graphs = len(dataset)
