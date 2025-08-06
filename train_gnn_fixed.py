@@ -9,7 +9,7 @@ from tensorflow.keras import layers, models
 from spektral.data import Dataset, Graph
 from spektral.data.loaders import DisjointLoader
 from spektral.layers import GCNConv
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import pickle
 import matplotlib.pyplot as plt
@@ -146,15 +146,15 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     ghi_scaler = MinMaxScaler()
     ghi_scaler.fit(sample_data[['GHI']])
     
-    # Also scale the target values - only fit on valid (non-NaN) values
-    target_scaler = MinMaxScaler()
+    # Use StandardScaler for targets to avoid zero issues
+    target_scaler = StandardScaler()
     valid_targets = sample_data[['target_GHI']].dropna()
     print(f"Valid targets for scaler fitting: {len(valid_targets)} samples")
     print(f"Valid target range: [{valid_targets['target_GHI'].min():.2f}, {valid_targets['target_GHI'].max():.2f}]")
     target_scaler.fit(valid_targets)
     
     print(f"GHI scaler range: [{ghi_scaler.data_min_[0]:.2f}, {ghi_scaler.data_max_[0]:.2f}]")
-    print(f"Target scaler range: [{target_scaler.data_min_[0]:.2f}, {target_scaler.data_max_[0]:.2f}]")
+    print(f"Target scaler mean: {target_scaler.mean_[0]:.2f}, std: {target_scaler.scale_[0]:.2f}")
     
     # Debug: Test target scaler
     test_targets = sample_data['target_GHI'].head(5).values
@@ -296,7 +296,8 @@ def build_gnn_model(input_shape, output_units=1):
     x = layers.Dense(32, activation='relu')(x)
     x = layers.Dropout(0.2)(x)
     
-    outputs = layers.Dense(output_units, activation='relu', name='output')(x)  # ReLU to ensure non-negative
+    # Use linear activation for final layer to allow negative values
+    outputs = layers.Dense(output_units, activation=None, name='output')(x)
 
     model = models.Model(inputs=[x_in, a_in, i_in], outputs=outputs)
     return model
@@ -621,8 +622,8 @@ def main():
         model = build_gnn_model(input_shape=(num_features,), output_units=FORECAST_HORIZON)
         model.summary()
         
-        # Compile model with better learning rate
-        model.compile(optimizer=tf.keras.optimizers.Adam(0.0005), loss='mse', metrics=['mae'])
+        # Compile model with better learning rate and loss function
+        model.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss='mse', metrics=['mae'])
         
         # Test model compilation
         print("\nTesting model compilation...")
@@ -638,6 +639,7 @@ def main():
             
             dummy_output = model([dummy_x, dummy_a, dummy_i])
             print(f"Dummy output shape: {dummy_output.shape}")
+            print(f"Dummy output values: {dummy_output.numpy()}")
             print("Model compilation successful!")
         except Exception as e:
             print(f"Model compilation failed: {e}")
@@ -689,6 +691,10 @@ def main():
                     with tf.GradientTape() as tape:
                         y_pred = model([x, a, i], training=True)
                         loss = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
+                    
+                    # Debug: Print first few predictions during training
+                    if epoch == 0 and batch_idx < 3:
+                        print(f"      Training batch {batch_idx}: y_true={y_true[:3].numpy()}, y_pred={y_pred[:3].numpy()}")
                     
                     gradients = tape.gradient(loss, model.trainable_variables)
                     model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
