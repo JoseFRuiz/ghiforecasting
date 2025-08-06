@@ -752,12 +752,11 @@ def evaluate_gnn_models():
                     dates = []
                     
                     for _, row in daily_metrics.iterrows():
-                        # Reconstruct hourly data from daily statistics
-                        # This is an approximation
-                        n_points = int(row['num_points'])
-                        actual.extend([row['actual_mean']] * n_points)
-                        predicted.extend([row['predicted_mean']] * n_points)
-                        dates.extend([row['date']] * n_points)
+                        # For GNN, each row represents one prediction (one graph)
+                        # Use the mean values directly since there's only one point per date
+                        actual.append(row['actual_mean'])
+                        predicted.append(row['predicted_mean'])
+                        dates.append(row['date'])
                     
                     all_metrics[(city, 'gnn', 'standard')] = {
                         'mae': mae,
