@@ -29,8 +29,15 @@ CITY_IDX = {city: i for i, city in enumerate(CITIES)}
 # Data loading and sequence preparation
 # ----------------------------------------------
 def create_features(df):
-    """Create features with reduced complexity for memory efficiency."""
+    """Create features with proper target generation."""
     print(f"    Creating features for dataframe with {len(df)} rows...")
+    
+    # Debug: Check GHI values before processing
+    print(f"      GHI stats before processing:")
+    print(f"        Range: [{df['GHI'].min():.2f}, {df['GHI'].max():.2f}]")
+    print(f"        Mean: {df['GHI'].mean():.2f}")
+    print(f"        Non-zero: {(df['GHI'] > 0).sum()} out of {len(df)}")
+    print(f"        Sample GHI values: {df['GHI'].head(20).tolist()}")
     
     print(f"      Adding time-based features...")
     df["hour_sin"] = np.sin(2 * np.pi * df["Hour"] / 24)
@@ -59,7 +66,7 @@ def create_features(df):
     print(f"        Range: [{df['target_GHI'].min():.2f}, {df['target_GHI'].max():.2f}]")
     print(f"        Mean: {df['target_GHI'].mean():.2f}")
     print(f"        Non-zero: {(df['target_GHI'] > 0).sum()} out of {len(df)}")
-    print(f"        Sample targets: {df['target_GHI'].head(10).tolist()}")
+    print(f"        Sample targets: {df['target_GHI'].head(20).tolist()}")
     
     print(f"      Dropping NaN values...")
     original_len = len(df)
@@ -73,6 +80,7 @@ def create_features(df):
     print(f"        Range: [{df['target_GHI'].min():.2f}, {df['target_GHI'].max():.2f}]")
     print(f"        Mean: {df['target_GHI'].mean():.2f}")
     print(f"        Non-zero: {(df['target_GHI'] > 0).sum()} out of {len(df)}")
+    print(f"        Sample targets after NaN drop: {df['target_GHI'].head(20).tolist()}")
     
     return df
 
@@ -122,8 +130,8 @@ def compute_weighted_adjacency(df_all, alpha=0.5):
     return weighted_adj
 
 def build_daily_graphs(df_all, adj_matrix, actual_cities):
-    """Build daily graphs with memory optimization."""
-    print("Building daily graphs (optimized version)...")
+    """Build daily graphs with proper target handling."""
+    print("Building daily graphs (fixed version)...")
     
     # Limit the number of graphs for memory efficiency
     max_graphs = 200  # Increased for better training
@@ -148,7 +156,6 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     feature_columns = [col for col in sample_data.columns if col not in 
                       ['datetime', 'date', 'location', 'target_GHI', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'City']]
     print(f"Found {len(feature_columns)} feature columns")
-    print(f"Feature columns: {feature_columns}")
     
     # Scale both GHI and target_GHI
     ghi_scaler = MinMaxScaler()
@@ -159,18 +166,33 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     valid_targets = sample_data[['target_GHI']].dropna()
     print(f"Valid targets for scaler fitting: {len(valid_targets)} samples")
     print(f"Valid target range: [{valid_targets['target_GHI'].min():.2f}, {valid_targets['target_GHI'].max():.2f}]")
-    target_scaler.fit(valid_targets)
+    print(f"Valid target mean: {valid_targets['target_GHI'].mean():.2f}")
+    print(f"Valid target std: {valid_targets['target_GHI'].std():.2f}")
+    
+    # Check if targets have variance
+    if valid_targets['target_GHI'].std() == 0:
+        print("WARNING: All target values are the same! Using MinMaxScaler instead.")
+        target_scaler = MinMaxScaler()
+        target_scaler.fit(valid_targets)
+    else:
+        target_scaler.fit(valid_targets)
     
     print(f"GHI scaler range: [{ghi_scaler.data_min_[0]:.2f}, {ghi_scaler.data_max_[0]:.2f}]")
-    print(f"Target scaler mean: {target_scaler.mean_[0]:.2f}, std: {target_scaler.scale_[0]:.2f}")
+    print(f"Target scaler info:")
+    if hasattr(target_scaler, 'mean_'):
+        print(f"  Mean: {target_scaler.mean_[0]:.2f}, std: {target_scaler.scale_[0]:.2f}")
+    else:
+        print(f"  Range: [{target_scaler.data_min_[0]:.2f}, {target_scaler.data_max_[0]:.2f}]")
     
     # Debug: Test target scaler
     test_targets = sample_data['target_GHI'].head(5).values
     test_scaled = target_scaler.transform(test_targets.reshape(-1, 1)).flatten()
+    test_inverse = target_scaler.inverse_transform(test_scaled.reshape(-1, 1)).flatten()
     print(f"Target scaler test:")
     print(f"  Original: {test_targets}")
     print(f"  Scaled: {test_scaled}")
-    print(f"  Inverse: {target_scaler.inverse_transform(test_scaled.reshape(-1, 1)).flatten()}")
+    print(f"  Inverse: {test_inverse}")
+    print(f"  Difference: {np.abs(test_targets - test_inverse)}")
     
     print(f"Processing {len(unique_dates)} unique dates (limited to {max_graphs} graphs)")
     
@@ -210,8 +232,13 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
                 node_features.append(dummy_features)
                 city_targets.append(0.0)  # Single target value
             else:
-                # Use the first row for this city on this date
-                city_row = city_data.iloc[0]
+                # FIXED: Use a random row for this city on this date to get varied targets
+                if len(city_data) > 1:
+                    # Select a random row to get varied targets
+                    city_row = city_data.sample(n=1, random_state=i).iloc[0]
+                else:
+                    city_row = city_data.iloc[0]
+                
                 features = city_row[feature_columns].values.astype(np.float32)
                 node_features.append(features)
                 
@@ -229,14 +256,17 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
             x = np.array(node_features, dtype=np.float32)
             a = adj_matrix.astype(np.float32)
             
-            # Create a single target per graph (average across cities)
-            y = np.mean(city_targets, dtype=np.float32)
+            # FIXED: Use the target from the first city instead of averaging
+            # This ensures we get varied targets across different dates
+            y = city_targets[0]  # Use first city's target
             
             # Debug: Print target info for first few graphs
             if i < 5:
-                print(f"    Date {date}: targets = {city_targets}, mean = {y:.4f}")
-                print(f"      Original target range: [{min(city_targets):.4f}, {max(city_targets):.4f}]")
-                print(f"      Original target values: {[target_scaler.inverse_transform(np.array([[t]]))[0, 0] for t in city_targets]}")
+                print(f"    Date {date}:")
+                print(f"      Original targets: {[target_scaler.inverse_transform(np.array([[t]]))[0, 0] for t in city_targets]}")
+                print(f"      Scaled targets: {city_targets}")
+                print(f"      Selected target (first city): {target_scaler.inverse_transform(np.array([[y]]))[0, 0]:.4f}")
+                print(f"      Scaled selected target: {y:.4f}")
             
             # Create Spektral Graph
             graph = Graph(x=x, a=a, y=y)
