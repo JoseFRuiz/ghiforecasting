@@ -806,19 +806,11 @@ def evaluate_gnn_models():
                     r2 = city_summary['R²'].iloc[0]
                     correlation = city_summary['Correlation'].iloc[0]
                     
-                    # Load actual and predicted values if available
-                    # For GNN, we need to reconstruct from the daily metrics
-                    # This is a simplified approach
-                    actual = []
-                    predicted = []
-                    dates = []
-                    
-                    for _, row in daily_metrics.iterrows():
-                        # For GNN, each row represents one prediction (one graph)
-                        # Use the mean values directly since there's only one point per date
-                        actual.append(row['actual_mean'])
-                        predicted.append(row['predicted_mean'])
-                        dates.append(row['date'])
+                    # For GNN, each row represents one prediction (one graph)
+                    # The daily metrics already contain the actual and predicted values
+                    actual = daily_metrics['actual_mean'].values
+                    predicted = daily_metrics['predicted_mean'].values
+                    dates = daily_metrics['date'].values
                     
                     all_metrics[(city, 'gnn', 'standard')] = {
                         'mae': mae,
