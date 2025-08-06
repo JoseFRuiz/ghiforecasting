@@ -415,13 +415,23 @@ def evaluate_joint_models():
     
     print(f"Loading joint model from {model_path}...")
     try:
-        model = tf.keras.models.load_model(model_path)
+        # Try loading with custom_objects to handle potential layer issues
+        model = tf.keras.models.load_model(model_path, custom_objects={'custom_ghi_loss': custom_ghi_loss})
         print(f"✓ Joint model loaded successfully")
         print(f"Model summary:")
         model.summary()
     except Exception as e:
         print(f"✗ Error loading joint model: {e}")
-        return {}
+        print(f"Trying alternative loading method...")
+        try:
+            # Try loading with compile=False
+            model = tf.keras.models.load_model(model_path, compile=False)
+            print(f"✓ Joint model loaded successfully (without compilation)")
+            print(f"Model summary:")
+            model.summary()
+        except Exception as e2:
+            print(f"✗ Alternative loading also failed: {e2}")
+            return {}
     
     # Load target scaler
     scaler_path = "models/target_scaler_fixed.pkl"
