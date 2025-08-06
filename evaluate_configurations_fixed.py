@@ -345,7 +345,10 @@ def create_sequences_joint_all_features(df, sequence_length, locations):
     for location in locations:
         df_loc = df[df['location'] == location].copy()
         
+        print(f"  Processing {location}: {len(df_loc)} samples")
+        
         if len(df_loc) == 0:
+            print(f"  No data for {location}, skipping")
             continue
             
         # Create one-hot encoded location vector for the current location
@@ -359,29 +362,30 @@ def create_sequences_joint_all_features(df, sequence_length, locations):
         data = df_loc[feature_columns].values
         target = df_loc["target_GHI"].values  # Use target_GHI instead of GHI
     
-    # Calculate number of sequences
+        # Calculate number of sequences
         n_sequences = len(df_loc) - sequence_length
     
-    # Pre-allocate arrays
-    X = np.zeros((n_sequences, sequence_length, len(feature_columns)))
-    y = np.zeros(n_sequences)
+        # Pre-allocate arrays
+        X = np.zeros((n_sequences, sequence_length, len(feature_columns)))
+        y = np.zeros(n_sequences)
     
-    # Create sequences using vectorized operations
-    for i in range(n_sequences):
-        X[i] = data[i:i + sequence_length]
-        y[i] = target[i + sequence_length]
+        # Create sequences using vectorized operations
+        for i in range(n_sequences):
+            X[i] = data[i:i + sequence_length]
+            y[i] = target[i + sequence_length]
     
-    # Filter out sequences where target is zero (night time)
-    mask = y > 0
-    X = X[mask]
-    y = y[mask]
+        # Filter out sequences where target is zero (night time)
+        mask = y > 0
+        X = X[mask]
+        y = y[mask]
     
         # Add location features
-    location_features = np.tile(location_vector, (len(X), sequence_length, 1))
-    X = np.concatenate([X, location_features], axis=2)
+        location_features = np.tile(location_vector, (len(X), sequence_length, 1))
+        X = np.concatenate([X, location_features], axis=2)
     
-    all_X_sequences.append(X)
-    all_y_sequences.append(y)
+        print(f"  Created {len(X)} sequences for {location}")
+        all_X_sequences.append(X)
+        all_y_sequences.append(y)
     
     if not all_X_sequences:
         raise ValueError("No valid sequences were created for any location")
@@ -390,6 +394,7 @@ def create_sequences_joint_all_features(df, sequence_length, locations):
     X = np.concatenate(all_X_sequences, axis=0)
     y = np.concatenate(all_y_sequences, axis=0)
     
+    print(f"Total sequences created: {len(X)}")
     return X, y
 
 def evaluate_joint_models():
@@ -443,8 +448,8 @@ def evaluate_joint_models():
     try:
         with open(scaler_path, 'rb') as f:
             target_scaler = pickle.load(f)
-        print(f"✓ Target scaler loaded successfully")
-        print(f"Scaler range: [{target_scaler.data_min_[0]:.2f}, {target_scaler.data_max_[0]:.2f}]")
+            print(f"✓ Target scaler loaded successfully")
+            print(f"Scaler range: [{target_scaler.data_min_[0]:.2f}, {target_scaler.data_max_[0]:.2f}]")
     except Exception as e:
         print(f"✗ Error loading target scaler: {e}")
         return {}
@@ -519,6 +524,12 @@ def evaluate_joint_models():
     test_df_scaled = test_df.copy()
     test_df_scaled["GHI"] = target_scaler.transform(test_df[["GHI"]])
     test_df_scaled["target_GHI"] = target_scaler.transform(test_df[["target_GHI"]])
+    
+    # Debug: Check location distribution in test data
+    print(f"Test data location distribution:")
+    for loc in locations:
+        count = (test_df_scaled['location'] == loc).sum()
+        print(f"  {loc}: {count} samples")
     
     # Create sequences for test data
     X_test, y_test = create_sequences_joint_all_features(test_df_scaled, 24, locations)
