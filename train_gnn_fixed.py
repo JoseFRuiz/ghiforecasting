@@ -141,6 +141,13 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     
     print(f"Processing {len(unique_dates)} unique dates (limited to {max_graphs} graphs)")
     
+    # Debug: Check target distribution
+    print("Debug: Checking target distribution...")
+    sample_targets = df_all['target_GHI'].dropna()
+    print(f"  Target range: [{sample_targets.min():.2f}, {sample_targets.max():.2f}]")
+    print(f"  Target mean: {sample_targets.mean():.2f}")
+    print(f"  Non-zero targets: {(sample_targets > 0).sum()} out of {len(sample_targets)}")
+    
     for i, date in enumerate(unique_dates):
         if i % 10 == 0:
             print(f"  Processing date {i+1}/{len(unique_dates)}: {date}")
@@ -170,17 +177,21 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
                 
                 # Get target (single GHI value 24 hours ahead)
                 target = city_row['target_GHI']
-                if pd.isna(target) or target <= 0:
+                if pd.isna(target):
                     target = 0.0
                 city_targets.append(target)
         
-        # Only create graph if we have valid targets (not all zeros)
-        if len(node_features) > 0 and np.sum(city_targets) > 0:
+        # Create graph if we have any valid data (relaxed condition)
+        if len(node_features) > 0:
             x = np.array(node_features, dtype=np.float32)
             a = adj_matrix.astype(np.float32)
             
             # Create a single target per graph (average across cities)
             y = np.mean(city_targets, dtype=np.float32)
+            
+            # Debug: Print target info for first few graphs
+            if i < 5:
+                print(f"    Date {date}: targets = {city_targets}, mean = {y:.2f}")
             
             # Create Spektral Graph
             graph = Graph(x=x, a=a, y=y)
