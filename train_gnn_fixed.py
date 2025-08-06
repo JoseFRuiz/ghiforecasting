@@ -257,10 +257,11 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
             x = np.array(node_features, dtype=np.float32)
             a = adj_matrix.astype(np.float32)
             
-            # FIXED: Use the target from the first city instead of averaging
-            # This ensures we get varied targets across different dates
-            y = city_targets[0]  # Use first city's target
-            target_city = actual_cities[0]  # Track which city this target comes from
+            # FIXED: Use round-robin assignment of target cities to ensure all cities get predictions
+            # This ensures we get varied targets across different dates and cities
+            city_idx = i % len(actual_cities)  # Round-robin through cities
+            y = city_targets[city_idx]  # Use the selected city's target
+            target_city = actual_cities[city_idx]  # Track which city this target comes from
             
             # Debug: Print target info for first few graphs
             if i < 5:
