@@ -146,9 +146,12 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     ghi_scaler = MinMaxScaler()
     ghi_scaler.fit(sample_data[['GHI']])
     
-    # Also scale the target values
+    # Also scale the target values - only fit on valid (non-NaN) values
     target_scaler = MinMaxScaler()
-    target_scaler.fit(sample_data[['target_GHI']])
+    valid_targets = sample_data[['target_GHI']].dropna()
+    print(f"Valid targets for scaler fitting: {len(valid_targets)} samples")
+    print(f"Valid target range: [{valid_targets['target_GHI'].min():.2f}, {valid_targets['target_GHI'].max():.2f}]")
+    target_scaler.fit(valid_targets)
     
     print(f"GHI scaler range: [{ghi_scaler.data_min_[0]:.2f}, {ghi_scaler.data_max_[0]:.2f}]")
     print(f"Target scaler range: [{target_scaler.data_min_[0]:.2f}, {target_scaler.data_max_[0]:.2f}]")
