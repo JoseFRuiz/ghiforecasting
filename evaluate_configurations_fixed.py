@@ -197,46 +197,91 @@ def plot_daily_correlations(daily_metrics, city, model_type, config, save_dir):
     """Create plots showing daily correlation metrics."""
     os.makedirs(save_dir, exist_ok=True)
     
-    # Create figure with 3 subplots
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(15, 15))
+    # Check which columns are available
+    available_columns = daily_metrics.columns.tolist()
     
-    # Plot correlation and R²
-    ax1.plot(daily_metrics['date'], daily_metrics['correlation'], 'b-', label='Correlation')
-    ax1.plot(daily_metrics['date'], daily_metrics['r2'], 'r-', label='R²')
-    ax1.set_title(f'Daily Correlation and R² - {city} ({model_type}, {config})')
-    ax1.set_xlabel('Date')
-    ax1.set_ylabel('Value')
-    ax1.legend()
-    ax1.grid(True, alpha=0.3)
-    
-    # Plot MAE and RMSE
-    ax2.plot(daily_metrics['date'], daily_metrics['mae'], 'g-', label='MAE')
-    ax2.plot(daily_metrics['date'], daily_metrics['rmse'], 'm-', label='RMSE')
-    ax2.set_title(f'Daily MAE and RMSE - {city} ({model_type}, {config})')
-    ax2.set_xlabel('Date')
-    ax2.set_ylabel('Error (W/m²)')
-    ax2.legend()
-    ax2.grid(True, alpha=0.3)
-    
-    # Plot GHI statistics
-    ax3.plot(daily_metrics['date'], daily_metrics['actual_max'], 'b-', label='Actual Max')
-    ax3.plot(daily_metrics['date'], daily_metrics['predicted_max'], 'r--', label='Predicted Max')
-    ax3.plot(daily_metrics['date'], daily_metrics['actual_mean'], 'g-', label='Actual Mean')
-    ax3.plot(daily_metrics['date'], daily_metrics['predicted_mean'], 'm--', label='Predicted Mean')
-    ax3.set_title(f'Daily GHI Statistics - {city} ({model_type}, {config})')
-    ax3.set_xlabel('Date')
-    ax3.set_ylabel('GHI (W/m²)')
-    ax3.legend()
-    ax3.grid(True, alpha=0.3)
-    
-    # Rotate x-axis labels
-    for ax in [ax1, ax2, ax3]:
-        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
-    
-    plt.tight_layout()
-    plt.savefig(os.path.join(save_dir, f'daily_correlations_{city}_{model_type}_{config}.png'), 
-                dpi=300, bbox_inches='tight')
-    plt.close()
+    # Create figure with subplots based on available data
+    if 'correlation' in available_columns and 'r2' in available_columns:
+        # Full plot with correlation and R²
+        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(15, 15))
+        
+        # Plot correlation and R²
+        ax1.plot(daily_metrics['date'], daily_metrics['correlation'], 'b-', label='Correlation')
+        ax1.plot(daily_metrics['date'], daily_metrics['r2'], 'r-', label='R²')
+        ax1.set_title(f'Daily Correlation and R² - {city} ({model_type}, {config})')
+        ax1.set_xlabel('Date')
+        ax1.set_ylabel('Value')
+        ax1.legend()
+        ax1.grid(True, alpha=0.3)
+        
+        # Plot MAE and RMSE
+        if 'mae' in available_columns and 'rmse' in available_columns:
+            ax2.plot(daily_metrics['date'], daily_metrics['mae'], 'g-', label='MAE')
+            ax2.plot(daily_metrics['date'], daily_metrics['rmse'], 'm-', label='RMSE')
+            ax2.set_title(f'Daily MAE and RMSE - {city} ({model_type}, {config})')
+            ax2.set_xlabel('Date')
+            ax2.set_ylabel('Error (W/m²)')
+            ax2.legend()
+            ax2.grid(True, alpha=0.3)
+        else:
+            ax2.text(0.5, 0.5, 'MAE/RMSE data not available', ha='center', va='center', transform=ax2.transAxes)
+            ax2.set_title(f'Daily MAE and RMSE - {city} ({model_type}, {config})')
+        
+        # Plot GHI statistics
+        if all(col in available_columns for col in ['actual_max', 'predicted_max', 'actual_mean', 'predicted_mean']):
+            ax3.plot(daily_metrics['date'], daily_metrics['actual_max'], 'b-', label='Actual Max')
+            ax3.plot(daily_metrics['date'], daily_metrics['predicted_max'], 'r--', label='Predicted Max')
+            ax3.plot(daily_metrics['date'], daily_metrics['actual_mean'], 'g-', label='Actual Mean')
+            ax3.plot(daily_metrics['date'], daily_metrics['predicted_mean'], 'm--', label='Predicted Mean')
+        else:
+            # For GNN, we only have mean values
+            ax3.plot(daily_metrics['date'], daily_metrics['actual_mean'], 'g-', label='Actual Mean')
+            ax3.plot(daily_metrics['date'], daily_metrics['predicted_mean'], 'm--', label='Predicted Mean')
+        
+        ax3.set_title(f'Daily GHI Statistics - {city} ({model_type}, {config})')
+        ax3.set_xlabel('Date')
+        ax3.set_ylabel('GHI (W/m²)')
+        ax3.legend()
+        ax3.grid(True, alpha=0.3)
+        
+        # Rotate x-axis labels
+        for ax in [ax1, ax2, ax3]:
+            plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+        
+        plt.tight_layout()
+        plt.savefig(os.path.join(save_dir, f'daily_correlations_{city}_{model_type}_{config}.png'), 
+                    dpi=300, bbox_inches='tight')
+        plt.close()
+        
+    elif 'correlation' in available_columns:
+        # Simplified plot for GNN (only correlation available)
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 10))
+        
+        # Plot correlation only
+        ax1.plot(daily_metrics['date'], daily_metrics['correlation'], 'b-', label='Correlation')
+        ax1.set_title(f'Daily Correlation - {city} ({model_type}, {config})')
+        ax1.set_xlabel('Date')
+        ax1.set_ylabel('Correlation')
+        ax1.legend()
+        ax1.grid(True, alpha=0.3)
+        
+        # Plot GHI statistics (mean values only)
+        ax2.plot(daily_metrics['date'], daily_metrics['actual_mean'], 'g-', label='Actual Mean')
+        ax2.plot(daily_metrics['date'], daily_metrics['predicted_mean'], 'm--', label='Predicted Mean')
+        ax2.set_title(f'Daily GHI Statistics - {city} ({model_type}, {config})')
+        ax2.set_xlabel('Date')
+        ax2.set_ylabel('GHI (W/m²)')
+        ax2.legend()
+        ax2.grid(True, alpha=0.3)
+        
+        # Rotate x-axis labels
+        for ax in [ax1, ax2]:
+            plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+        
+        plt.tight_layout()
+        plt.savefig(os.path.join(save_dir, f'daily_correlations_{city}_{model_type}_{config}.png'), 
+                    dpi=300, bbox_inches='tight')
+        plt.close()
     
     # Save daily metrics to CSV
     daily_metrics.to_csv(os.path.join(save_dir, f'daily_correlations_{city}_{model_type}_{config}.csv'), 
@@ -288,7 +333,15 @@ def plot_correlation_analysis(daily_metrics, dates, actual, predicted, city, mod
         ax2.set_ylabel('Predicted GHI')
         ax2.legend()
     
-    plt.suptitle(f'Correlation Analysis for {city} ({model_type}, {config})\nR² = {daily_metrics["r2"].mean():.3f}')
+    # Calculate R² if available, otherwise use correlation
+    if 'r2' in daily_metrics.columns:
+        r2_value = daily_metrics["r2"].mean()
+        title_text = f'Correlation Analysis for {city} ({model_type}, {config})\nR² = {r2_value:.3f}'
+    else:
+        corr_value = daily_metrics["correlation"].mean()
+        title_text = f'Correlation Analysis for {city} ({model_type}, {config})\nAvg Correlation = {corr_value:.3f}'
+    
+    plt.suptitle(title_text)
     plt.tight_layout()
     plt.savefig(os.path.join(save_dir, f'correlation_analysis_{city}_{model_type}_{config}.png'), 
                 dpi=300, bbox_inches='tight')
