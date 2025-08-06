@@ -195,8 +195,8 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
                 if pd.isna(target):
                     target = 0.0
                 
-                # Scale the target value
-                target_scaled = target_scaler.transform([[target]])[0, 0]
+                # Scale the target value - ensure it's a 2D array
+                target_scaled = target_scaler.transform(np.array([[target]]))[0, 0]
                 city_targets.append(target_scaled)
         
         # Create graph if we have any valid data (relaxed condition)
@@ -209,7 +209,8 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
             
             # Debug: Print target info for first few graphs
             if i < 5:
-                print(f"    Date {date}: targets = {city_targets}, mean = {y:.2f}")
+                print(f"    Date {date}: targets = {city_targets}, mean = {y:.4f}")
+                print(f"      Original target range: [{min(city_targets):.4f}, {max(city_targets):.4f}]")
             
             # Create Spektral Graph
             graph = Graph(x=x, a=a, y=y)
@@ -322,9 +323,17 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, g
             if hasattr(y_pred, 'numpy'):
                 y_pred = y_pred.numpy()
             
-            # Inverse transform using target scaler
-            y_true_original = target_scaler.inverse_transform(y_true.reshape(-1, 1)).flatten()
-            y_pred_original = target_scaler.inverse_transform(y_pred.reshape(-1, 1)).flatten()
+            # Inverse transform using target scaler - ensure proper shape
+            y_true_reshaped = y_true.reshape(-1, 1) if len(y_true.shape) == 1 else y_true
+            y_pred_reshaped = y_pred.reshape(-1, 1) if len(y_pred.shape) == 1 else y_pred
+            
+            y_true_original = target_scaler.inverse_transform(y_true_reshaped).flatten()
+            y_pred_original = target_scaler.inverse_transform(y_pred_reshaped).flatten()
+            
+            # Debug: Print first few predictions
+            if batch_count <= 3:
+                print(f"    Batch {batch_count}: y_true_scaled={y_true[:3]}, y_pred_scaled={y_pred[:3]}")
+                print(f"    Batch {batch_count}: y_true_original={y_true_original[:3]}, y_pred_original={y_pred_original[:3]}")
             
             all_predictions.extend(y_pred_original)
             all_actuals.extend(y_true_original)
