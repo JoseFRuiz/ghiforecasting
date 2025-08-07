@@ -293,7 +293,11 @@ def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 12
     i_in = layers.Input(shape=(), dtype=tf.int64, name='i_in')
     
     # Enhanced GNN layers with deeper architecture
-    x = GCNConv(128, activation='relu')([x_in, a_in])
+    x = GCNConv(256, activation='relu')([x_in, a_in])
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(0.2)(x)
+    
+    x = GCNConv(256, activation='relu')([x, a_in])
     x = layers.BatchNormalization()(x)
     x = layers.Dropout(0.2)(x)
     
@@ -301,7 +305,7 @@ def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 12
     x = layers.BatchNormalization()(x)
     x = layers.Dropout(0.2)(x)
     
-    x = GCNConv(64, activation='relu')([x, a_in])
+    x = GCNConv(128, activation='relu')([x, a_in])
     x = layers.BatchNormalization()(x)
     x = layers.Dropout(0.2)(x)
     
@@ -324,13 +328,17 @@ def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 12
     x = layers.Lambda(aggregate_nodes)([x, i_in])
     
     # Enhanced dense layers for final prediction
+    x = layers.Dense(1024, activation='relu')(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(0.3)(x)
+    
     x = layers.Dense(512, activation='relu')(x)
     x = layers.BatchNormalization()(x)
     x = layers.Dropout(0.3)(x)
     
     x = layers.Dense(256, activation='relu')(x)
     x = layers.BatchNormalization()(x)
-    x = layers.Dropout(0.3)(x)
+    x = layers.Dropout(0.2)(x)
     
     x = layers.Dense(128, activation='relu')(x)
     x = layers.BatchNormalization()(x)
@@ -715,8 +723,8 @@ def main():
         model = build_gnn_model(input_shape=(num_features,), output_units=len(target_columns) * len(actual_cities))
         model.summary()
         
-        # Compile model with improved learning rate and loss function
-        model.compile(optimizer=tf.keras.optimizers.Adam(0.0005), loss='mse', metrics=['mae'])
+        # Compile model with aggressive learning rate and loss function
+        model.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss='mse', metrics=['mae'])
         
         # Test model compilation
         print("\nTesting model compilation...")
@@ -740,15 +748,15 @@ def main():
 
         print("\nTraining model with early stopping...")
         
-        # Training parameters - IMPROVED for better performance
-        batch_size = 16  # Increased batch size for better gradient estimates
-        epochs = 100  # Significantly more epochs for better convergence
-        patience = 15  # Increased patience for early stopping
+        # Training parameters - ULTRA AGGRESSIVE for maximum performance
+        batch_size = 32  # Larger batch size for better gradient estimates
+        epochs = 200  # Much more epochs for better convergence
+        patience = 25  # Much more patience for early stopping
         
         # Calculate steps per epoch
         total_graphs = len(dataset)
         steps_per_epoch = max(1, total_graphs // batch_size)
-        max_steps_per_epoch = min(steps_per_epoch, 50)  # Limit steps for memory safety
+        max_steps_per_epoch = min(steps_per_epoch, 100)  # More steps per epoch
         
         print(f"Total graphs: {total_graphs}")
         print(f"Batch size: {batch_size}")
@@ -756,13 +764,27 @@ def main():
         print(f"Max epochs: {epochs}")
         print(f"Early stopping patience: {patience}")
         
-        # Training with early stopping
+        # Training with early stopping and learning rate scheduling
         best_loss = float('inf')
         patience_counter = 0
+        initial_lr = 0.001  # Start with higher learning rate
         
         for epoch in range(epochs):
             print(f"\nEpoch {epoch+1}/{epochs}")
             epoch_start_time = time.time()
+            
+            # Learning rate scheduling
+            if epoch < 50:
+                current_lr = initial_lr
+            elif epoch < 100:
+                current_lr = initial_lr * 0.5
+            elif epoch < 150:
+                current_lr = initial_lr * 0.1
+            else:
+                current_lr = initial_lr * 0.05
+            
+            # Update learning rate
+            tf.keras.backend.set_value(model.optimizer.learning_rate, current_lr)
             
             epoch_loss = 0.0
             epoch_mae = 0.0
@@ -822,7 +844,7 @@ def main():
                 epoch_mae /= num_batches
                 epoch_time = time.time() - epoch_start_time
                 
-                print(f"Epoch {epoch+1}/{epochs} - Loss: {epoch_loss:.4f} - MAE: {epoch_mae:.4f} - Time: {epoch_time:.1f}s")
+                print(f"Epoch {epoch+1}/{epochs} - Loss: {epoch_loss:.4f} - MAE: {epoch_mae:.4f} - LR: {current_lr:.6f} - Time: {epoch_time:.1f}s")
                 
                 # Early stopping check
                 if epoch_loss < best_loss:
