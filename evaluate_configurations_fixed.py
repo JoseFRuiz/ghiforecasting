@@ -806,7 +806,7 @@ def evaluate_gnn_models():
                     r2 = city_summary['R²'].iloc[0]
                     correlation = city_summary['Correlation'].iloc[0]
                     
-                    # For GNN, each row represents one prediction (one graph)
+                    # For GNN with 24-hour forecasting, each row represents one hour prediction
                     # The daily metrics already contain the actual and predicted values
                     actual = daily_metrics['actual_mean'].values
                     predicted = daily_metrics['predicted_mean'].values
