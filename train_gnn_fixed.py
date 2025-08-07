@@ -162,21 +162,17 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities, target_columns):
     ghi_scaler = MinMaxScaler()
     ghi_scaler.fit(sample_data[['GHI']])
     
-    # Use StandardScaler for targets to avoid zero issues
-    target_scaler = StandardScaler()
+    # Use MinMaxScaler for targets to preserve magnitude relationships
+    target_scaler = MinMaxScaler()
     valid_targets = sample_data[target_columns].dropna()
     print(f"Valid targets for scaler fitting: {len(valid_targets)} samples")
     print(f"Valid target range: [{valid_targets.min().min():.2f}, {valid_targets.max().max():.2f}]")
     print(f"Valid target mean: {valid_targets.mean().mean():.2f}")
     print(f"Valid target std: {valid_targets.std().mean():.2f}")
     
-    # Check if targets have variance
-    if valid_targets.std().mean() == 0:
-        print("WARNING: All target values are the same! Using MinMaxScaler instead.")
-        target_scaler = MinMaxScaler()
-        target_scaler.fit(valid_targets)
-    else:
-        target_scaler.fit(valid_targets)
+    # Fit MinMaxScaler to preserve magnitude relationships
+    target_scaler.fit(valid_targets)
+    print(f"Target scaler fitted with range: [{target_scaler.data_min_.min():.2f}, {target_scaler.data_max_.max():.2f}]")
     
     print(f"GHI scaler range: [{ghi_scaler.data_min_[0]:.2f}, {ghi_scaler.data_max_[0]:.2f}]")
     print(f"Target scaler info:")
@@ -284,8 +280,8 @@ class GHIDataset(Dataset):
         return self.graphs
 
 def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 120
-    """Build a state-of-the-art GNN model with attention and multi-task learning."""
-    print("Building state-of-the-art GNN model with attention mechanisms...")
+    """Build a state-of-the-art GNN model with advanced magnitude prediction."""
+    print("Building advanced GNN model with magnitude-aware predictions...")
     
     # Input layers
     x_in = layers.Input(shape=input_shape, name='x_in')
@@ -356,7 +352,7 @@ def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 12
     # Apply the aggregation
     x = layers.Lambda(aggregate_nodes)([x, i_in])
     
-    # Multi-task learning: Separate heads for each city
+    # Multi-task learning: Separate heads for each city with advanced magnitude prediction
     city_heads = []
     for city_idx in range(5):  # 5 cities
         # City-specific dense layers
@@ -372,10 +368,25 @@ def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 12
         city_x = layers.BatchNormalization()(city_x)
         city_x = layers.Dropout(0.2)(city_x)
         
-        # 24-hour predictions for this city - NO ACTIVATION to allow full range
-        city_output = layers.Dense(24, activation=None, name=f'city_{city_idx}')(city_x)
-        # Apply softplus to ensure non-negative predictions without capping
-        city_output = layers.Activation('softplus')(city_output)
+        # ADVANCED MAGNITUDE-AWARE OUTPUT LAYER
+        # 1. Predict magnitude scaling factor (0.1 to 50.0 range)
+        magnitude_scale = layers.Dense(1, activation='sigmoid', name=f'magnitude_{city_idx}')(city_x)
+        magnitude_scale = layers.Lambda(lambda x: x * 49.9 + 0.1, name=f'scale_{city_idx}')(magnitude_scale)
+        
+        # 2. Predict base GHI values (unconstrained)
+        base_ghi = layers.Dense(24, activation=None, name=f'base_{city_idx}')(city_x)
+        
+        # 3. Predict offset for fine-tuning
+        offset = layers.Dense(24, activation='tanh', name=f'offset_{city_idx}')(city_x)
+        offset = layers.Lambda(lambda x: x * 1000.0, name=f'offset_scale_{city_idx}')(offset)  # Scale offset
+        
+        # 4. Combine: (base_ghi * magnitude_scale) + offset for precise magnitude control
+        scaled_ghi = layers.Multiply(name=f'scaled_{city_idx}')([base_ghi, magnitude_scale])
+        city_output = layers.Add(name=f'city_{city_idx}')([scaled_ghi, offset])
+        
+        # 5. Ensure non-negative with softplus (allows full range)
+        city_output = layers.Activation('softplus', name=f'final_{city_idx}')(city_output)
+        
         city_heads.append(city_output)
     
     # Concatenate all city predictions
@@ -757,36 +768,57 @@ def main():
         # Compile model with aggressive learning rate, gradient clipping, and custom loss
         optimizer = tf.keras.optimizers.Adam(0.001, clipnorm=1.0)  # Gradient clipping
         
-        # Multi-task loss function with city-specific weighting
-        def multi_task_loss(y_true, y_pred):
+        # Advanced multi-task loss function with magnitude-aware components
+        def advanced_magnitude_loss(y_true, y_pred):
             # Reshape to separate cities
             y_true_reshaped = tf.reshape(y_true, [-1, 5, 24])  # [batch, cities, hours]
             y_pred_reshaped = tf.reshape(y_pred, [-1, 5, 24])  # [batch, cities, hours]
             
-            # City-specific losses
+            # City-specific losses with magnitude awareness
             city_losses = []
             for city_idx in range(5):
                 city_true = y_true_reshaped[:, city_idx, :]  # [batch, 24]
                 city_pred = y_pred_reshaped[:, city_idx, :]  # [batch, 24]
                 
-                # Combined loss: MSE for magnitude + Huber for robustness
+                # 1. MSE loss for overall accuracy
                 mse_loss = tf.keras.losses.MeanSquaredError()(city_true, city_pred)
+                
+                # 2. Huber loss for robustness against outliers
                 huber_loss = tf.keras.losses.Huber(delta=1.0)(city_true, city_pred)
                 
-                # Weighted combination favoring MSE for better magnitude prediction
-                city_loss = 0.7 * mse_loss + 0.3 * huber_loss
+                # 3. Magnitude-aware loss: penalize more for high-magnitude errors
+                magnitude_penalty = tf.reduce_mean(tf.abs(city_true - city_pred) * tf.abs(city_true))
+                
+                # 4. Relative error loss: penalize relative differences
+                relative_error = tf.reduce_mean(tf.abs(city_true - city_pred) / (tf.abs(city_true) + 1e-8))
+                
+                # 5. Distribution matching loss: ensure predicted distribution matches actual
+                true_mean = tf.reduce_mean(city_true)
+                pred_mean = tf.reduce_mean(city_pred)
+                true_std = tf.math.reduce_std(city_true)
+                pred_std = tf.math.reduce_std(city_pred)
+                
+                distribution_loss = tf.abs(true_mean - pred_mean) + tf.abs(true_std - pred_std)
+                
+                # Combine all losses with weights optimized for magnitude prediction
+                city_loss = (0.4 * mse_loss + 
+                           0.2 * huber_loss + 
+                           0.2 * magnitude_penalty + 
+                           0.1 * relative_error + 
+                           0.1 * distribution_loss)
+                
                 city_losses.append(city_loss)
             
-            # Weighted combination of city losses
+            # Weighted combination of city losses (can be tuned per city)
             city_weights = [1.0, 1.0, 1.0, 1.0, 1.0]  # Equal weights for now
             weighted_loss = tf.reduce_sum([w * l for w, l in zip(city_weights, city_losses)])
             
-            # Add L2 regularization
-            l2_penalty = 0.001 * tf.reduce_sum([tf.nn.l2_loss(w) for w in model.trainable_variables])
+            # Add L2 regularization with reduced penalty for better magnitude learning
+            l2_penalty = 0.0005 * tf.reduce_sum([tf.nn.l2_loss(w) for w in model.trainable_variables])
             
             return weighted_loss + l2_penalty
         
-        model.compile(optimizer=optimizer, loss=multi_task_loss, metrics=['mae'])
+        model.compile(optimizer=optimizer, loss=advanced_magnitude_loss, metrics=['mae'])
         
         # Test model compilation
         print("\nTesting model compilation...")
@@ -810,15 +842,15 @@ def main():
 
         print("\nTraining model with early stopping...")
         
-        # Training parameters - EXTREME AGGRESSIVE for maximum performance
-        batch_size = 64  # Even larger batch size for better gradient estimates
-        epochs = 300  # Much more epochs for better convergence
-        patience = 35  # Much more patience for early stopping
+        # Training parameters - OPTIMIZED FOR R² IMPROVEMENT
+        batch_size = 32  # Smaller batch size for better generalization
+        epochs = 500  # More epochs for better convergence
+        patience = 50  # More patience for early stopping
         
         # Calculate steps per epoch
         total_graphs = len(dataset)
         steps_per_epoch = max(1, total_graphs // batch_size)
-        max_steps_per_epoch = min(steps_per_epoch, 150)  # More steps per epoch
+        max_steps_per_epoch = min(steps_per_epoch, 200)  # More steps per epoch
         
         print(f"Total graphs: {total_graphs}")
         print(f"Batch size: {batch_size}")
@@ -826,29 +858,33 @@ def main():
         print(f"Max epochs: {epochs}")
         print(f"Early stopping patience: {patience}")
         
-        # Training with early stopping and learning rate scheduling
+        # Training with advanced learning rate scheduling for R² optimization
         best_loss = float('inf')
         patience_counter = 0
-        initial_lr = 0.001  # Start with higher learning rate
+        initial_lr = 0.002  # Higher initial learning rate for better exploration
         
         for epoch in range(epochs):
             print(f"\nEpoch {epoch+1}/{epochs}")
             epoch_start_time = time.time()
             
-            # Advanced learning rate scheduling with warmup and cosine annealing
-            if epoch < 30:
-                # Warmup phase
-                current_lr = initial_lr * (epoch + 1) / 30
-            elif epoch < 100:
+            # ADVANCED LEARNING RATE SCHEDULING FOR R² IMPROVEMENT
+            if epoch < 50:
+                # Extended warmup phase for stable training
+                current_lr = initial_lr * (epoch + 1) / 50
+            elif epoch < 150:
+                # High learning rate phase for exploration
                 current_lr = initial_lr
-            elif epoch < 200:
-                current_lr = initial_lr * 0.5
-            elif epoch < 250:
-                current_lr = initial_lr * 0.1
+            elif epoch < 300:
+                # Gradual decay phase
+                decay_factor = 1.0 - (epoch - 150) / 150 * 0.7
+                current_lr = initial_lr * decay_factor
+            elif epoch < 400:
+                # Fine-tuning phase with lower learning rate
+                current_lr = initial_lr * 0.3
             else:
-                # Cosine annealing for final epochs
-                progress = (epoch - 250) / (epochs - 250)
-                current_lr = initial_lr * 0.05 * (1 + np.cos(np.pi * progress)) / 2
+                # Final convergence phase with very low learning rate
+                progress = (epoch - 400) / (epochs - 400)
+                current_lr = initial_lr * 0.1 * (1 + np.cos(np.pi * progress)) / 2
             
             # Update learning rate
             tf.keras.backend.set_value(model.optimizer.learning_rate, current_lr)
