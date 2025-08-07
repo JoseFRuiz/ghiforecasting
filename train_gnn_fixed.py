@@ -284,22 +284,38 @@ class GHIDataset(Dataset):
         return self.graphs
 
 def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 120
-    """Build an enhanced GNN model for 24-hour forecasting for all cities."""
-    print("Building enhanced GNN model for 24-hour forecasting...")
+    """Build an ultra-enhanced GNN model for 24-hour forecasting for all cities."""
+    print("Building ultra-enhanced GNN model for 24-hour forecasting...")
     
     # Input layers
     x_in = layers.Input(shape=input_shape, name='x_in')
     a_in = layers.Input(shape=(None,), sparse=True, name='a_in')
     i_in = layers.Input(shape=(), dtype=tf.int64, name='i_in')
     
-    # Enhanced GNN layers with deeper architecture
-    x = GCNConv(256, activation='relu')([x_in, a_in])
+    # Enhanced GNN layers with residual connections and deeper architecture
+    x = GCNConv(512, activation='relu')([x_in, a_in])
     x = layers.BatchNormalization()(x)
     x = layers.Dropout(0.2)(x)
+    
+    # Residual connection 1
+    x_res1 = x
+    
+    x = GCNConv(512, activation='relu')([x, a_in])
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.Add()([x, x_res1])  # Residual connection
     
     x = GCNConv(256, activation='relu')([x, a_in])
     x = layers.BatchNormalization()(x)
     x = layers.Dropout(0.2)(x)
+    
+    # Residual connection 2
+    x_res2 = x
+    
+    x = GCNConv(256, activation='relu')([x, a_in])
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.Add()([x, x_res2])  # Residual connection
     
     x = GCNConv(128, activation='relu')([x, a_in])
     x = layers.BatchNormalization()(x)
@@ -327,14 +343,24 @@ def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 12
     # Apply the aggregation
     x = layers.Lambda(aggregate_nodes)([x, i_in])
     
-    # Enhanced dense layers for final prediction
-    x = layers.Dense(1024, activation='relu')(x)
-    x = layers.BatchNormalization()(x)
-    x = layers.Dropout(0.3)(x)
+    # Ultra-enhanced dense layers for final prediction with residual connections
+    x_dense1 = layers.Dense(2048, activation='relu')(x)
+    x_dense1 = layers.BatchNormalization()(x_dense1)
+    x_dense1 = layers.Dropout(0.3)(x_dense1)
     
-    x = layers.Dense(512, activation='relu')(x)
+    x_dense2 = layers.Dense(1024, activation='relu')(x_dense1)
+    x_dense2 = layers.BatchNormalization()(x_dense2)
+    x_dense2 = layers.Dropout(0.3)(x_dense2)
+    
+    # Residual connection in dense layers
+    x_dense2_res = layers.Dense(1024, activation='relu')(x_dense2)
+    x_dense2_res = layers.BatchNormalization()(x_dense2_res)
+    x_dense2_res = layers.Dropout(0.3)(x_dense2_res)
+    x_dense2 = layers.Add()([x_dense2, x_dense2_res])
+    
+    x = layers.Dense(512, activation='relu')(x_dense2)
     x = layers.BatchNormalization()(x)
-    x = layers.Dropout(0.3)(x)
+    x = layers.Dropout(0.2)(x)
     
     x = layers.Dense(256, activation='relu')(x)
     x = layers.BatchNormalization()(x)
@@ -348,7 +374,8 @@ def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 12
     x = layers.Dropout(0.2)(x)
     
     # Output layer for 24-hour predictions for all 5 cities (120 values)
-    outputs = layers.Dense(output_units, activation=None, name='output')(x)
+    # Add activation to ensure non-negative predictions
+    outputs = layers.Dense(output_units, activation='relu', name='output')(x)
 
     model = models.Model(inputs=[x_in, a_in, i_in], outputs=outputs)
     return model
@@ -723,8 +750,18 @@ def main():
         model = build_gnn_model(input_shape=(num_features,), output_units=len(target_columns) * len(actual_cities))
         model.summary()
         
-        # Compile model with aggressive learning rate and loss function
-        model.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss='mse', metrics=['mae'])
+        # Compile model with aggressive learning rate, gradient clipping, and custom loss
+        optimizer = tf.keras.optimizers.Adam(0.001, clipnorm=1.0)  # Gradient clipping
+        
+        # Custom loss function with Huber loss for robustness
+        def custom_loss(y_true, y_pred):
+            # Huber loss for robustness against outliers
+            huber_loss = tf.keras.losses.Huber(delta=1.0)(y_true, y_pred)
+            # Add L2 regularization penalty
+            l2_penalty = 0.001 * tf.reduce_sum([tf.nn.l2_loss(w) for w in model.trainable_variables])
+            return huber_loss + l2_penalty
+        
+        model.compile(optimizer=optimizer, loss=custom_loss, metrics=['mae'])
         
         # Test model compilation
         print("\nTesting model compilation...")
@@ -748,15 +785,15 @@ def main():
 
         print("\nTraining model with early stopping...")
         
-        # Training parameters - ULTRA AGGRESSIVE for maximum performance
-        batch_size = 32  # Larger batch size for better gradient estimates
-        epochs = 200  # Much more epochs for better convergence
-        patience = 25  # Much more patience for early stopping
+        # Training parameters - EXTREME AGGRESSIVE for maximum performance
+        batch_size = 64  # Even larger batch size for better gradient estimates
+        epochs = 300  # Much more epochs for better convergence
+        patience = 35  # Much more patience for early stopping
         
         # Calculate steps per epoch
         total_graphs = len(dataset)
         steps_per_epoch = max(1, total_graphs // batch_size)
-        max_steps_per_epoch = min(steps_per_epoch, 100)  # More steps per epoch
+        max_steps_per_epoch = min(steps_per_epoch, 150)  # More steps per epoch
         
         print(f"Total graphs: {total_graphs}")
         print(f"Batch size: {batch_size}")
@@ -773,15 +810,20 @@ def main():
             print(f"\nEpoch {epoch+1}/{epochs}")
             epoch_start_time = time.time()
             
-            # Learning rate scheduling
-            if epoch < 50:
-                current_lr = initial_lr
+            # Advanced learning rate scheduling with warmup and cosine annealing
+            if epoch < 30:
+                # Warmup phase
+                current_lr = initial_lr * (epoch + 1) / 30
             elif epoch < 100:
+                current_lr = initial_lr
+            elif epoch < 200:
                 current_lr = initial_lr * 0.5
-            elif epoch < 150:
+            elif epoch < 250:
                 current_lr = initial_lr * 0.1
             else:
-                current_lr = initial_lr * 0.05
+                # Cosine annealing for final epochs
+                progress = (epoch - 250) / (epochs - 250)
+                current_lr = initial_lr * 0.05 * (1 + np.cos(np.pi * progress)) / 2
             
             # Update learning rate
             tf.keras.backend.set_value(model.optimizer.learning_rate, current_lr)
