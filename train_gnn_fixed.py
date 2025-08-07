@@ -284,15 +284,15 @@ class GHIDataset(Dataset):
         return self.graphs
 
 def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 120
-    """Build an ultra-enhanced GNN model for 24-hour forecasting for all cities."""
-    print("Building ultra-enhanced GNN model for 24-hour forecasting...")
+    """Build a state-of-the-art GNN model with attention and multi-task learning."""
+    print("Building state-of-the-art GNN model with attention mechanisms...")
     
     # Input layers
     x_in = layers.Input(shape=input_shape, name='x_in')
     a_in = layers.Input(shape=(None,), sparse=True, name='a_in')
     i_in = layers.Input(shape=(), dtype=tf.int64, name='i_in')
     
-    # Enhanced GNN layers with residual connections and deeper architecture
+    # Enhanced GNN layers with attention mechanisms
     x = GCNConv(512, activation='relu')([x_in, a_in])
     x = layers.BatchNormalization()(x)
     x = layers.Dropout(0.2)(x)
@@ -304,6 +304,19 @@ def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 12
     x = layers.BatchNormalization()(x)
     x = layers.Dropout(0.2)(x)
     x = layers.Add()([x, x_res1])  # Residual connection
+    
+    # Attention mechanism for node importance
+    def attention_layer(inputs):
+        node_features, adj_matrix = inputs
+        # Compute attention weights
+        attention_weights = tf.matmul(node_features, tf.transpose(node_features))
+        attention_weights = tf.nn.softmax(attention_weights / tf.math.sqrt(tf.cast(tf.shape(node_features)[-1], tf.float32)))
+        # Apply attention
+        attended_features = tf.matmul(attention_weights, node_features)
+        return attended_features
+    
+    # Apply attention
+    x = layers.Lambda(attention_layer)([x, a_in])
     
     x = GCNConv(256, activation='relu')([x, a_in])
     x = layers.BatchNormalization()(x)
@@ -343,39 +356,28 @@ def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 12
     # Apply the aggregation
     x = layers.Lambda(aggregate_nodes)([x, i_in])
     
-    # Ultra-enhanced dense layers for final prediction with residual connections
-    x_dense1 = layers.Dense(2048, activation='relu')(x)
-    x_dense1 = layers.BatchNormalization()(x_dense1)
-    x_dense1 = layers.Dropout(0.3)(x_dense1)
+    # Multi-task learning: Separate heads for each city
+    city_heads = []
+    for city_idx in range(5):  # 5 cities
+        # City-specific dense layers
+        city_x = layers.Dense(1024, activation='relu')(x)
+        city_x = layers.BatchNormalization()(city_x)
+        city_x = layers.Dropout(0.3)(city_x)
+        
+        city_x = layers.Dense(512, activation='relu')(city_x)
+        city_x = layers.BatchNormalization()(city_x)
+        city_x = layers.Dropout(0.2)(city_x)
+        
+        city_x = layers.Dense(256, activation='relu')(city_x)
+        city_x = layers.BatchNormalization()(city_x)
+        city_x = layers.Dropout(0.2)(city_x)
+        
+        # 24-hour predictions for this city
+        city_output = layers.Dense(24, activation='relu', name=f'city_{city_idx}')(city_x)
+        city_heads.append(city_output)
     
-    x_dense2 = layers.Dense(1024, activation='relu')(x_dense1)
-    x_dense2 = layers.BatchNormalization()(x_dense2)
-    x_dense2 = layers.Dropout(0.3)(x_dense2)
-    
-    # Residual connection in dense layers
-    x_dense2_res = layers.Dense(1024, activation='relu')(x_dense2)
-    x_dense2_res = layers.BatchNormalization()(x_dense2_res)
-    x_dense2_res = layers.Dropout(0.3)(x_dense2_res)
-    x_dense2 = layers.Add()([x_dense2, x_dense2_res])
-    
-    x = layers.Dense(512, activation='relu')(x_dense2)
-    x = layers.BatchNormalization()(x)
-    x = layers.Dropout(0.2)(x)
-    
-    x = layers.Dense(256, activation='relu')(x)
-    x = layers.BatchNormalization()(x)
-    x = layers.Dropout(0.2)(x)
-    
-    x = layers.Dense(128, activation='relu')(x)
-    x = layers.BatchNormalization()(x)
-    x = layers.Dropout(0.2)(x)
-    
-    x = layers.Dense(64, activation='relu')(x)
-    x = layers.Dropout(0.2)(x)
-    
-    # Output layer for 24-hour predictions for all 5 cities (120 values)
-    # Add activation to ensure non-negative predictions
-    outputs = layers.Dense(output_units, activation='relu', name='output')(x)
+    # Concatenate all city predictions
+    outputs = layers.Concatenate(name='output')(city_heads)
 
     model = models.Model(inputs=[x_in, a_in, i_in], outputs=outputs)
     return model
@@ -753,15 +755,32 @@ def main():
         # Compile model with aggressive learning rate, gradient clipping, and custom loss
         optimizer = tf.keras.optimizers.Adam(0.001, clipnorm=1.0)  # Gradient clipping
         
-        # Custom loss function with Huber loss for robustness
-        def custom_loss(y_true, y_pred):
-            # Huber loss for robustness against outliers
-            huber_loss = tf.keras.losses.Huber(delta=1.0)(y_true, y_pred)
-            # Add L2 regularization penalty
+        # Multi-task loss function with city-specific weighting
+        def multi_task_loss(y_true, y_pred):
+            # Reshape to separate cities
+            y_true_reshaped = tf.reshape(y_true, [-1, 5, 24])  # [batch, cities, hours]
+            y_pred_reshaped = tf.reshape(y_pred, [-1, 5, 24])  # [batch, cities, hours]
+            
+            # City-specific losses
+            city_losses = []
+            for city_idx in range(5):
+                city_true = y_true_reshaped[:, city_idx, :]  # [batch, 24]
+                city_pred = y_pred_reshaped[:, city_idx, :]  # [batch, 24]
+                
+                # Huber loss for this city
+                city_loss = tf.keras.losses.Huber(delta=1.0)(city_true, city_pred)
+                city_losses.append(city_loss)
+            
+            # Weighted combination of city losses
+            city_weights = [1.0, 1.0, 1.0, 1.0, 1.0]  # Equal weights for now
+            weighted_loss = tf.reduce_sum([w * l for w, l in zip(city_weights, city_losses)])
+            
+            # Add L2 regularization
             l2_penalty = 0.001 * tf.reduce_sum([tf.nn.l2_loss(w) for w in model.trainable_variables])
-            return huber_loss + l2_penalty
+            
+            return weighted_loss + l2_penalty
         
-        model.compile(optimizer=optimizer, loss=custom_loss, metrics=['mae'])
+        model.compile(optimizer=optimizer, loss=multi_task_loss, metrics=['mae'])
         
         # Test model compilation
         print("\nTesting model compilation...")
