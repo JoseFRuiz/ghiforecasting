@@ -20,7 +20,7 @@ from utils import CONFIG, load_data
 
 # Set global parameters
 SEQUENCE_LENGTH = 24  # Use 24 hours for sequence
-FORECAST_HORIZON = 1  # Forecast next 1 hour (single value)
+FORECAST_HORIZON = 24  # Forecast next 24 hours (24 values)
 
 CITIES = list(CONFIG["data_locations"].keys())
 CITY_IDX = {city: i for i, city in enumerate(CITIES)}
@@ -29,7 +29,7 @@ CITY_IDX = {city: i for i, city in enumerate(CITIES)}
 # Data loading and sequence preparation
 # ----------------------------------------------
 def create_features(df):
-    """Create features with proper target generation."""
+    """Create features with proper target generation for 24-hour forecasting."""
     print(f"    Creating features for dataframe with {len(df)} rows...")
     
     # Debug: Check GHI values before processing
@@ -57,16 +57,18 @@ def create_features(df):
     for var in met_vars:
         df[f"{var}_lag_24"] = df[var].shift(24)
 
-    print(f"      Adding target variable...")
-    # FIXED: Create target as next hour's GHI (not 24 hours ahead)
-    df["target_GHI"] = df["GHI"].shift(-1)  # forecast next 1 hour (single value)
+    print(f"      Adding target variable for 24-hour forecasting...")
+    # FIXED: Create target as next 24 hours of GHI (24 values)
+    target_columns = []
+    for hour in range(1, 25):  # 1 to 24 hours ahead
+        col_name = f"target_GHI_hour_{hour}"
+        df[col_name] = df["GHI"].shift(-hour)
+        target_columns.append(col_name)
     
     # Debug: Check target values after creation
     print(f"      Target GHI stats after creation:")
-    print(f"        Range: [{df['target_GHI'].min():.2f}, {df['target_GHI'].max():.2f}]")
-    print(f"        Mean: {df['target_GHI'].mean():.2f}")
-    print(f"        Non-zero: {(df['target_GHI'] > 0).sum()} out of {len(df)}")
-    print(f"        Sample targets: {df['target_GHI'].head(20).tolist()}")
+    for i, col in enumerate(target_columns[:5]):  # Show first 5 hours
+        print(f"        {col}: range=[{df[col].min():.2f}, {df[col].max():.2f}], mean={df[col].mean():.2f}")
     
     print(f"      Dropping NaN values...")
     original_len = len(df)
@@ -77,12 +79,10 @@ def create_features(df):
     
     # Debug: Check targets after dropping NaN
     print(f"      Target GHI stats after dropping NaN:")
-    print(f"        Range: [{df['target_GHI'].min():.2f}, {df['target_GHI'].max():.2f}]")
-    print(f"        Mean: {df['target_GHI'].mean():.2f}")
-    print(f"        Non-zero: {(df['target_GHI'] > 0).sum()} out of {len(df)}")
-    print(f"        Sample targets after NaN drop: {df['target_GHI'].head(20).tolist()}")
+    for i, col in enumerate(target_columns[:5]):  # Show first 5 hours
+        print(f"        {col}: range=[{df[col].min():.2f}, {df[col].max():.2f}], mean={df[col].mean():.2f}")
     
-    return df
+    return df, target_columns
 
 def compute_weighted_adjacency(df_all, alpha=0.5):
     """Compute adjacency matrix with pre-computed weights for efficiency."""
@@ -129,9 +129,9 @@ def compute_weighted_adjacency(df_all, alpha=0.5):
     
     return weighted_adj
 
-def build_daily_graphs(df_all, adj_matrix, actual_cities):
-    """Build daily graphs with proper target handling."""
-    print("Building daily graphs (fixed version)...")
+def build_daily_graphs(df_all, adj_matrix, actual_cities, target_columns):
+    """Build daily graphs with 24-hour forecasting for all cities."""
+    print("Building daily graphs for 24-hour forecasting...")
     
     # Limit the number of graphs for memory efficiency
     max_graphs = 200  # Increased for better training
@@ -149,13 +149,13 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     targets = []
     graph_dates = []
     graph_cities = []
-    graph_target_cities = []  # Track which city the target comes from
     
     # Fit scaler on a sample of the data
     print("Fitting scaler...")
     sample_data = df_all.sample(min(10000, len(df_all)), random_state=42)
     feature_columns = [col for col in sample_data.columns if col not in 
-                      ['datetime', 'date', 'location', 'target_GHI', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'City']]
+                      ['datetime', 'date', 'location'] + target_columns + 
+                      ['Year', 'Month', 'Day', 'Hour', 'Minute', 'City']]
     print(f"Found {len(feature_columns)} feature columns")
     
     # Scale both GHI and target_GHI
@@ -164,14 +164,14 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     
     # Use StandardScaler for targets to avoid zero issues
     target_scaler = StandardScaler()
-    valid_targets = sample_data[['target_GHI']].dropna()
+    valid_targets = sample_data[target_columns].dropna()
     print(f"Valid targets for scaler fitting: {len(valid_targets)} samples")
-    print(f"Valid target range: [{valid_targets['target_GHI'].min():.2f}, {valid_targets['target_GHI'].max():.2f}]")
-    print(f"Valid target mean: {valid_targets['target_GHI'].mean():.2f}")
-    print(f"Valid target std: {valid_targets['target_GHI'].std():.2f}")
+    print(f"Valid target range: [{valid_targets.min().min():.2f}, {valid_targets.max().max():.2f}]")
+    print(f"Valid target mean: {valid_targets.mean().mean():.2f}")
+    print(f"Valid target std: {valid_targets.std().mean():.2f}")
     
     # Check if targets have variance
-    if valid_targets['target_GHI'].std() == 0:
+    if valid_targets.std().mean() == 0:
         print("WARNING: All target values are the same! Using MinMaxScaler instead.")
         target_scaler = MinMaxScaler()
         target_scaler.fit(valid_targets)
@@ -181,35 +181,35 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
     print(f"GHI scaler range: [{ghi_scaler.data_min_[0]:.2f}, {ghi_scaler.data_max_[0]:.2f}]")
     print(f"Target scaler info:")
     if hasattr(target_scaler, 'mean_'):
-        print(f"  Mean: {target_scaler.mean_[0]:.2f}, std: {target_scaler.scale_[0]:.2f}")
+        print(f"  Mean: {target_scaler.mean_.mean():.2f}, std: {target_scaler.scale_.mean():.2f}")
     else:
-        print(f"  Range: [{target_scaler.data_min_[0]:.2f}, {target_scaler.data_max_[0]:.2f}]")
+        print(f"  Range: [{target_scaler.data_min_.mean():.2f}, {target_scaler.data_max_.mean():.2f}]")
     
     # Debug: Test target scaler
-    test_targets = sample_data['target_GHI'].head(5).values
-    test_scaled = target_scaler.transform(test_targets.reshape(-1, 1)).flatten()
-    test_inverse = target_scaler.inverse_transform(test_scaled.reshape(-1, 1)).flatten()
+    test_targets = sample_data[target_columns].head(2).values
+    test_scaled = target_scaler.transform(test_targets)
+    test_inverse = target_scaler.inverse_transform(test_scaled)
     print(f"Target scaler test:")
-    print(f"  Original: {test_targets}")
-    print(f"  Scaled: {test_scaled}")
-    print(f"  Inverse: {test_inverse}")
-    print(f"  Difference: {np.abs(test_targets - test_inverse)}")
+    print(f"  Original shape: {test_targets.shape}")
+    print(f"  Scaled shape: {test_scaled.shape}")
+    print(f"  Inverse shape: {test_inverse.shape}")
+    print(f"  Difference: {np.abs(test_targets - test_inverse).mean():.6f}")
     
     print(f"Processing {len(unique_dates)} unique dates (limited to {max_graphs} graphs)")
     
     # Debug: Check target distribution
     print("Debug: Checking target distribution...")
-    sample_targets = df_all['target_GHI'].dropna()
-    print(f"  Target range: [{sample_targets.min():.2f}, {sample_targets.max():.2f}]")
-    print(f"  Target mean: {sample_targets.mean():.2f}")
-    print(f"  Non-zero targets: {(sample_targets > 0).sum()} out of {len(sample_targets)}")
-    print(f"  Target std: {sample_targets.std():.2f}")
+    sample_targets = df_all[target_columns].dropna()
+    print(f"  Target range: [{sample_targets.min().min():.2f}, {sample_targets.max().max():.2f}]")
+    print(f"  Target mean: {sample_targets.mean().mean():.2f}")
+    print(f"  Non-zero targets: {(sample_targets > 0).sum().sum()} out of {sample_targets.size}")
+    print(f"  Target std: {sample_targets.std().mean():.2f}")
     
     # Check if targets are all the same
-    if sample_targets.std() == 0:
+    if sample_targets.std().mean() == 0:
         print("  WARNING: All target values are the same! This will cause training issues.")
     else:
-        print(f"  Target variance: {sample_targets.var():.2f}")
+        print(f"  Target variance: {sample_targets.var().mean():.2f}")
     
     for i, date in enumerate(unique_dates):
         if i % 10 == 0:
@@ -231,9 +231,9 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
                 # Create dummy features for missing city
                 dummy_features = np.zeros(len(feature_columns))
                 node_features.append(dummy_features)
-                city_targets.append(0.0)  # Single target value
+                city_targets.append(np.zeros(len(target_columns)))  # 24-hour target
             else:
-                # FIXED: Use a random row for this city on this date to get varied targets
+                # Use a random row for this city on this date to get varied targets
                 if len(city_data) > 1:
                     # Select a random row to get varied targets
                     city_row = city_data.sample(n=1, random_state=i).iloc[0]
@@ -243,45 +243,36 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities):
                 features = city_row[feature_columns].values.astype(np.float32)
                 node_features.append(features)
                 
-                # Get target (single GHI value next hour)
-                target = city_row['target_GHI']
-                if pd.isna(target):
-                    target = 0.0
-                
-                # Scale the target value - ensure it's a 2D array
-                target_scaled = target_scaler.transform(np.array([[target]]))[0, 0]
-                city_targets.append(target_scaled)
+                # Get 24-hour target (24 GHI values)
+                target = city_row[target_columns].values.astype(np.float32)
+                # Replace NaN with 0
+                target = np.nan_to_num(target, nan=0.0)
+                city_targets.append(target)
         
-        # Create graph if we have any valid data (relaxed condition)
+        # Create graph if we have any valid data
         if len(node_features) > 0:
             x = np.array(node_features, dtype=np.float32)
             a = adj_matrix.astype(np.float32)
             
-            # FIXED: Use round-robin assignment of target cities to ensure all cities get predictions
-            # This ensures we get varied targets across different dates and cities
-            city_idx = i % len(actual_cities)  # Round-robin through cities
-            y = city_targets[city_idx]  # Use the selected city's target
-            target_city = actual_cities[city_idx]  # Track which city this target comes from
+            # Create 24-hour targets for all cities (5 cities × 24 hours = 120 values)
+            all_targets = np.concatenate(city_targets, axis=0)  # Flatten all city targets
             
             # Debug: Print target info for first few graphs
-            if i < 5:
+            if i < 3:
                 print(f"    Date {date}:")
-                print(f"      Original targets: {[target_scaler.inverse_transform(np.array([[t]]))[0, 0] for t in city_targets]}")
-                print(f"      Scaled targets: {city_targets}")
-                print(f"      Selected target (first city): {target_scaler.inverse_transform(np.array([[y]]))[0, 0]:.4f}")
-                print(f"      Scaled selected target: {y:.4f}")
-                print(f"      Target city: {target_city}")
+                print(f"      Target shape: {all_targets.shape}")
+                print(f"      Target range: [{all_targets.min():.2f}, {all_targets.max():.2f}]")
+                print(f"      Sample targets (first 10): {all_targets[:10]}")
             
             # Create Spektral Graph
-            graph = Graph(x=x, a=a, y=y)
+            graph = Graph(x=x, a=a, y=all_targets)
             graphs.append(graph)
-            targets.append(y)
+            targets.append(all_targets)
             graph_dates.append(date)
             graph_cities.append(actual_cities)
-            graph_target_cities.append(target_city)
     
     print(f"Created {len(graphs)} daily graphs (limited to {max_graphs})")
-    return graphs, targets, ghi_scaler, target_scaler, graph_dates, graph_cities, graph_target_cities
+    return graphs, targets, ghi_scaler, target_scaler, graph_dates, graph_cities
 
 class GHIDataset(Dataset):
     def __init__(self, graphs, y, **kwargs):
@@ -292,9 +283,9 @@ class GHIDataset(Dataset):
     def read(self):
         return self.graphs
 
-def build_gnn_model(input_shape, output_units=1):
-    """Build a lightweight GNN model for memory efficiency."""
-    print("Building lightweight GNN model...")
+def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 120
+    """Build a GNN model for 24-hour forecasting for all cities."""
+    print("Building GNN model for 24-hour forecasting...")
     
     # Input layers
     x_in = layers.Input(shape=input_shape, name='x_in')
@@ -329,18 +320,18 @@ def build_gnn_model(input_shape, output_units=1):
     x = layers.Lambda(aggregate_nodes)([x, i_in])
     
     # Dense layers for final prediction
+    x = layers.Dense(256, activation='relu')(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(0.3)(x)
+    
     x = layers.Dense(128, activation='relu')(x)
     x = layers.BatchNormalization()(x)
     x = layers.Dropout(0.3)(x)
     
     x = layers.Dense(64, activation='relu')(x)
-    x = layers.BatchNormalization()(x)
-    x = layers.Dropout(0.3)(x)
-    
-    x = layers.Dense(32, activation='relu')(x)
     x = layers.Dropout(0.2)(x)
     
-    # Use linear activation for final layer to allow negative values
+    # Output layer for 24-hour predictions for all 5 cities (120 values)
     outputs = layers.Dense(output_units, activation=None, name='output')(x)
 
     model = models.Model(inputs=[x_in, a_in, i_in], outputs=outputs)
@@ -349,9 +340,9 @@ def build_gnn_model(input_shape, output_units=1):
 # ----------------------------------------------
 # Evaluation functions
 # ----------------------------------------------
-def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, graph_cities, graph_target_cities, actual_cities):
+def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, graph_cities, actual_cities, target_columns):
     """Evaluate the GNN model and generate metrics for each city."""
-    print("\nEvaluating GNN model...")
+    print("\nEvaluating GNN model for 24-hour forecasting...")
     
     # Create results directory
     os.makedirs("results_gnn", exist_ok=True)
@@ -384,30 +375,32 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, g
             if hasattr(y_pred, 'numpy'):
                 y_pred = y_pred.numpy()
             
-            # Inverse transform using target scaler - ensure proper shape
-            y_true_reshaped = y_true.reshape(-1, 1) if len(y_true.shape) == 1 else y_true
-            y_pred_reshaped = y_pred.reshape(-1, 1) if len(y_pred.shape) == 1 else y_pred
+            # Reshape predictions and targets (120 values = 5 cities × 24 hours)
+            y_true_reshaped = y_true.reshape(-1, len(target_columns), len(actual_cities))  # (batch, 24, 5)
+            y_pred_reshaped = y_pred.reshape(-1, len(target_columns), len(actual_cities))  # (batch, 24, 5)
             
-            y_true_original = target_scaler.inverse_transform(y_true_reshaped).flatten()
-            y_pred_original = target_scaler.inverse_transform(y_pred_reshaped).flatten()
+            # Inverse transform using target scaler
+            y_true_original = target_scaler.inverse_transform(y_true_reshaped.reshape(-1, len(target_columns))).reshape(y_true_reshaped.shape)
+            y_pred_original = target_scaler.inverse_transform(y_pred_reshaped.reshape(-1, len(target_columns))).reshape(y_pred_reshaped.shape)
             
             # Debug: Print first few predictions
             if batch_count <= 3:
-                print(f"    Batch {batch_count}: y_true_scaled={y_true[:3]}, y_pred_scaled={y_pred[:3]}")
-                print(f"    Batch {batch_count}: y_true_original={y_true_original[:3]}, y_pred_original={y_pred_original[:3]}")
+                print(f"    Batch {batch_count}: y_true_shape={y_true_original.shape}, y_pred_shape={y_pred_original.shape}")
+                print(f"    Batch {batch_count}: y_true_range=[{y_true_original.min():.2f}, {y_true_original.max():.2f}]")
+                print(f"    Batch {batch_count}: y_pred_range=[{y_pred_original.min():.2f}, {y_pred_original.max():.2f}]")
             
-            # Get the target city for this graph (if available)
-            if batch_count - 1 < len(graph_target_cities):
-                target_city = graph_target_cities[batch_count - 1]
-            else:
-                # Fallback to round-robin assignment
-                target_city = actual_cities[(batch_count - 1) % len(actual_cities)]
-            
-            # Assign the prediction to the target city
-            city_predictions[target_city].append(y_pred_original[0])
-            city_actuals[target_city].append(y_true_original[0])
-            # Create a date for this prediction
-            city_dates[target_city].append(pd.Timestamp('2020-01-01') + pd.Timedelta(hours=batch_count))
+            # Assign predictions to each city
+            for city_idx, city in enumerate(actual_cities):
+                city_pred = y_pred_original[0, :, city_idx]  # 24 hours for this city
+                city_actual = y_true_original[0, :, city_idx]  # 24 hours for this city
+                
+                city_predictions[city].extend(city_pred)
+                city_actuals[city].extend(city_actual)
+                
+                # Create dates for each hour
+                base_date = pd.Timestamp('2020-01-01') + pd.Timedelta(days=batch_count-1)
+                for hour in range(24):
+                    city_dates[city].append(base_date + pd.Timedelta(hours=hour))
             
         except Exception as e:
             print(f"  Error in evaluation batch {batch_count}: {e}")
@@ -514,7 +507,7 @@ def plot_gnn_results(results, city):
         plt.plot([0, max(results['actual'])], [0, max(results['actual'])], 'r--', lw=2)
         plt.xlabel('Actual GHI')
         plt.ylabel('Predicted GHI')
-        plt.title(f'GNN Predictions vs Actual - {city}')
+        plt.title(f'GNN 24h Predictions vs Actual - {city}')
         plt.savefig(f"{city_dir}/scatter_plot.png", dpi=150, bbox_inches='tight')
         plt.close()
         
@@ -524,7 +517,7 @@ def plot_gnn_results(results, city):
         plt.plot(results['dates'], results['predicted'], label='Predicted', alpha=0.7)
         plt.xlabel('Date')
         plt.ylabel('GHI')
-        plt.title(f'GNN Time Series - {city}')
+        plt.title(f'GNN 24h Time Series - {city}')
         plt.legend()
         plt.xticks(rotation=45)
         plt.tight_layout()
@@ -553,53 +546,53 @@ def plot_gnn_results(results, city):
         print(f"  Error creating plots for {city}: {e}")
 
 def calculate_daily_metrics_gnn(dates, actual, predicted):
-    """Calculate daily metrics for GNN results."""
-    # For GNN, each prediction represents one graph (one day)
-    # Since we have one prediction per day, we can't calculate intra-day correlation
-    # Instead, we'll use the overall correlation and R² for all daily metrics
+    """Calculate daily metrics for GNN results with 24-hour forecasting."""
+    # For GNN with 24-hour forecasting, we now have multiple predictions per day
+    # Group by date and calculate daily metrics
     df = pd.DataFrame({
-        'date': dates,
+        'date': pd.to_datetime(dates).date,
         'actual': actual,
         'predicted': predicted
     })
     
-    # For GNN, each row is already one prediction per day
-    # We'll use the actual and predicted values directly
-    daily_metrics = df.copy()
-    daily_metrics.columns = ['date', 'actual_mean', 'predicted_mean']
-    
-    # Add standard deviation columns (will be NaN since we only have one point per day)
-    daily_metrics['actual_std'] = np.nan
-    daily_metrics['predicted_std'] = np.nan
-    
-    # Calculate overall correlation and R² for the entire dataset
-    if len(actual) > 1:
-        overall_corr = np.corrcoef(actual, predicted)[0, 1]
-        if np.isnan(overall_corr):
-            overall_corr = 0.0
+    # Group by date and calculate daily metrics
+    daily_stats = []
+    for date, group in df.groupby('date'):
+        # Filter out zero values
+        non_zero_mask = group['actual'] > 0
+        if non_zero_mask.sum() > 0:
+            actual_nonzero = group.loc[non_zero_mask, 'actual']
+            predicted_nonzero = group.loc[non_zero_mask, 'predicted']
             
-        # Calculate overall R²
-        ss_res = np.sum((actual - predicted) ** 2)
-        ss_tot = np.sum((actual - np.mean(actual)) ** 2)
-        if ss_tot > 0:
-            overall_r2 = 1 - (ss_res / ss_tot)
-            if np.isnan(overall_r2):
-                overall_r2 = 0.0
-        else:
-            overall_r2 = 0.0
-    else:
-        overall_corr = 0.0
-        overall_r2 = 0.0
+            # Calculate correlation
+            correlation = actual_nonzero.corr(predicted_nonzero)
+            if pd.isna(correlation):
+                correlation = 0
+            
+            # Calculate other metrics
+            mae = mean_absolute_error(actual_nonzero, predicted_nonzero)
+            rmse = np.sqrt(mean_squared_error(actual_nonzero, predicted_nonzero))
+            r2 = r2_score(actual_nonzero, predicted_nonzero)
+            
+            # Clamp R² to [0, 1]
+            r2 = max(0, min(1, r2))
+            
+            daily_stats.append({
+                'date': date,
+                'correlation': correlation,
+                'mae': mae,
+                'rmse': rmse,
+                'r2': r2,
+                'num_points': len(actual_nonzero),
+                'actual_max': actual_nonzero.max(),
+                'actual_mean': actual_nonzero.mean(),
+                'actual_std': actual_nonzero.std(),
+                'predicted_max': predicted_nonzero.max(),
+                'predicted_mean': predicted_nonzero.mean(),
+                'predicted_std': predicted_nonzero.std()
+            })
     
-    # Use the overall values for all daily metrics
-    daily_metrics['correlation'] = overall_corr
-    daily_metrics['r2'] = overall_r2
-    
-    # Calculate MAE and RMSE for each day (will be the absolute difference and squared difference)
-    daily_metrics['mae'] = np.abs(daily_metrics['actual_mean'] - daily_metrics['predicted_mean'])
-    daily_metrics['rmse'] = np.sqrt((daily_metrics['actual_mean'] - daily_metrics['predicted_mean'])**2)
-    
-    return daily_metrics
+    return pd.DataFrame(daily_stats).sort_values('date')
 
 def create_gnn_summary_table(all_metrics):
     """Create a summary table for all GNN results."""
@@ -629,13 +622,16 @@ def main():
         
         # Load data with memory management
         all_dfs = []
+        target_columns = None
         for i, city in enumerate(CITIES):
             print(f"Loading data for city {i+1}/{len(CITIES)}: {city}")
             df = load_data(CONFIG["data_locations"], city)
             print(f"  Raw data shape: {df.shape}")
             
             print(f"  Creating features for {city}...")
-            df = create_features(df)
+            df, city_target_columns = create_features(df)
+            if target_columns is None:
+                target_columns = city_target_columns
             print(f"  After feature creation: {df.shape}")
             
             df['location'] = city
@@ -662,8 +658,8 @@ def main():
         adj_matrix = compute_weighted_adjacency(df_all, alpha=0.5)
         print(f"Adjacency matrix computed: {adj_matrix.shape}")
 
-        print("\nBuilding daily graphs...")
-        graphs, targets, ghi_scaler, target_scaler, graph_dates, graph_cities, graph_target_cities = build_daily_graphs(df_all, adj_matrix, actual_cities)
+        print("\nBuilding daily graphs for 24-hour forecasting...")
+        graphs, targets, ghi_scaler, target_scaler, graph_dates, graph_cities = build_daily_graphs(df_all, adj_matrix, actual_cities, target_columns)
         
         if len(graphs) == 0:
             print("ERROR: No valid graphs created. Exiting.")
@@ -683,6 +679,7 @@ def main():
             print(f"First graph x shape: {first_graph.x.shape}")
             print(f"First graph a shape: {first_graph.a.shape}")
             print(f"First graph y shape: {first_graph.y.shape}")
+            print(f"First graph y length: {len(first_graph.y)}")
         
         print("\nCreating data loader...")
         loader = DisjointLoader(dataset, batch_size=4, shuffle=True)  # Small batch size
@@ -702,11 +699,12 @@ def main():
             num_features = dataset[0].x.shape[1]
             print(f"Number of features per node: {num_features}")
             print(f"Number of nodes per graph: {dataset[0].x.shape[0]}")
+            print(f"Output units: {len(target_columns) * len(actual_cities)}")  # 24 hours × 5 cities
         else:
             print("ERROR: No graphs in dataset!")
             return
         
-        model = build_gnn_model(input_shape=(num_features,), output_units=FORECAST_HORIZON)
+        model = build_gnn_model(input_shape=(num_features,), output_units=len(target_columns) * len(actual_cities))
         model.summary()
         
         # Compile model with better learning rate and loss function
@@ -726,7 +724,7 @@ def main():
             
             dummy_output = model([dummy_x, dummy_a, dummy_i])
             print(f"Dummy output shape: {dummy_output.shape}")
-            print(f"Dummy output values: {dummy_output.numpy()}")
+            print(f"Dummy output values: {dummy_output.numpy()[:5]}")  # Show first 5 values
             print("Model compilation successful!")
         except Exception as e:
             print(f"Model compilation failed: {e}")
@@ -781,7 +779,9 @@ def main():
                     
                     # Debug: Print first few predictions during training
                     if epoch == 0 and batch_idx < 3:
-                        print(f"      Training batch {batch_idx}: y_true={y_true[:3].numpy()}, y_pred={y_pred[:3].numpy()}")
+                        print(f"      Training batch {batch_idx}: y_true_shape={y_true.shape}, y_pred_shape={y_pred.shape}")
+                        print(f"      Training batch {batch_idx}: y_true_range=[{y_true.numpy().min():.2f}, {y_true.numpy().max():.2f}]")
+                        print(f"      Training batch {batch_idx}: y_pred_range=[{y_pred.numpy().min():.2f}, {y_pred.numpy().max():.2f}]")
                     
                     gradients = tape.gradient(loss, model.trainable_variables)
                     model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
@@ -836,19 +836,19 @@ def main():
         print("Training completed!")
 
         print("\nSaving model and scalers...")
-        model.save("models/gnn_ghi_forecast_fixed.h5")
-        with open("models/ghi_scaler_gnn_fixed.pkl", "wb") as f:
+        model.save("models/gnn_ghi_forecast_24h_fixed.h5")
+        with open("models/ghi_scaler_gnn_24h_fixed.pkl", "wb") as f:
             pickle.dump(ghi_scaler, f)
-        with open("models/target_scaler_gnn_fixed.pkl", "wb") as f:
+        with open("models/target_scaler_gnn_24h_fixed.pkl", "wb") as f:
             pickle.dump(target_scaler, f)
         print("✓ Model and scalers saved.")
 
         # Evaluate the model
         print("\nEvaluating model...")
-        all_metrics = evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, graph_cities, graph_target_cities, actual_cities)
+        all_metrics = evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, graph_cities, actual_cities, target_columns)
         
         total_time = time.time() - start_time
-        print(f"\nGNN training and evaluation completed in {total_time:.1f} seconds!")
+        print(f"\nGNN 24-hour training and evaluation completed in {total_time:.1f} seconds!")
 
     except Exception as e:
         print(f"ERROR: Training failed with exception: {e}")
