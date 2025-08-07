@@ -372,8 +372,10 @@ def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 12
         city_x = layers.BatchNormalization()(city_x)
         city_x = layers.Dropout(0.2)(city_x)
         
-        # 24-hour predictions for this city
-        city_output = layers.Dense(24, activation='relu', name=f'city_{city_idx}')(city_x)
+        # 24-hour predictions for this city - NO ACTIVATION to allow full range
+        city_output = layers.Dense(24, activation=None, name=f'city_{city_idx}')(city_x)
+        # Apply softplus to ensure non-negative predictions without capping
+        city_output = layers.Activation('softplus')(city_output)
         city_heads.append(city_output)
     
     # Concatenate all city predictions
@@ -767,8 +769,12 @@ def main():
                 city_true = y_true_reshaped[:, city_idx, :]  # [batch, 24]
                 city_pred = y_pred_reshaped[:, city_idx, :]  # [batch, 24]
                 
-                # Huber loss for this city
-                city_loss = tf.keras.losses.Huber(delta=1.0)(city_true, city_pred)
+                # Combined loss: MSE for magnitude + Huber for robustness
+                mse_loss = tf.keras.losses.MeanSquaredError()(city_true, city_pred)
+                huber_loss = tf.keras.losses.Huber(delta=1.0)(city_true, city_pred)
+                
+                # Weighted combination favoring MSE for better magnitude prediction
+                city_loss = 0.7 * mse_loss + 0.3 * huber_loss
                 city_losses.append(city_loss)
             
             # Weighted combination of city losses
