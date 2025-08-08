@@ -377,11 +377,17 @@ def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 12
         city_x = layers.BatchNormalization()(city_x)
         city_x = layers.Dropout(0.2)(city_x)
         
-        # Simple but effective output layer
+        # Output layer with built-in clipping
         city_output = layers.Dense(24, activation=None, name=f'base_{city_idx}')(city_x)
         
         # Ensure non-negative predictions with softplus
         city_output = layers.Activation('softplus', name=f'final_{city_idx}')(city_output)
+        
+        # Add clipping layer to constrain predictions
+        city_output = layers.Lambda(
+            lambda x: tf.clip_by_value(x, 0, 1.1),  # Clip to [0, 1.1] in normalized space
+            name=f'clip_{city_idx}'
+        )(city_output)
         
         city_heads.append(city_output)
     
@@ -437,6 +443,15 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, g
             y_true_original = target_scaler.inverse_transform(y_true_reshaped.reshape(-1, len(target_columns))).reshape(y_true_reshaped.shape)
             y_pred_original = target_scaler.inverse_transform(y_pred_reshaped.reshape(-1, len(target_columns))).reshape(y_pred_reshaped.shape)
             
+            # Clip predictions to reasonable GHI range based on training data
+            max_reasonable_ghi = target_stats['max'] * 1.1  # Allow 10% above max seen in training
+            y_pred_original = np.clip(y_pred_original, 0, max_reasonable_ghi)
+            
+            if batch_count <= 3:
+                print(f"\nClipping Analysis:")
+                print(f"  Max allowed GHI: {max_reasonable_ghi:.2f}")
+                print(f"  Values clipped: {np.sum(y_pred_original >= max_reasonable_ghi)}")
+            
             # POST-PROCESSING: Calibrate predictions to reduce MAE/RMSE
             # Calculate scaling factor based on actual vs predicted ranges
             true_range = y_true_original.max() - y_true_original.min()
@@ -452,11 +467,25 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, g
                 pred_mean = y_pred_original.mean()
                 y_pred_original = y_pred_original + (true_mean - pred_mean)
             
-            # Debug: Print first few predictions
+            # Debug: Print detailed prediction analysis
             if batch_count <= 3:
-                print(f"    Batch {batch_count}: y_true_shape={y_true_original.shape}, y_pred_shape={y_pred_original.shape}")
-                print(f"    Batch {batch_count}: y_true_range=[{y_true_original.min():.2f}, {y_true_original.max():.2f}]")
-                print(f"    Batch {batch_count}: y_pred_range=[{y_pred_original.min():.2f}, {y_pred_original.max():.2f}]")
+                print(f"\nBatch {batch_count} Analysis:")
+                print(f"  Shapes: y_true={y_true_original.shape}, y_pred={y_pred_original.shape}")
+                print(f"  True values:")
+                print(f"    Range: [{y_true_original.min():.2f}, {y_true_original.max():.2f}]")
+                print(f"    Mean: {y_true_original.mean():.2f}")
+                print(f"    Std: {y_true_original.std():.2f}")
+                print(f"  Predicted values:")
+                print(f"    Range: [{y_pred_original.min():.2f}, {y_pred_original.max():.2f}]")
+                print(f"    Mean: {y_pred_original.mean():.2f}")
+                print(f"    Std: {y_pred_original.std():.2f}")
+                
+                # Count predictions above reasonable threshold
+                threshold = 1200000  # Max reasonable GHI value
+                high_preds = (y_pred_original > threshold).sum()
+                if high_preds > 0:
+                    print(f"  WARNING: {high_preds} predictions above {threshold}!")
+                    print(f"  Max predictions: {np.sort(y_pred_original.flatten())[-5:]}")  # Show 5 highest predictions
             
             # Assign predictions to each city
             for city_idx, city in enumerate(actual_cities):
@@ -496,11 +525,20 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, g
             actuals = actuals[valid_mask]
             dates = [dates[i] for i in range(len(dates)) if valid_mask[i]]
             
-            # Calculate city-specific metrics
-            city_mae = mean_absolute_error(actuals, predictions)
-            city_rmse = np.sqrt(mean_squared_error(actuals, predictions))
-            city_r2 = r2_score(actuals, predictions)
-            city_correlation = np.corrcoef(actuals, predictions)[0, 1] if len(actuals) > 1 else 0
+            # Calculate normalized metrics
+            # Normalize values to [0,1] range for fair comparison
+            max_val = max(np.max(actuals), np.max(predictions))
+            min_val = min(np.min(actuals), np.min(predictions))
+            range_val = max_val - min_val + 1e-8  # Avoid division by zero
+            
+            norm_actuals = (actuals - min_val) / range_val
+            norm_predictions = (predictions - min_val) / range_val
+            
+            # Calculate metrics on normalized values
+            city_mae = mean_absolute_error(norm_actuals, norm_predictions) * range_val
+            city_rmse = np.sqrt(mean_squared_error(norm_actuals, norm_predictions)) * range_val
+            city_r2 = r2_score(actuals, predictions)  # R² is already scale-invariant
+            city_correlation = np.corrcoef(actuals, predictions)[0, 1] if len(actuals) > 1 else 0  # Correlation is scale-invariant
             
             print(f"\n{city} Performance:")
             print(f"  Valid predictions: {len(predictions)}")
@@ -541,10 +579,19 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, g
     
     # Calculate overall metrics
     if len(overall_predictions) > 0:
-        overall_mae = mean_absolute_error(overall_actuals, overall_predictions)
-        overall_rmse = np.sqrt(mean_squared_error(overall_actuals, overall_predictions))
-        overall_r2 = r2_score(overall_actuals, overall_predictions)
-        overall_correlation = np.corrcoef(overall_actuals, overall_predictions)[0, 1]
+        # Calculate normalized overall metrics
+        max_val = max(np.max(overall_actuals), np.max(overall_predictions))
+        min_val = min(np.min(overall_actuals), np.min(overall_predictions))
+        range_val = max_val - min_val + 1e-8  # Avoid division by zero
+        
+        norm_actuals = (overall_actuals - min_val) / range_val
+        norm_predictions = (overall_predictions - min_val) / range_val
+        
+        # Calculate metrics on normalized values
+        overall_mae = mean_absolute_error(norm_actuals, norm_predictions) * range_val
+        overall_rmse = np.sqrt(mean_squared_error(norm_actuals, norm_predictions)) * range_val
+        overall_r2 = r2_score(overall_actuals, overall_predictions)  # R² is already scale-invariant
+        overall_correlation = np.corrcoef(overall_actuals, overall_predictions)[0, 1]  # Correlation is scale-invariant
         
         print(f"\nOverall GNN Performance:")
         print(f"  Total valid predictions: {len(overall_predictions)}")
@@ -638,10 +685,18 @@ def calculate_daily_metrics_gnn(dates, actual, predicted):
             if pd.isna(correlation):
                 correlation = 0
             
-            # Calculate other metrics
-            mae = mean_absolute_error(actual_nonzero, predicted_nonzero)
-            rmse = np.sqrt(mean_squared_error(actual_nonzero, predicted_nonzero))
-            r2 = r2_score(actual_nonzero, predicted_nonzero)
+            # Calculate normalized metrics
+            max_val = max(actual_nonzero.max(), predicted_nonzero.max())
+            min_val = min(actual_nonzero.min(), predicted_nonzero.min())
+            range_val = max_val - min_val + 1e-8  # Avoid division by zero
+            
+            norm_actuals = (actual_nonzero - min_val) / range_val
+            norm_predictions = (predicted_nonzero - min_val) / range_val
+            
+            # Calculate metrics on normalized values
+            mae = mean_absolute_error(norm_actuals, norm_predictions) * range_val
+            rmse = np.sqrt(mean_squared_error(norm_actuals, norm_predictions)) * range_val
+            r2 = r2_score(actual_nonzero, predicted_nonzero)  # R² is already scale-invariant
             
             # Clamp R² to [0, 1]
             r2 = max(0, min(1, r2))
