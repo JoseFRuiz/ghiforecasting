@@ -162,7 +162,7 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities, target_columns):
     ghi_scaler = MinMaxScaler()
     ghi_scaler.fit(sample_data[['GHI']])
     
-    # Use MinMaxScaler for targets to preserve magnitude relationships
+    # Use MinMaxScaler for targets to scale to [0, 1] range (same as individual/joint models)
     target_scaler = MinMaxScaler()
     valid_targets = sample_data[target_columns].dropna()
     print(f"Valid targets for scaler fitting: {len(valid_targets)} samples")
@@ -170,9 +170,10 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities, target_columns):
     print(f"Valid target mean: {valid_targets.mean().mean():.2f}")
     print(f"Valid target std: {valid_targets.std().mean():.2f}")
     
-    # Fit MinMaxScaler to preserve magnitude relationships
+    # Fit MinMaxScaler to scale to [0, 1] range
     target_scaler.fit(valid_targets)
     print(f"Target scaler fitted with range: [{target_scaler.data_min_.min():.2f}, {target_scaler.data_max_.max():.2f}]")
+    print(f"Target scaler will scale to [0.0, 1.0] range")
     
     # Store target statistics for post-processing calibration
     target_stats = {
@@ -248,11 +249,13 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities, target_columns):
                 features = city_row[feature_columns].values.astype(np.float32)
                 node_features.append(features)
                 
-                # Get 24-hour target (24 GHI values)
+                # Get 24-hour target (24 GHI values) and scale them to [0,1] range
                 target = city_row[target_columns].values.astype(np.float32)
                 # Replace NaN with 0
                 target = np.nan_to_num(target, nan=0.0)
-                city_targets.append(target)
+                # Scale targets to [0,1] range using the fitted scaler
+                target_scaled = target_scaler.transform(target.reshape(1, -1)).flatten()
+                city_targets.append(target_scaled)
         
         # Create graph if we have any valid data
         if len(node_features) > 0:
@@ -266,7 +269,7 @@ def build_daily_graphs(df_all, adj_matrix, actual_cities, target_columns):
             if i < 3:
                 print(f"    Date {date}:")
                 print(f"      Target shape: {all_targets.shape}")
-                print(f"      Target range: [{all_targets.min():.2f}, {all_targets.max():.2f}]")
+                print(f"      Target range: [{all_targets.min():.4f}, {all_targets.max():.4f}] (scaled to [0,1])")
                 print(f"      Sample targets (first 10): {all_targets[:10]}")
             
             # Create Spektral Graph
@@ -377,11 +380,8 @@ def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 12
         city_x = layers.BatchNormalization()(city_x)
         city_x = layers.Dropout(0.2)(city_x)
         
-        # Output layer with proper scaling
-        city_output = layers.Dense(24, activation=None, name=f'base_{city_idx}')(city_x)
-        
-        # Ensure non-negative predictions with ReLU (more stable than softplus)
-        city_output = layers.ReLU(name=f'relu_{city_idx}')(city_output)
+        # Output layer with sigmoid activation to constrain to [0, 1] range (same as individual/joint models)
+        city_output = layers.Dense(24, activation='sigmoid', name=f'output_{city_idx}')(city_x)
         
         city_heads.append(city_output)
     
@@ -433,39 +433,39 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, g
             y_true_reshaped = y_true.reshape(-1, len(target_columns), len(actual_cities))  # (batch, 24, 5)
             y_pred_reshaped = y_pred.reshape(-1, len(target_columns), len(actual_cities))  # (batch, 24, 5)
             
-            # Inverse transform using target scaler
+            # Inverse transform using target scaler to get back to original GHI scale
             y_true_original = target_scaler.inverse_transform(y_true_reshaped.reshape(-1, len(target_columns))).reshape(y_true_reshaped.shape)
             y_pred_original = target_scaler.inverse_transform(y_pred_reshaped.reshape(-1, len(target_columns))).reshape(y_pred_reshaped.shape)
             
-            # Ensure non-negative predictions
+            # Ensure predictions are non-negative (GHI cannot be negative)
             y_pred_original = np.maximum(y_pred_original, 0)
             
             # Debug: Print detailed prediction analysis
             if batch_count <= 3:
-                print(f"\nPrediction Analysis:")
-                print(f"  True values range: [{y_true_original.min():.2f}, {y_true_original.max():.2f}]")
-                print(f"  True values mean: {y_true_original.mean():.2f}")
-                print(f"  Predicted values range: [{y_pred_original.min():.2f}, {y_pred_original.max():.2f}]")
-                print(f"  Predicted values mean: {y_pred_original.mean():.2f}")
+                print(f"\nPrediction Analysis (GHI scale):")
+                print(f"  True values range: [{y_true_original.min():.2f}, {y_true_original.max():.2f}] W/m²")
+                print(f"  True values mean: {y_true_original.mean():.2f} W/m²")
+                print(f"  Predicted values range: [{y_pred_original.min():.2f}, {y_pred_original.max():.2f}] W/m²")
+                print(f"  Predicted values mean: {y_pred_original.mean():.2f} W/m²")
             
             # Debug: Print detailed prediction analysis
             if batch_count <= 3:
                 print(f"\nBatch {batch_count} Analysis:")
                 print(f"  Shapes: y_true={y_true_original.shape}, y_pred={y_pred_original.shape}")
                 print(f"  True values:")
-                print(f"    Range: [{y_true_original.min():.2f}, {y_true_original.max():.2f}]")
-                print(f"    Mean: {y_true_original.mean():.2f}")
-                print(f"    Std: {y_true_original.std():.2f}")
+                print(f"    Range: [{y_true_original.min():.2f}, {y_true_original.max():.2f}] W/m²")
+                print(f"    Mean: {y_true_original.mean():.2f} W/m²")
+                print(f"    Std: {y_true_original.std():.2f} W/m²")
                 print(f"  Predicted values:")
-                print(f"    Range: [{y_pred_original.min():.2f}, {y_pred_original.max():.2f}]")
-                print(f"    Mean: {y_pred_original.mean():.2f}")
-                print(f"    Std: {y_pred_original.std():.2f}")
+                print(f"    Range: [{y_pred_original.min():.2f}, {y_pred_original.max():.2f}] W/m²")
+                print(f"    Mean: {y_pred_original.mean():.2f} W/m²")
+                print(f"    Std: {y_pred_original.std():.2f} W/m²")
                 
                 # Count predictions above reasonable threshold
-                threshold = 1200000  # Max reasonable GHI value
+                threshold = 1200  # Max reasonable GHI value (W/m²)
                 high_preds = (y_pred_original > threshold).sum()
                 if high_preds > 0:
-                    print(f"  WARNING: {high_preds} predictions above {threshold}!")
+                    print(f"  WARNING: {high_preds} predictions above {threshold} W/m²!")
                     print(f"  Max predictions: {np.sort(y_pred_original.flatten())[-5:]}")  # Show 5 highest predictions
             
             # Assign predictions to each city
@@ -523,10 +523,10 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, g
             
             print(f"\n{city} Performance:")
             print(f"  Valid predictions: {len(predictions)}")
-            print(f"  Prediction range: [{np.min(predictions):.2f}, {np.max(predictions):.2f}]")
-            print(f"  Actual range: [{np.min(actuals):.2f}, {np.max(actuals):.2f}]")
-            print(f"  MAE: {city_mae:.2f}")
-            print(f"  RMSE: {city_rmse:.2f}")
+            print(f"  Prediction range: [{np.min(predictions):.2f}, {np.max(predictions):.2f}] W/m²")
+            print(f"  Actual range: [{np.min(actuals):.2f}, {np.max(actuals):.2f}] W/m²")
+            print(f"  MAE: {city_mae:.2f} W/m²")
+            print(f"  RMSE: {city_rmse:.2f} W/m²")
             print(f"  R²: {city_r2:.4f}")
             print(f"  Correlation: {city_correlation:.4f}")
             
@@ -576,10 +576,10 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, g
         
         print(f"\nOverall GNN Performance:")
         print(f"  Total valid predictions: {len(overall_predictions)}")
-        print(f"  Prediction range: [{np.min(overall_predictions):.2f}, {np.max(overall_predictions):.2f}]")
-        print(f"  Actual range: [{np.min(overall_actuals):.2f}, {np.max(overall_actuals):.2f}]")
-        print(f"  MAE: {overall_mae:.2f}")
-        print(f"  RMSE: {overall_rmse:.2f}")
+        print(f"  Prediction range: [{np.min(overall_predictions):.2f}, {np.max(overall_predictions):.2f}] W/m²")
+        print(f"  Actual range: [{np.min(overall_actuals):.2f}, {np.max(overall_actuals):.2f}] W/m²")
+        print(f"  MAE: {overall_mae:.2f} W/m²")
+        print(f"  RMSE: {overall_rmse:.2f} W/m²")
         print(f"  R²: {overall_r2:.4f}")
         print(f"  Correlation: {overall_correlation:.4f}")
     
@@ -815,18 +815,18 @@ def main():
         # Compile model with aggressive learning rate, gradient clipping, and custom loss
         optimizer = tf.keras.optimizers.Adam(0.001, clipnorm=1.0)  # Gradient clipping
         
-        # Huber loss for better handling of outliers
+        # Custom loss function similar to individual models
         def custom_loss(y_true, y_pred):
-            # Ensure predictions are non-negative
-            y_pred = tf.nn.relu(y_pred)
+            # Standard Huber loss
+            huber_loss = tf.keras.losses.Huber()(y_true, y_pred)
             
-            # Huber loss for robustness to outliers
-            huber_loss = tf.keras.losses.Huber(delta=100.0)(y_true, y_pred)
+            # Penalty for predictions outside [0, 1] range (since we use sigmoid)
+            range_penalty = tf.reduce_mean(tf.maximum(0.0, y_pred - 1.0) + tf.maximum(0.0, -y_pred))
             
             # Add minimal L2 regularization
             l2_penalty = 0.0001 * tf.reduce_sum([tf.nn.l2_loss(w) for w in model.trainable_variables])
             
-            return huber_loss + l2_penalty
+            return huber_loss + range_penalty + l2_penalty
         
         model.compile(optimizer=optimizer, loss=custom_loss, metrics=['mae'])
         
