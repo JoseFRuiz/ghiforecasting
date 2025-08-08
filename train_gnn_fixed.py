@@ -377,26 +377,10 @@ def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 12
         city_x = layers.BatchNormalization()(city_x)
         city_x = layers.Dropout(0.2)(city_x)
         
-        # IMPROVED MAGNITUDE-AWARE OUTPUT LAYER WITH BETTER SCALING
-        # 1. Predict base GHI values (unconstrained)
-        base_ghi = layers.Dense(24, activation=None, name=f'base_{city_idx}')(city_x)
+        # Simple but effective output layer
+        city_output = layers.Dense(24, activation=None, name=f'base_{city_idx}')(city_x)
         
-        # 2. Predict magnitude scaling factor (1.0 to 100.0 range for better control)
-        magnitude_scale = layers.Dense(1, activation='sigmoid', name=f'magnitude_{city_idx}')(city_x)
-        magnitude_scale = layers.Lambda(lambda x: x * 99.0 + 1.0, name=f'scale_{city_idx}')(magnitude_scale)
-        
-        # 3. Predict fine-tuning offset (smaller range)
-        offset = layers.Dense(24, activation='tanh', name=f'offset_{city_idx}')(city_x)
-        offset = layers.Lambda(lambda x: x * 100.0, name=f'offset_scale_{city_idx}')(offset)  # Reduced scale
-        
-        # 4. Combine: base_ghi * magnitude_scale + offset for better magnitude control
-        scaled_ghi = layers.Multiply(name=f'scaled_{city_idx}')([base_ghi, magnitude_scale])
-        city_output = layers.Add(name=f'city_{city_idx}')([scaled_ghi, offset])
-        
-        # 5. Apply final scaling to match target range
-        city_output = layers.Lambda(lambda x: x * 1000.0, name=f'final_scale_{city_idx}')(city_output)
-        
-        # 6. Ensure non-negative with softplus
+        # Ensure non-negative predictions with softplus
         city_output = layers.Activation('softplus', name=f'final_{city_idx}')(city_output)
         
         city_heads.append(city_output)
@@ -795,57 +779,23 @@ def main():
         # Compile model with aggressive learning rate, gradient clipping, and custom loss
         optimizer = tf.keras.optimizers.Adam(0.001, clipnorm=1.0)  # Gradient clipping
         
-        # Advanced multi-task loss function with magnitude-aware components
-        def advanced_magnitude_loss(y_true, y_pred):
-            # Reshape to separate cities
-            y_true_reshaped = tf.reshape(y_true, [-1, 5, 24])  # [batch, cities, hours]
-            y_pred_reshaped = tf.reshape(y_pred, [-1, 5, 24])  # [batch, cities, hours]
+        # Simple MSE loss with Huber for robustness
+        def custom_loss(y_true, y_pred):
+            # Basic MSE loss
+            mse_loss = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
             
-            # City-specific losses with magnitude awareness
-            city_losses = []
-            for city_idx in range(5):
-                city_true = y_true_reshaped[:, city_idx, :]  # [batch, 24]
-                city_pred = y_pred_reshaped[:, city_idx, :]  # [batch, 24]
-                
-                # 1. MSE loss for overall accuracy
-                mse_loss = tf.keras.losses.MeanSquaredError()(city_true, city_pred)
-                
-                # 2. Huber loss for robustness against outliers
-                huber_loss = tf.keras.losses.Huber(delta=1.0)(city_true, city_pred)
-                
-                # 3. Magnitude-aware loss: penalize more for high-magnitude errors
-                magnitude_penalty = tf.reduce_mean(tf.abs(city_true - city_pred) * tf.abs(city_true))
-                
-                # 4. Relative error loss: penalize relative differences
-                relative_error = tf.reduce_mean(tf.abs(city_true - city_pred) / (tf.abs(city_true) + 1e-8))
-                
-                # 5. Distribution matching loss: ensure predicted distribution matches actual
-                true_mean = tf.reduce_mean(city_true)
-                pred_mean = tf.reduce_mean(city_pred)
-                true_std = tf.math.reduce_std(city_true)
-                pred_std = tf.math.reduce_std(city_pred)
-                
-                distribution_loss = tf.abs(true_mean - pred_mean) + tf.abs(true_std - pred_std)
-                
-                # Combine all losses with weights optimized for absolute error reduction
-                city_loss = (0.5 * mse_loss + 
-                           0.2 * huber_loss + 
-                           0.15 * magnitude_penalty + 
-                           0.1 * relative_error + 
-                           0.05 * distribution_loss)
-                
-                city_losses.append(city_loss)
+            # Huber loss for robustness
+            huber_loss = tf.keras.losses.Huber(delta=1.0)(y_true, y_pred)
             
-            # Weighted combination of city losses (can be tuned per city)
-            city_weights = [1.0, 1.0, 1.0, 1.0, 1.0]  # Equal weights for now
-            weighted_loss = tf.reduce_sum([w * l for w, l in zip(city_weights, city_losses)])
+            # Combine losses
+            combined_loss = 0.7 * mse_loss + 0.3 * huber_loss
             
-            # Add L2 regularization with reduced penalty for better magnitude learning
-            l2_penalty = 0.0005 * tf.reduce_sum([tf.nn.l2_loss(w) for w in model.trainable_variables])
+            # Add minimal L2 regularization
+            l2_penalty = 0.0001 * tf.reduce_sum([tf.nn.l2_loss(w) for w in model.trainable_variables])
             
-            return weighted_loss + l2_penalty
+            return combined_loss + l2_penalty
         
-        model.compile(optimizer=optimizer, loss=advanced_magnitude_loss, metrics=['mae'])
+        model.compile(optimizer=optimizer, loss=custom_loss, metrics=['mae'])
         
         # Test model compilation
         print("\nTesting model compilation...")
@@ -869,10 +819,10 @@ def main():
 
         print("\nTraining model with early stopping...")
         
-        # Training parameters - OPTIMIZED FOR R² IMPROVEMENT
-        batch_size = 32  # Smaller batch size for better generalization
-        epochs = 500  # More epochs for better convergence
-        patience = 50  # More patience for early stopping
+        # Training parameters - Balanced for stability
+        batch_size = 16  # Small batch size for better generalization
+        epochs = 200  # Moderate number of epochs
+        patience = 25  # Moderate patience
         
         # Calculate steps per epoch
         total_graphs = len(dataset)
@@ -888,30 +838,22 @@ def main():
         # Training with advanced learning rate scheduling for R² optimization
         best_loss = float('inf')
         patience_counter = 0
-        initial_lr = 0.002  # Higher initial learning rate for better exploration
+        initial_lr = 0.001  # Moderate initial learning rate for stability
         
         for epoch in range(epochs):
             print(f"\nEpoch {epoch+1}/{epochs}")
             epoch_start_time = time.time()
             
-            # ADVANCED LEARNING RATE SCHEDULING FOR R² IMPROVEMENT
-            if epoch < 50:
-                # Extended warmup phase for stable training
-                current_lr = initial_lr * (epoch + 1) / 50
-            elif epoch < 150:
-                # High learning rate phase for exploration
+            # Simple learning rate schedule
+            if epoch < 20:
+                # Warmup phase
+                current_lr = initial_lr * (epoch + 1) / 20
+            elif epoch < 100:
+                # Full learning rate
                 current_lr = initial_lr
-            elif epoch < 300:
-                # Gradual decay phase
-                decay_factor = 1.0 - (epoch - 150) / 150 * 0.7
-                current_lr = initial_lr * decay_factor
-            elif epoch < 400:
-                # Fine-tuning phase with lower learning rate
-                current_lr = initial_lr * 0.3
             else:
-                # Final convergence phase with very low learning rate
-                progress = (epoch - 400) / (epochs - 400)
-                current_lr = initial_lr * 0.1 * (1 + np.cos(np.pi * progress)) / 2
+                # Gradual decay
+                current_lr = initial_lr * 0.5
             
             # Update learning rate
             tf.keras.backend.set_value(model.optimizer.learning_rate, current_lr)
