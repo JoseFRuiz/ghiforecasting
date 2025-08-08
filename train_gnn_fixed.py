@@ -377,17 +377,11 @@ def build_gnn_model(input_shape, output_units=120):  # 5 cities × 24 hours = 12
         city_x = layers.BatchNormalization()(city_x)
         city_x = layers.Dropout(0.2)(city_x)
         
-        # Output layer with built-in clipping
+        # Output layer with proper scaling
         city_output = layers.Dense(24, activation=None, name=f'base_{city_idx}')(city_x)
         
-        # Ensure non-negative predictions with softplus
-        city_output = layers.Activation('softplus', name=f'final_{city_idx}')(city_output)
-        
-        # Add clipping layer to constrain predictions
-        city_output = layers.Lambda(
-            lambda x: tf.clip_by_value(x, 0, 1.1),  # Clip to [0, 1.1] in normalized space
-            name=f'clip_{city_idx}'
-        )(city_output)
+        # Ensure non-negative predictions with ReLU (more stable than softplus)
+        city_output = layers.ReLU(name=f'relu_{city_idx}')(city_output)
         
         city_heads.append(city_output)
     
@@ -443,29 +437,16 @@ def evaluate_gnn_model(model, dataset, ghi_scaler, target_scaler, graph_dates, g
             y_true_original = target_scaler.inverse_transform(y_true_reshaped.reshape(-1, len(target_columns))).reshape(y_true_reshaped.shape)
             y_pred_original = target_scaler.inverse_transform(y_pred_reshaped.reshape(-1, len(target_columns))).reshape(y_pred_reshaped.shape)
             
-            # Clip predictions to reasonable GHI range based on training data
-            max_reasonable_ghi = target_stats['max'] * 1.1  # Allow 10% above max seen in training
-            y_pred_original = np.clip(y_pred_original, 0, max_reasonable_ghi)
+            # Ensure non-negative predictions
+            y_pred_original = np.maximum(y_pred_original, 0)
             
+            # Debug: Print detailed prediction analysis
             if batch_count <= 3:
-                print(f"\nClipping Analysis:")
-                print(f"  Max allowed GHI: {max_reasonable_ghi:.2f}")
-                print(f"  Values clipped: {np.sum(y_pred_original >= max_reasonable_ghi)}")
-            
-            # POST-PROCESSING: Calibrate predictions to reduce MAE/RMSE
-            # Calculate scaling factor based on actual vs predicted ranges
-            true_range = y_true_original.max() - y_true_original.min()
-            pred_range = y_pred_original.max() - y_pred_original.min()
-            
-            if pred_range > 0:
-                # Apply range-based calibration
-                scale_factor = true_range / pred_range
-                y_pred_original = y_pred_original * scale_factor
-                
-                # Apply mean-based calibration
-                true_mean = y_true_original.mean()
-                pred_mean = y_pred_original.mean()
-                y_pred_original = y_pred_original + (true_mean - pred_mean)
+                print(f"\nPrediction Analysis:")
+                print(f"  True values range: [{y_true_original.min():.2f}, {y_true_original.max():.2f}]")
+                print(f"  True values mean: {y_true_original.mean():.2f}")
+                print(f"  Predicted values range: [{y_pred_original.min():.2f}, {y_pred_original.max():.2f}]")
+                print(f"  Predicted values mean: {y_pred_original.mean():.2f}")
             
             # Debug: Print detailed prediction analysis
             if batch_count <= 3:
@@ -834,21 +815,18 @@ def main():
         # Compile model with aggressive learning rate, gradient clipping, and custom loss
         optimizer = tf.keras.optimizers.Adam(0.001, clipnorm=1.0)  # Gradient clipping
         
-        # Simple MSE loss with Huber for robustness
+        # Huber loss for better handling of outliers
         def custom_loss(y_true, y_pred):
-            # Basic MSE loss
-            mse_loss = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
+            # Ensure predictions are non-negative
+            y_pred = tf.nn.relu(y_pred)
             
-            # Huber loss for robustness
-            huber_loss = tf.keras.losses.Huber(delta=1.0)(y_true, y_pred)
-            
-            # Combine losses
-            combined_loss = 0.7 * mse_loss + 0.3 * huber_loss
+            # Huber loss for robustness to outliers
+            huber_loss = tf.keras.losses.Huber(delta=100.0)(y_true, y_pred)
             
             # Add minimal L2 regularization
             l2_penalty = 0.0001 * tf.reduce_sum([tf.nn.l2_loss(w) for w in model.trainable_variables])
             
-            return combined_loss + l2_penalty
+            return huber_loss + l2_penalty
         
         model.compile(optimizer=optimizer, loss=custom_loss, metrics=['mae'])
         
